@@ -42,7 +42,7 @@
 }
 
 .logo:hover {
-    transform: scale(1.1); /* Slightly enlarge the logo on hover */
+    transform: scale(1.1);
 }
 
 .nav-menu li {
@@ -61,27 +61,33 @@
 }
 
 .hamburger {
-    display: none;
+    display: none; /* Hidden by default */
 }
 
 @media screen and (max-width: 768px) {
     .hamburger {
-        display: flex;
+        display: flex; /* Show hamburger icon on mobile */
+        cursor: pointer; /* Change cursor to pointer */
     }
     .nav-menu {
-        display: none;
-        flex-direction: column;
-        position: absolute;
-        top: 90px;
+        display: none; /* Hide menu by default */
+        flex-direction: column; /* Stack items vertically */
+        position: absolute; /* Position absolutely */
+        top: 90px; /* Below the header */
         right: 0;
-        background-color: white;
-        width: 100%;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        background-color: white; /* Background for dropdown */
+        width: 100%; /* Full width */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for dropdown */
     }
     .nav-menu.active {
-        display: flex;
+        display: flex; /* Show when active */
+    }
+    .nav-menu li {
+        padding: 1rem; /* Add padding for touch targets */
+        text-align: center; /* Center text */
     }
 }
+
 .home{
     color: black;
 
