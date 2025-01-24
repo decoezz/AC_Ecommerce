@@ -1,7 +1,11 @@
 import React, { useState } from 'react'
 import { FaBars, FaTimes } from 'react-icons/fa'
+import { Link } from 'react-router-dom'
 import "./Nav.css";
-export default function Nav({children}) {
+import logo from '../assets/logoAC.png'; // Adjust the path as necessary
+import cartlogo from '../assets/cartlogo.png'; // Ensure this path is correct
+
+export default function Nav() {
   const [click, setClick] = useState(false)
 
   const handleClick = () => {
@@ -11,23 +15,26 @@ export default function Nav({children}) {
   return (
     <div className="header">
       <div className="container">
-        <h1 className="logo" href="/">Desin</h1>
+        <img className="logo" src={logo} alt="logo" />
         <ul className={click ? "nav-menu active" : "nav-menu"}>
           <li>
-            <a href="/">Home</a>
+            <Link to="/">Home</Link>
           </li>
           <li>
-            <a href="/">Featured</a>
+            <Link to="/shop">Shop</Link>
           </li>
           <li>
-            <a href="/">Earn</a>
+            <Link to="/about">About Us</Link>
           </li>
           <li>
-            <a href="/">Contact</a>
+            <Link to="/contact">Contact Us</Link>
+          </li>
+          <li>
+            <Link to="/cart">
+              <img className="cart-logo" src={cartlogo} alt="Cart" />
+            </Link>
           </li>
         </ul>
-        <div className="btn-group">
-        </div>
         <div className="hamburger" onClick={handleClick}>
           {click ? (
             <FaTimes size={20} style={{ color: "#333" }} />
@@ -39,3 +46,5 @@ export default function Nav({children}) {
     </div>
   );
 }
+
+
