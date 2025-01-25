@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
-import './CreateAccount.module.css'; // Ensure this CSS file is correctly linked
+import styles from "./CreateAccount.module.css";
 
 const CreateAccount = () => {
     const [firstName, setFirstName] = useState('');
@@ -22,57 +22,62 @@ const CreateAccount = () => {
     };
 
     return (
-        <div className="create-account">
-            <h2>Create Account</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>First Name:</label>
+        <div className={styles.createAccount}>
+            <h2 className={styles.createAccount__title}>Create Account</h2>
+            <form onSubmit={handleSubmit} className={styles.createAccount__form}>
+                <div className={styles.createAccount__inputContainer}>
+                    <label className={styles.createAccount__label}>First Name:</label>
                     <input
                         type="text"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required
+                        className={styles.createAccount__input}
                     />
                 </div>
-                <div>
-                    <label>Last Name:</label>
+                <div className={styles.createAccount__inputContainer}>
+                    <label className={styles.createAccount__label}>Last Name:</label>
                     <input
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         required
+                        className={styles.createAccount__input}
                     />
                 </div>
-                <div>
-                    <label>Email:</label>
+                <div className={styles.createAccount__inputContainer}>
+                    <label className={styles.createAccount__label}>Email:</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        className={styles.createAccount__input}
                     />
                 </div>
-                <div>
-                    <label>Password:</label>
+                <div className={styles.createAccount__inputContainer}>
+                    <label className={styles.createAccount__label}>Password:</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className={styles.createAccount__input}
                     />
                 </div>
-                <div>
-                    <label>Confirm Password:</label>
+                <div className={styles.createAccount__inputContainer}>
+                    <label className={styles.createAccount__label}>Confirm Password:</label>
                     <input
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
+                        className={styles.createAccount__input}
                     />
                 </div>
-                <button type="submit">Create Account</button>
+                <button type="submit" className={styles.createAccount__button}>Create Account</button>
             </form>
-            <p>
+            <p className={styles.createAccount__link}>
                 Already have an account? <Link to="/">Login here</Link>
             </p>
         </div>

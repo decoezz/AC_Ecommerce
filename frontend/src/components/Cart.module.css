@@ -1,4 +1,4 @@
-.about {
+.cart {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -12,7 +12,7 @@
     animation: fadeIn 1s ease-in-out;
 }
 
-.about__title {
+.cart__title {
     font-size: 2rem;
     margin-bottom: 1.5rem;
     color: #333;
@@ -20,17 +20,16 @@
     animation: fadeIn 1s ease-in-out;
 }
 
-.about__content {
+.cart__content {
     width: 100%;
     animation: slideIn 1s ease-in-out;
 }
 
-.about__description {
+.cart__message {
     font-size: 1rem;
     text-align: center;
-    margin-bottom: 1rem;
-    line-height: 1.6;
     color: #555;
+    line-height: 1.6;
 }
 
 @keyframes fadeIn {

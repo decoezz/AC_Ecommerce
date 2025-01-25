@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
-import './Login.module.css'; // Ensure this CSS file is correctly linked
+import styles from "./Login.module.css";
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -17,33 +17,33 @@ const Login = () => {
     };
 
     return (
-        <div className="login-container">
-            <h2 className="login-title">Login</h2>
-            <form className="login-form" onSubmit={handleSubmit}>
-                <div className="login-input-container">
-                    <label className="login-label">Username:</label>
+        <div className={styles.login}>
+            <h2 className={styles.login__title}>Login</h2>
+            <form className={styles.login__form} onSubmit={handleSubmit}>
+                <div className={styles.login__inputContainer}>
+                    <label className={styles.login__label}>Username:</label>
                     <input
-                        className="login-input"
+                        className={styles.login__input}
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                     />
                 </div>
-                <div className="login-input-container">
-                    <label className="login-label">Password:</label>
+                <div className={styles.login__inputContainer}>
+                    <label className={styles.login__label}>Password:</label>
                     <input
-                        className="login-input"
+                        className={styles.login__input}
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
                 </div>
-                <button className="login-button" type="submit">Login</button>
+                <button className={styles.login__button} type="submit">Login</button>
             </form>
-            <p className="login-link">
-                Don't have an account? <Link className="login-link-text" to="/create-account">Create one here</Link>
+            <p className={styles.login__link}>
+                Don't have an account? <Link to="/create-account">Create one here</Link>
             </p>
         </div>
     );
