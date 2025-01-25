@@ -6,9 +6,11 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
+const AppError = require('./utils/appError');
 const globalErrorHandler = require('./middleware/errorMiddleware');
 const userRouter = require('./routes/userRoutes');
-const AppError = require('./utils/appError');
+const productRouter = require('./routes/productRoutes');
+const orderRouter = require('./routes/orderRoutes');
 const app = express();
 //All the utils needed for security and other utils
 app.use(express.json());
@@ -34,6 +36,8 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10kb' }));
 //Set up routes
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/products', productRouter);
+app.use('/api/v1/orders', orderRouter);
 //Handle undefined routes
 app.all('*', (req, res, next) => {
   next(new AppError(`can\'t find ${req.originalUrl} on this server!`, 404));

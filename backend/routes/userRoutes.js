@@ -9,9 +9,12 @@ router.post(
   restrictTo('Admin'),
   userController.SignupEmployee
 );
-router.get('/logout', protect, userController.logout);
+router.get('/', protect, restrictTo('Admin'), userController.getAllUsers);
+router.delete('/:id', protect, restrictTo('Admin'), userController.DeleteUser);
 //Public routes
+router.get('/me', protect, userController.me);
+router.get('/:id', userController.getUser);
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
-
+router.get('/logout', protect, userController.logout);
 module.exports = router;

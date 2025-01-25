@@ -61,6 +61,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'suez',
     },
+    orders: [
+      {
+        orderId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Order',
+        },
+        orderedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     versionKey: false,
@@ -69,8 +81,8 @@ const userSchema = new mongoose.Schema(
 //Hash the password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 16);
-  this.passwordConfirm = undefined; // Don't save the passwordConfirm field in DB
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
   next();
 });
 //Password comparison
