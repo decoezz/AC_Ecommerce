@@ -10,7 +10,7 @@ const About = () => {
                     Welcome to our company! We are dedicated to providing the best service. Our mission is to deliver high-quality products and exceptional customer service.
                 </p>
                 <p className={styles.about__description}>
-                    With years of experience in the industry, we strive to meet the needs of our customers and exceed their expectations.
+                    With years of experience in the industry, we strive to meet the needs of our customers and exceed their expectations still.
                 </p>
             </div>
         </div>
