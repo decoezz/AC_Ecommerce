@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import "./Nav.css";
 import logo from '../assets/logoAC.png'; // Adjust the path as necessary
 import cartlogo from '../assets/cartlogo.png'; // Ensure this path is correct
-import homelogo from '../assets/home.png'; // Ensure this path is correct
 import aboutlogo from '../assets/aboutas.png'; // Ensure this path is correct
 import userlogo from '../assets/user.png'; // Ensure this path is correct
 import Search from './Search';
@@ -19,7 +18,7 @@ export default function Nav() {
   return (
     <div className="header">
       <div className="container">
-        <Link to="/"><img className="logo" src={logo} alt="logo" /></Link>
+        <Link to="/home"><img className="logo" src={logo} alt="logo" /></Link>
         <div className="hamburger" onClick={handleClick}>
           {click ? (
             <FaTimes size={20} style={{ color: "#333" }} />

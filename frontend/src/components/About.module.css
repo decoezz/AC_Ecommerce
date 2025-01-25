@@ -1,0 +1,23 @@
+.about {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.about__title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.about__description {
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    line-height: 1.5;
+    padding: 0 1rem;
+    color: #333;
+}

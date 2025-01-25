@@ -1,11 +1,16 @@
 .header {
     width: 100%;
-    height: 90px;
+    height: 70px; /* Reduced height */
     background: white;
-    position: sticky;
+    position: fixed; /* Fixed position for scrolling effect */
     top: 0;
     z-index: 10;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.header:hover {
+    background-color: #f5f5f5;
 }
 
 .container {
@@ -33,8 +38,8 @@
 }
 
 .logo {
-    width: 100px;
-    height: 100px; 
+    width: 80px; /* Reduced size */
+    height: 80px; /* Reduced size */
     border-radius: 50%;
     cursor: pointer;
     transition: transform 0.3s ease-in-out;
@@ -73,7 +78,7 @@
         display: none; /* Hide menu by default */
         flex-direction: column; /* Stack items vertically */
         position: absolute; /* Position absolutely */
-        top: 90px; /* Below the header */
+        top: 70px; /* Adjusted to new header height */
         right: 0;
         background-color: white; /* Background for dropdown */
         width: 100%; /* Full width */
@@ -88,9 +93,8 @@
     }
 }
 
-.home{
+.home {
     color: black;
-
 }
 
 .cart-logo {
@@ -103,5 +107,13 @@
 
 .cart-logo:hover {
     transform: scale(1.1);
+}
+
+body {
+    margin-top: 70px; /* Offset content for fixed header */
+}
+
+.scroll-up {
+    transform: translateY(-70px); /* Slide up effect */
 }
 
