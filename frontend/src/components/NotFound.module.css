@@ -17,8 +17,6 @@
 
 .permission_denied {
   background: #24344c !important;
-  position: relative;
-  z-index: 1;
 }
 
 .permission_denied a {
@@ -70,43 +68,30 @@
   width: 100%;
 }
 
-.button-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  position: relative;
-  z-index: 2;
-}
-
 .denied__link {
   background: none;
   color: #fff;
-  padding: 12px 30px;
+  padding: 12px 0 10px;
   border: 1px solid #fff;
   outline: none;
   border-radius: 7px;
+  width: 150px;
   font-size: 15px;
   text-align: center;
-  cursor: pointer;
+  margin: 0 auto;
+  vertical-align: middle;
+  display: block;
+  margin-bottom: 40px;
+  margin-top: 25px;
   font-family: "Dosis", sans-serif;
   font-weight: 400;
-  transition: all 0.3s ease-in-out;
-  min-width: 150px;
-  position: relative;
-  z-index: 3;
 }
 
 .denied__link:hover {
   color: #ffbb39;
   border-color: #ffbb39;
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 10px rgba(255, 187, 57, 0.2);
-}
-
-.denied__link:active {
-  transform: translateY(0);
+  cursor: pointer;
+  opacity: 1;
 }
 
 .permission_denied .stars {
@@ -128,6 +113,13 @@
   right: 20px;
   top: 210px;
   animation: spin 4.5s infinite linear;
+}
+
+#planet {
+  width: 100px;
+  position: absolute;
+  right: 20px;
+  top: 150px;
 }
 
 @keyframes spin {
@@ -157,6 +149,11 @@
     right: 40px;
     top: 170px;
   }
+  #planet {
+    width: 70px;
+    right: 40px;
+    top: 120px;
+  }
 }
 
 .saturn,
@@ -172,9 +169,5 @@
   100% {
     transform: translateY(-3px);
   }
-}
-
-#tsparticles {
-  z-index: 0 !important;
 }
 

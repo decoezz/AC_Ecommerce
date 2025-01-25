@@ -2,9 +2,11 @@ import React from 'react';
 import './NotFound.css'; // Ensure this CSS file is correctly linked
 import astronaut from '../assets/astronaut.svg'; // Adjust the path as necessary
 import planet from '../assets/planet.svg'; // Adjust the path as necessary
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { useNavigate } from 'react-router-dom';
 
 const NotFound = () => {
+    const navigate = useNavigate();
+
     return (
         <div className="permission_denied">
             <div id="tsparticles"></div>
@@ -15,13 +17,19 @@ const NotFound = () => {
                 </h3>
                 <img id="astronaut" src={astronaut} alt="Astronaut" />
                 <img id="planet" src={planet} alt="Planet" />
-                <Link to="/">
-                    <button className="denied__link">Go Home</button>
-                </Link>
+                <div className="button-container">
+                    <button 
+                        type="button"
+                        onClick={() => navigate('/home')} 
+                        className="denied__link"
+                    >
+                        Go Home
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
 
-export default NotFound; 
+export default NotFound;
 
