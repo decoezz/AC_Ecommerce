@@ -22,10 +22,7 @@ app.use(cookieParser());
 app.use(hpp({ whitelist: ['sort', 'filter'] }));
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === 'development'
-        ? 'http://localhost:4000'
-        : 'https://yourfrontend.com', // will change it later to the domain of the actual website
+    origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204,
@@ -37,7 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 // Serve Static files like images
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'frontend', 'public')));
 //Using rate limit
 const limiter = rateLimit({
   max: 100,
