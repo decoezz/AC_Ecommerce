@@ -33,16 +33,17 @@ const orderSchema = mongoose.Schema({
     required: true,
     validate: {
       validator: function (value) {
-        return /^(\+20)?\d{10}$/.test(value);
+        return /^(\+201|01)\d{9}$/.test(value);
       },
       message:
-        'Mobile number must be a valid 10-digit number with an optional +20 country code',
+        'Mobile number must be an 11-digit number, starting with 01 or +20.',
     },
   },
   orderStatus: {
     type: String,
     required: true,
-    deafult: 'on hold',
+    enum: ['on hold', 'processing', 'shipped', 'delivered', 'canceled'],
+    default: 'on hold',
   },
   totalAmount: {
     type: Number,

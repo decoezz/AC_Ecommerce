@@ -15,10 +15,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: function (value) {
-          return /^(\+20)?\d{10}$/.test(value);
+          return /^(\+20)?\d{9}$/.test(value);
         },
         message:
-          'Mobile number must be a valid 10-digit number with an optional +20 country code',
+          'Mobile number must be a valid 9-digit number with an optional +20 country code',
       },
     },
     email: { type: String, required: true, unique: true },
