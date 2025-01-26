@@ -1,32 +1,48 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
-import styles from "./Login.module.css";
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import styles from './Login.module.css';
 
 const Login = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(''); // State for error handling
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Handle login logic here
-        console.log('Username:', username);
-        console.log('Password:', password);
-        // Reset fields after submission
-        setUsername('');
-        setPassword('');
+        setError(''); // Clear previous errors
+        try {
+            const response = await axios.post('http://127.0.0.1:4000/api/v1/users/login', {
+                email,
+                password,
+            });
+            console.log('Login successful:', response.data);
+
+            // Reset fields after successful login
+            setEmail('');
+            setPassword('');
+
+            // Redirect or perform additional actions here
+        } catch (err) {
+            console.error('Login failed:', err);
+            setError(
+                err.response?.data?.message || 'An error occurred during login. Please try again.'
+            );
+        }
     };
 
     return (
         <div className={styles.login}>
             <h2 className={styles.login__title}>Login</h2>
             <form className={styles.login__form} onSubmit={handleSubmit}>
+                {error && <p className={styles.login__error}>{error}</p>}
                 <div className={styles.login__inputContainer}>
-                    <label className={styles.login__label}>Username:</label>
+                    <label className={styles.login__label}>Email:</label>
                     <input
                         className={styles.login__input}
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>
@@ -40,7 +56,9 @@ const Login = () => {
                         required
                     />
                 </div>
-                <button className={styles.login__button} type="submit">Login</button>
+                <button className={styles.login__button} type="submit">
+                    Login
+                </button>
             </form>
             <p className={styles.login__link}>
                 Don't have an account? <Link to="/create-account">Create one here</Link>
@@ -49,4 +67,4 @@ const Login = () => {
     );
 };
 
-export default Login; 
+export default Login;
