@@ -3,7 +3,7 @@ User/Admin routes:
 POST http://127.0.0.1:4000/api/v1/users/signup (Sign up for nomral users)
 Body:name,mobileNumber,email,password,passwordConfirm
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/users/signup (Sign up for employees users)
+POST http://127.0.0.1:4000/api/v1/users/admin/signup (Sign up for employees users)
 Protected,need admin
 Body:name,mobileNumber,email,password,passwordConfirm
 --------------------------------------------------------------------------

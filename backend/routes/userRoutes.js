@@ -5,7 +5,7 @@ const validateObjectId = require('../utils/validateObjectId');
 const router = express.Router();
 //Private routes for admin only and logged in only
 router.post(
-  '/signup',
+  '/admin/signup',
   protect,
   restrictTo('Admin'),
   userController.SignupEmployee
