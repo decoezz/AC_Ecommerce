@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: function (value) {
-          return /^(\+20)?\d{9}$/.test(value);
+          return /^(\+201|01)\d{9}$/.test(value);
         },
         message:
           'Mobile number must be a valid 9-digit number with an optional +20 country code',

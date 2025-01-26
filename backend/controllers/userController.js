@@ -1,9 +1,8 @@
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const ApiFeatures = require('../utils/apiFeatures');
-const validateObjectId = require('../utils/validateObjectId ');
-const checkProductExists = require('../utils/checkProductExists');
 const User = require('../models/userModel');
 const singToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -115,7 +114,6 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 //Get certain User
 exports.getUser = catchAsync(async (req, res, next) => {
   const userId = req.params.id;
-  validateObjectId(userId);
   const user = await User.findOne({ _id: userId });
   if (!user || user.role === 'Admin' || user.role === 'employee') {
     return next(
@@ -133,7 +131,6 @@ exports.getUser = catchAsync(async (req, res, next) => {
 //Delete Certain User
 exports.DeleteUser = catchAsync(async (req, res, next) => {
   const userId = req.params.id;
-  validateObjectId(userId);
   const user = await User.findById({ _id: userId });
   if (!user) {
     return next(
@@ -160,4 +157,3 @@ exports.me = catchAsync(async (req, res, next) => {
     },
   });
 });
-

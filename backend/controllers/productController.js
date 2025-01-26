@@ -5,7 +5,6 @@ const ApiFeatures = require('../utils/apiFeatures');
 const AC = require('../models/acModel');
 const Review = require('../models/reviewModel');
 const { validateProductData } = require('../utils/validateProductData');
-const validateObjectId = require('../utils/validateObjectId ');
 const checkProductExists = require('../utils/checkProductExists');
 const { validateUpdateProduct } = require('../utils/validateUpdateProduct');
 exports.createProduct = catchAsync(async (req, res, next) => {
@@ -49,8 +48,6 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
 
 exports.getProduct = catchAsync(async (req, res, next) => {
   const acId = req.params.id;
-  // Validate if the ID is a valid MongoDB ObjectId
-  validateObjectId(acId);
   const Ac = await AC.findById(acId);
   if (!Ac) {
     return next(
@@ -68,7 +65,6 @@ exports.getProduct = catchAsync(async (req, res, next) => {
 
 exports.UpdateProduct = catchAsync(async (req, res, next) => {
   const productId = req.params.id;
-  validateObjectId(productId);
   checkProductExists(productId);
   const validateData = validateUpdateProduct(req.body);
   const newProduct = await AC.findByIdAndUpdate(productId, validateData, {
@@ -86,7 +82,6 @@ exports.UpdateProduct = catchAsync(async (req, res, next) => {
 
 exports.deleteProduct = catchAsync(async (req, res, next) => {
   const productId = req.params.id;
-  validateObjectId(productId);
   checkProductExists(productId);
   await AC.deleteOne({ _id: productId });
   res.status(204).json({
@@ -95,5 +90,3 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
-
-

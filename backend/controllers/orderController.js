@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const User = require('../models/userModel');
@@ -5,7 +6,6 @@ const Review = require('../models/reviewModel');
 const Order = require('../models/orderModel');
 const AC = require('../models/acModel');
 const { validateProductData } = require('../utils/validateProductData');
-const validateObjectId = require('../utils/validateObjectId ');
 const checkProductExists = require('../utils/checkProductExists');
 const { validateUpdateProduct } = require('../utils/validateUpdateProduct');
 const {
@@ -17,7 +17,6 @@ const { validateOrderData } = require('../utils/validateOrderData');
 //Getting User orders
 exports.getUsersOrders = catchAsync(async (req, res, next) => {
   const userId = req.params.id;
-  validateObjectId(userId);
   const user = await User.findById(userId).populate({
     path: 'orders.orderId',
     select: 'products totalAmount orderedAt',
@@ -107,7 +106,6 @@ exports.getOrders = catchAsync(async (req, res, next) => {
 //Getting a certain order
 exports.getOrder = catchAsync(async (req, res, next) => {
   const orderId = req.params.id;
-  validateObjectId(orderId);
   const order = await Order.findById(orderId);
   if (!order) {
     return next(
