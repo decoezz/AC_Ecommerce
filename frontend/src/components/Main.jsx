@@ -9,6 +9,10 @@ import About from "./About.jsx";
 import Home from "./Home.jsx";
 import Login from "./Login.jsx";
 import CreateAccount from "./CreateAccount.jsx";
+import UserProfile from "./UserProfile.jsx";
+import AllUsers from "./AllUsers.jsx";
+import ManageProducts from "./ManageProducts.jsx";
+import ViewOrders from "./ViewOrders.jsx";
 import '../styles/global.css';
 
 export default function Main() {
@@ -25,6 +29,10 @@ export default function Main() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
               <Route path="/create-account" element={<CreateAccount />} />
+              <Route path="/profile" element={<UserProfile />} />
+              <Route path="/users" element={<AllUsers />} />
+              <Route path="/manage-products" element={<ManageProducts />} />
+              <Route path="/view-orders" element={<ViewOrders />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
