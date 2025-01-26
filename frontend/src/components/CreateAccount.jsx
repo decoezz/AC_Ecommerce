@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './CreateAccount.module.css';
 
 const CreateAccount = () => {
@@ -11,26 +10,72 @@ const CreateAccount = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
+
+    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const validateMobileNumber = (mobile) => /^[0-9]{10,15}$/.test(mobile);
+    const getPasswordStrength = (password) => {
+        if (password.length >= 12 && /[A-Z]/.test(password) && /\d/.test(password)) {
+            return 'Strong';
+        } else if (password.length >= 8) {
+            return 'Medium';
+        }
+        return 'Weak';
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
 
+        if (!validateEmail(email)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+
+        if (!validateMobileNumber(mobileNumber)) {
+            setError('Mobile number should contain 10-15 digits.');
+            return;
+        }
+
         if (password !== confirmPassword) {
             setError('Passwords do not match.');
             return;
         }
 
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters long.');
+            return;
+        }
+
+        setIsSubmitting(true);
+
         try {
-            const response = await axios.post('http://127.0.0.1:4000/api/v1/users/signup', {
-                name,
-                mobileNumber,
-                email,
-                password,
-                passwordConfirm: confirmPassword,
+            const apiUrl = `${import.meta.env.VITE_API_URL}/users/signup`;
+            console.log('API URL:', apiUrl);
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name,
+                    mobileNumber,
+                    email,
+                    password,
+                    passwordConfirm: confirmPassword,
+                }),
             });
-            console.log('Account created successfully:', response.data);
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(errorData || 'An error occurred. Please try again.');
+            }
+
+            const data = await response.json();
+            console.log('Account created successfully:', data);
 
             setSuccess('Account created successfully! You can now log in.');
             setName('');
@@ -40,9 +85,9 @@ const CreateAccount = () => {
             setConfirmPassword('');
         } catch (err) {
             console.error('Error creating account:', err);
-            setError(
-                err.response?.data?.message || 'An error occurred. Please try again.'
-            );
+            setError(err.message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -114,3 +159,4 @@ const CreateAccount = () => {
 };
 
 export default CreateAccount;
+
