@@ -14,8 +14,15 @@ import AllUsers from "./AllUsers.jsx";
 import ManageProducts from "./ManageProducts.jsx";
 import ViewOrders from "./ViewOrders.jsx";
 import '../styles/global.css';
+import UserHome from "./UserHome.jsx";
 
 export default function Main() {
+  const userData = localStorage.getItem('user');
+  const user = userData ? JSON.parse(userData) : null;
+
+  console.log("User Data:", userData);
+  console.log("Parsed User:", user);
+
   return (
     <IconContext.Provider value={{ color: "white", size: "2.5rem" }}>
       <Router>
@@ -23,8 +30,9 @@ export default function Main() {
           <Nav />
           <main className="main-content">
             <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/home" element={<Home />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/shop" element={<Home />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
@@ -33,6 +41,7 @@ export default function Main() {
               <Route path="/users" element={<AllUsers />} />
               <Route path="/manage-products" element={<ManageProducts />} />
               <Route path="/view-orders" element={<ViewOrders />} />
+              <Route path="/user-home" element={<UserHome />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

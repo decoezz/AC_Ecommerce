@@ -1,23 +1,22 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import styles from "./Home.module.css";
 
 const Home = () => {
-    // Retrieve user data from local storage
-    const userData = localStorage.getItem('user'); // Get the user data as a string
-    const user = userData ? JSON.parse(userData) : null; // Parse only if userData is not null
-
     return (
         <div className={styles.home}>
-            <h2 className={styles.home__title}>Home</h2>
+            <h2 className={styles.home__title}>Welcome to Our E-Commerce Site</h2>
             <div className={styles.home__content}>
-                {user ? (
-                    <h2>Hello, {user.name}!</h2> // Display user's name
-                ) : (
-                    <h2>Please log in to see your account details.</h2>
-                )}
+                <p className={styles.home__description}>
+                    Thank you for visiting our e-commerce site. Here are some quick links to get you started:
+                </p>
+                <ul className={styles.home__links}>
+                    <li><Link to="/products">View Products</Link></li>
+                </ul>
             </div>
         </div>
     );
 };
 
 export default Home;
+

@@ -17,11 +17,19 @@ const Login = () => {
                 email,
                 password,
             });
-            localStorage.setItem('user', JSON.stringify(response.data.data));
+            const user = response.data.data;
+            localStorage.setItem('user', JSON.stringify(user));
             localStorage.setItem('token', response.data.token);
             setEmail('');
             setPassword('');
-            navigate('/home');
+
+            if (user.role === 'admin') {
+                navigate('/shop');
+            } else if (user.role === 'employee') {
+                navigate('/shop');
+            } else {
+                navigate('/shop');
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
         }

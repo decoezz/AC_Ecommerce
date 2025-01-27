@@ -18,7 +18,7 @@ export default function Nav() {
   return (
     <nav className="header">
       <div className="container">
-        <Link to="/home">
+        <Link to="/shop">
           <img className="logo" src={logo} alt="Company Logo" />
         </Link>
         <div className="hamburger" onClick={handleClick} aria-label="Toggle navigation">
