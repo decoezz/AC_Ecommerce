@@ -13,22 +13,40 @@ const Login = () => {
         e.preventDefault();
         setError('');
         try {
+            // Step 1: Log in the user
             const response = await axios.post(`${import.meta.env.VITE_API_URL}/users/login`, {
                 email,
                 password,
             });
-            const user = response.data.data;
-            localStorage.setItem('user', JSON.stringify(user));
-            localStorage.setItem('token', response.data.token);
-            setEmail('');
-            setPassword('');
+            const token = response.data.token;
+            localStorage.setItem('token', token); // Store the token
 
-            if (user.role === 'admin') {
-                navigate('/admin-home');
-            } else if (user.role === 'employee') {
-                navigate('/employee-home');
-            } else {
-                navigate('/user-home');
+            // Step 2: Fetch the current user data to get the role
+            const userResponse = await axios.get(`${import.meta.env.VITE_API_URL}/users/me`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const user = userResponse.data.data.user; // Access the user object correctly
+            localStorage.setItem('user', JSON.stringify(user)); // Store user data
+
+            // Log the user role for debugging
+            console.log("User Role:", user.role);
+
+            // Step 3: Redirect based on user role
+            switch (user.role) {
+                case 'admin':
+                    navigate('/admin-home');
+                    break;
+                case 'employee':
+                    navigate('/employee-home');
+                    break;
+                case 'user':
+                    navigate('/user-home');
+                    break;
+                default:
+                    navigate('/'); // Redirect to home or login if role is unknown
+                    break;
             }
         } catch (err) {
             setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
