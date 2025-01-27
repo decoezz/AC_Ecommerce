@@ -1,0 +1,58 @@
+/* SearchUser.module.css */
+.searchUser {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px; /* Limit the width for better readability */
+    margin: auto; /* Center the component */
+}
+
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center; /* Center the title */
+}
+
+.searchInputContainer {
+    display: flex;
+    justify-content: center; /* Center the input and button */
+    margin-bottom: 20px;
+}
+
+.searchInput {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1; /* Allow input to take available space */
+    margin-right: 10px; /* Space between input and button */
+}
+
+.searchButton {
+    padding: 10px 15px;
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s; /* Smooth transition */
+}
+
+.searchButton:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+.userData {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.error {
+    color: red;
+    margin-top: 10px;
+    text-align: center; /* Center the error message */
+} 

@@ -1,52 +1,14 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
-import styles from "./AdminHome.module.css";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FaProductHunt, FaListAlt, FaUsers } from 'react-icons/fa';
+import styles from "./AdminHome.module.css";
 
 const AdminHome = () => {
-    const [name, setName] = useState('');
-    const [mobileNumber, setMobileNumber] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [passwordConfirm, setPasswordConfirm] = useState('');
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
-    const handleCreateEmployee = async (e) => {
-        e.preventDefault();
-        setMessage('');
-        setError('');
-
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setError('No token found. Please log in.');
-            return;
-        }
-
-        try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/users/admin/signup`, {
-                name,
-                mobileNumber,
-                email,
-                password,
-                passwordConfirm,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            setMessage('Employee account created successfully!');
-            // Clear the form fields
-            setName('');
-            setMobileNumber('');
-            setEmail('');
-            setPassword('');
-            setPasswordConfirm('');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create employee account.');
-        }
+    const handleLogout = () => {
+        localStorage.removeItem('token'); // Remove the token
+        navigate('/login'); // Redirect to login page
     };
 
     return (
@@ -75,9 +37,11 @@ const AdminHome = () => {
                         <h3>Create Employee Account</h3>
                         <p>Add new employee accounts.</p>
                     </Link>
+                    <Link to="/search-user" className={styles.adminHome__card}>
+                        <h3>Search User by ID</h3>
+                        <p>Find user details by their ID.</p>
+                    </Link>
                 </div>
-
-                
             </div>
         </div>
     );
