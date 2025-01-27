@@ -1,34 +1,69 @@
 .adminHome {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin: 2rem auto;
-    max-width: 800px;
+    background-color: #f4f7fa; /* Light background for a modern look */
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .adminHome__title {
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 20px;
     color: #333;
-}
-
-.adminHome__links {
-    list-style-type: none;
-    padding: 0;
-    margin-bottom: 20px;
-}
-
-.adminHome__links li {
-    margin: 0.5rem 0;
+    text-align: center; /* Center the title */
 }
 
 .adminHome__content {
     margin-top: 20px;
+    text-align: center; /* Center content */
+}
+
+.adminHome__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Space between cards */
+    justify-content: center; /* Center cards */
+    margin-bottom: 20px;
+}
+
+.adminHome__card {
+    flex: 1 1 calc(30% - 20px); /* Responsive card size */
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.adminHome__card:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.adminHome__icon {
+    font-size: 50px; /* Larger icon size */
+    color: #007bff; /* Bootstrap primary color */
+    margin-bottom: 10px;
+}
+
+.graphContainer {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.graphPlaceholder {
+    height: 300px; /* Placeholder height for graphs */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #007bff; /* Dashed border for visual indication */
+    border-radius: 12px;
+    color: #aaa; /* Light gray color for placeholder text */
+    font-size: 18px; /* Slightly larger font for placeholder */
 }
 
 .createEmployeeForm {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaProductHunt, FaListAlt, FaUsers } from 'react-icons/fa';
+import { FaProductHunt, FaListAlt, FaUsers, FaUserPlus, FaSearch, FaTrash } from 'react-icons/fa';
 import axios from "axios";
 import styles from "./AdminHome.module.css";
 
@@ -61,22 +61,31 @@ const AdminHome = () => {
                         <p>Manage user accounts and permissions.</p>
                     </Link>
                     <Link to="/create-employee" className={styles.adminHome__card}>
+                        <FaUserPlus className={styles.adminHome__icon} />
                         <h3>Create Employee Account</h3>
                         <p>Add new employee accounts.</p>
                     </Link>
                     <Link to="/search-user" className={styles.adminHome__card}>
+                        <FaSearch className={styles.adminHome__icon} />
                         <h3>Search User by ID</h3>
                         <p>Find user details by their ID.</p>
                     </Link>
                     <Link to="/delete-user" className={styles.adminHome__card}>
+                        <FaTrash className={styles.adminHome__icon} />
                         <h3>Delete User by ID</h3>
                         <p>Remove a user from the system.</p>
                     </Link>
                 </div>
-
-                
-            </div>  
+                <div className={styles.graphContainer}>
+                    <h3>Graphs and Analytics</h3>
+                    <div className={styles.graphPlaceholder}>
+                        {/* Placeholder for future graphs */}
+                        <p>Graph area (to be implemented)</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    );};
+    );
+};
 
 export default AdminHome; 
