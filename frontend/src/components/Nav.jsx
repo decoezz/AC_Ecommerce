@@ -16,10 +16,12 @@ export default function Nav() {
   }
 
   return (
-    <div className="header">
+    <nav className="header">
       <div className="container">
-        <Link to="/home"><img className="logo" src={logo} alt="logo" /></Link>
-        <div className="hamburger" onClick={handleClick}>
+        <Link to="/shop">
+          <img className="logo" src={logo} alt="Company Logo" />
+        </Link>
+        <div className="hamburger" onClick={handleClick} aria-label="Toggle navigation">
           {click ? (
             <FaTimes size={20} style={{ color: "#333" }} />
           ) : (
@@ -29,23 +31,23 @@ export default function Nav() {
         <Search/>
         <ul className={click ? "nav-menu active" : "nav-menu"}>
           <li>
-            <Link to="/contact">
-              <img className="cart-logo" src={userlogo} alt="user" />
+            <Link to="/profile" aria-label="User Profile">
+              <img className="nav-icon" src={userlogo} alt="User Profile" />
             </Link>
           </li>
           <li>
-            <Link to="/cart">
-              <img className="cart-logo" src={cartlogo} alt="Cart" />
+            <Link to="/cart" aria-label="Shopping Cart">
+              <img className="nav-icon" src={cartlogo} alt="Cart" />
             </Link>
           </li>
           <li>
-            <Link to="/about">
-              <img className="cart-logo" src={aboutlogo} alt="about" />
+            <Link to="/about" aria-label="About Us">
+              <img className="nav-icon" src={aboutlogo} alt="About" />
             </Link>
           </li>
         </ul>
       </div>
-    </div>
+    </nav>
   );
 }
 

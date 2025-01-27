@@ -35,7 +35,7 @@ app.use((req, res, next) => {
   next();
 });
 // Serve Static files like images
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'frontend', 'public')));
 //Using rate limit
 const limiter = rateLimit({
   max: 100,

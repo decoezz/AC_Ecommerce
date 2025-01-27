@@ -171,3 +171,33 @@
   }
 }
 
+.notFound {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+    text-align: center;
+}
+
+.notFound h2 {
+    font-size: 2rem;
+    color: #333;
+}
+
+.notFound p {
+    margin: 1rem 0;
+    color: #555;
+}
+
+.notFound a {
+    color: #3867d6;
+    text-decoration: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.notFound a:hover {
+    color: #2b50b3;
+}
+

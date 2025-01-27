@@ -1,33 +1,55 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Login.module.css';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState(''); // State for error handling
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); // Clear previous errors
+        setError('');
         try {
-            const response = await axios.post('http://127.0.0.1:4000/api/v1/users/login', {
+            // Step 1: Log in the user
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/users/login`, {
                 email,
                 password,
             });
-            console.log('Login successful:', response.data);
+            const token = response.data.token;
+            localStorage.setItem('token', token); // Store the token
 
-            // Reset fields after successful login
-            setEmail('');
-            setPassword('');
+            // Step 2: Fetch the current user data to get the role
+            const userResponse = await axios.get(`${import.meta.env.VITE_API_URL}/users/me`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const user = userResponse.data.data.user; // Access the user object correctly
+            localStorage.setItem('user', JSON.stringify(user)); // Store user data
 
-            // Redirect or perform additional actions here
+            // Log the user role for debugging
+            console.log("User Role:", user.role);
+
+            // Step 3: Redirect based on user role
+            switch (user.role) {
+                case 'admin':
+                    navigate('/admin-home');
+                    break;
+                case 'employee':
+                    navigate('/employee-home');
+                    break;
+                case 'user':
+                    navigate('/user-home');
+                    break;
+                default:
+                    navigate('/'); // Redirect to home or login if role is unknown
+                    break;
+            }
         } catch (err) {
-            console.error('Login failed:', err);
-            setError(
-                err.response?.data?.message || 'An error occurred during login. Please try again.'
-            );
+            setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
         }
     };
 
@@ -56,9 +78,7 @@ const Login = () => {
                         required
                     />
                 </div>
-                <button className={styles.login__button} type="submit">
-                    Login
-                </button>
+                <button className={styles.login__button} type="submit">Login</button>
             </form>
             <p className={styles.login__link}>
                 Don't have an account? <Link to="/create-account">Create one here</Link>
