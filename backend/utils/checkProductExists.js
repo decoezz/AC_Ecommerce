@@ -1,5 +1,5 @@
-const catchAsync = require('./catchAsync');
-const AppError = require('./appError');
+const catchAsync = require('./Error Handeling utils/catchAsync');
+const AppError = require('./Error Handeling utils/appError');
 const AC = require('../models/acModel');
 const checkProductExists = catchAsync(async (id) => {
   const product = await AC.findById(id);

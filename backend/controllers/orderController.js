@@ -1,20 +1,22 @@
 const mongoose = require('mongoose');
-const AppError = require('../utils/appError');
-const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/Error Handeling utils/appError');
+const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const User = require('../models/userModel');
 const Review = require('../models/reviewModel');
 const Order = require('../models/orderModel');
 const AC = require('../models/acModel');
-const { validateProductData } = require('../utils/validateProductData');
-const checkProductExists = require('../utils/checkProductExists');
-const { validateUpdateProduct } = require('../utils/validateUpdateProduct');
 const {
   getOrdersLastMonth,
   getOrdersLastWeek,
   getOrdersToday,
 } = require('../utils/dateFunctions');
-const { validateOrderData } = require('../utils/validateOrderData');
-//Getting User orders
+const {
+  validateOrderData,
+} = require('../utils/Data Validation utils/validateOrderData');
+const {
+  validateUpdateOrderData,
+} = require('../utils/Data Validation utils/validateOrderData');
+//Getting a certain User orders
 exports.getUsersOrders = catchAsync(async (req, res, next) => {
   const userId = req.params.id;
   const user = await User.findById(userId).populate({
@@ -191,4 +193,128 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     session.endSession();
     next(error);
   }
+});
+//Get My own User Orders
+exports.GetMyOrders = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(
+      new AppError('There is no User with this ID.Please try again later', 404)
+    );
+  }
+  const orders = await Order.findOne({ user: user });
+  if (!orders || orders.length === 0) {
+    return next(
+      new AppError(
+        'There is no Orders in this User.Please try again later',
+        404
+      )
+    );
+  }
+  res.status(200).json({
+    status: 'success',
+    message: 'Orders found successfully',
+    results: orders.length,
+    data: { orders },
+  });
+});
+//Editting an Order
+exports.updateOrder = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { shippingAddress, mobileNumber, items, orderStatus } = req.body;
+  validateUpdateOrderData(req.body);
+  const session = await Order.startSession();
+  session.startTransaction();
+  try {
+    const order = await Order.findById(id).session(session);
+    if (!order) {
+      throw new AppError(`Order with ID ${id} not found`, 404);
+    }
+    if (req.user.role === 'user' && order.user.toString() !== req.user.id) {
+      return next(
+        new AppError('You do not have permission to update this order', 403)
+      );
+    }
+    if (shippingAddress) order.shippingAddress = shippingAddress;
+    if (mobileNumber) order.mobileNumber = mobileNumber;
+    if (orderStatus) {
+      if (req.user.role !== 'Admin' && req.user.role !== 'employee') {
+        return next(new AppError('Only Admins can update order status', 403));
+      }
+      order.orderStatus = orderStatus;
+    }
+    if (items && items.length > 0) {
+      for (const newItem of items) {
+        const orderItem = order.items.find(
+          (item) => item.ac.toString() === newItem.ac
+        );
+        if (!orderItem) {
+          return next(
+            new AppError(
+              `Product with ID ${newItem.ac} is not in this order`,
+              400
+            )
+          );
+        }
+        const product = await AC.findById(newItem.ac).session(session);
+        if (!product) {
+          return next(
+            new AppError(`Product with ID ${newItem.ac} not found`, 404)
+          );
+        }
+        const quantityDifference = newItem.quantity - orderItem.quantity;
+        if (
+          quantityDifference > 0 &&
+          product.quantityInStock < quantityDifference
+        ) {
+          return next(
+            new AppError(
+              `Not enough stock for ${product.modelNumber}. Available: ${product.quantityInStock}`,
+              400
+            )
+          );
+        }
+        await AC.findByIdAndUpdate(
+          newItem.ac,
+          { $inc: { quantityInStock: -quantityDifference } },
+          { session }
+        );
+        orderItem.quantity = newItem.quantity;
+      }
+    }
+    await order.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+    res.status(200).json({
+      status: 'success',
+      message: 'Order updated successfully',
+      data: { order },
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+});
+//Deleteing an Order
+exports.DeleteOrder = catchAsync(async (req, res, next) => {
+  const orderId = req.params.id;
+  const order = await Order.findById(orderId);
+  if (!order) {
+    return next(
+      new AppError('There is no Order with this ID.Please try again later', 400)
+    );
+  }
+  if (req.user.role === 'user' && order.user.toString() !== req.user.id) {
+    return next(
+      new AppError('You do not have permission to update this order', 403)
+    );
+  }
+  await Order.deleteOne({ _id: orderId });
+  res.status(204).json({
+    status: 'success',
+    message: 'Order Deleted successfully',
+    data: null,
+  });
 });

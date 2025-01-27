@@ -1,7 +1,7 @@
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
-const AppError = require('../utils/appError');
-const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/Error Handeling utils/appError');
+const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const User = require('../models/userModel');
 
 //Protect Routes Middleware
@@ -37,7 +37,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 //restrict access to certain routes based on role
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
-    if (roles.includes(req.user.roles)) {
+    if (!roles.includes(req.user.role)) {
       return next(
         new AppError('You do not have premission to perform this action', 403)
       );

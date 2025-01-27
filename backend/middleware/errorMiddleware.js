@@ -1,10 +1,11 @@
 const path = require('path');
-const AppError = require('../utils/appError');
-const errorHandlers = require('../utils/errorHandlers');
+const AppError = require('../utils/Error Handeling utils/appError');
+const errorHandlers = require('../utils/Error Handeling utils/errorHandlers');
 /**
  * Send Error in Development
  */
 const sendErrorDev = (err, req, res) => {
+  const statusCode = err.statusCode || 500; // Fallback to 500
   if (req.originalUrl.startsWith('/api')) {
     return res.status(err.statusCode).json({
       status: err.status,
@@ -22,6 +23,7 @@ const sendErrorDev = (err, req, res) => {
  * Send Error in Production
  */
 const sendErrorProd = (err, req, res) => {
+  const statusCode = err.statusCode || 500; // Fallback to 500
   if (err.isOperational) {
     if (req.originalUrl.startsWith('/api')) {
       return res.status(err.statusCode).json({
