@@ -16,6 +16,9 @@ import ViewOrders from "./ViewOrders.jsx";
 import UserHome from "./UserHome.jsx";
 import AdminHome from "./AdminHome.jsx";
 import EmployeeHome from "./EmployeeHome.jsx";
+import CreateEmployee from "./CreateEmployee.jsx";
+import SearchUser from "./SearchUser.jsx";
+import DeleteUser from "./DeleteUserPage.jsx";
 import '../styles/global.css';
 
 export default function Main() {
@@ -46,6 +49,9 @@ export default function Main() {
               <Route path="/user-home" element={<UserHome />} />
               <Route path="/admin-home" element={<AdminHome/>} />
               <Route path="/employee-home" element={<EmployeeHome />} />
+              <Route path="/create-employee" element={<CreateEmployee />} />
+              <Route path="/search-user" element={<SearchUser />} />
+              <Route path="/delete-user" element={<DeleteUser />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

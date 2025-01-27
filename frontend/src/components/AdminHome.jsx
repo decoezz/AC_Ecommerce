@@ -1,14 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaProductHunt, FaListAlt, FaUsers } from 'react-icons/fa';
+import axios from "axios";
 import styles from "./AdminHome.module.css";
 
 const AdminHome = () => {
     const navigate = useNavigate();
+    const [userId, setUserId] = useState('');
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
 
     const handleLogout = () => {
         localStorage.removeItem('token'); // Remove the token
         navigate('/login'); // Redirect to login page
+    };
+
+    const handleDeleteUser = async () => {
+        setMessage('');
+        setError('');
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('No token found. Please log in.');
+            return;
+        }
+
+        try {
+            await axios.delete(`${import.meta.env.VITE_API_URL}/users/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setMessage('User deleted successfully!');
+            setUserId(''); // Clear the input field
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to delete user.');
+        }
     };
 
     return (
@@ -41,10 +68,15 @@ const AdminHome = () => {
                         <h3>Search User by ID</h3>
                         <p>Find user details by their ID.</p>
                     </Link>
+                    <Link to="/delete-user" className={styles.adminHome__card}>
+                        <h3>Delete User by ID</h3>
+                        <p>Remove a user from the system.</p>
+                    </Link>
                 </div>
-            </div>
+
+                
+            </div>  
         </div>
-    );
-};
+    );};
 
 export default AdminHome; 
