@@ -13,8 +13,10 @@ import UserProfile from "./UserProfile.jsx";
 import AllUsers from "./AllUsers.jsx";
 import ManageProducts from "./ManageProducts.jsx";
 import ViewOrders from "./ViewOrders.jsx";
-import '../styles/global.css';
 import UserHome from "./UserHome.jsx";
+import AdminHome from "./AdminHome.jsx";
+import EmployeeHome from "./EmployeeHome.jsx";
+import '../styles/global.css';
 
 export default function Main() {
   const userData = localStorage.getItem('user');
@@ -31,17 +33,19 @@ export default function Main() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/shop" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/about" element={<About />} />
               <Route path="/create-account" element={<CreateAccount />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/users" element={<AllUsers />} />
+              <Route path="/shop" element={<Home />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />
               <Route path="/manage-products" element={<ManageProducts />} />
               <Route path="/view-orders" element={<ViewOrders />} />
               <Route path="/user-home" element={<UserHome />} />
+              <Route path="/admin-home" element={<AdminHome/>} />
+              <Route path="/employee-home" element={<EmployeeHome />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
@@ -50,3 +54,4 @@ export default function Main() {
     </IconContext.Provider>
   );
 }
+

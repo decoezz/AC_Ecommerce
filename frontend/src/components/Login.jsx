@@ -24,11 +24,11 @@ const Login = () => {
             setPassword('');
 
             if (user.role === 'admin') {
-                navigate('/shop');
+                navigate('/admin-home');
             } else if (user.role === 'employee') {
-                navigate('/shop');
+                navigate('/employee-home');
             } else {
-                navigate('/shop');
+                navigate('/user-home');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'An error occurred during login. Please try again.');

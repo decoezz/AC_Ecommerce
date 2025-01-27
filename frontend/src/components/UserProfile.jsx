@@ -12,6 +12,12 @@ const UserProfile = () => {
     const fetchUserProfile = async (retries = 3, delay = 1000) => {
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                // Redirect to login if no token is found
+                window.location.href = '/login'; // Adjust the path to your login page
+                return;
+            }
+
             const response = await fetch('http://127.0.0.1:4000/api/v1/users/me', {
                 method: 'GET',
                 headers: {

@@ -20,7 +20,7 @@ const NotFound = () => {
                 <div className="button-container">
                     <button 
                         type="button"
-                        onClick={() => navigate('/home')} 
+                        onClick={() => navigate('/shop')} 
                         className="denied__link"
                     >
                         Go Home

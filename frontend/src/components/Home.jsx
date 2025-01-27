@@ -11,7 +11,7 @@ const Home = () => {
                     Thank you for visiting our e-commerce site. Here are some quick links to get you started:
                 </p>
                 <ul className={styles.home__links}>
-                    <li><Link to="/products">View Products</Link></li>
+                    <li><Link to="/shop">View Products</Link></li>
                 </ul>
             </div>
         </div>
