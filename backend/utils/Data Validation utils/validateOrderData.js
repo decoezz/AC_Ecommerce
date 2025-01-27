@@ -1,6 +1,5 @@
-const Joi = require('joi');
-const AppError = require('./appError');
-
+const AppError = require('../Error Handeling utils/appError');
+const Joi = require('Joi');
 const orderSchema = Joi.object({
   items: Joi.array()
     .items(
@@ -36,7 +35,7 @@ const orderSchema = Joi.object({
   }),
 
   mobileNumber: Joi.string()
-    .pattern(/^(\+201|01)\d{9}$/) // ✅ Corrected regex for Egyptian numbers
+    .pattern(/^(\+201|01)\d{9}$/)
     .required()
     .messages({
       'string.base': 'Mobile number must be a string.',

@@ -25,6 +25,9 @@ GET http://127.0.0.1:4000/api/v1/users/:id (Get Ceratin user)
 DELETE http://127.0.0.1:4000/api/v1/users/:id (Delete Ceratin User)
 Protected,need Admin
 --------------------------------------------------------------------------
+PUT http://127.0.0.1:4000/api/v1/users/upload-photo (Add Profile Picture)
+Protected
+Send picture in from-data in the name of (profilePicture)
 --------------------------------------------------------------------------
 
 Products Routes:
@@ -36,19 +39,62 @@ GET http://127.0.0.1:4000/api/v1/products/:id (Get certain product)
 POST http://127.0.0.1:4000/api/v1/products/ (Create Product)
 Protected,need Admin or employee
 Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy)
+can add photos through form-data(send all data in the form-data) in the name of (photos) up to 5 photos
 --------------------------------------------------------------------------
 PATCH http://127.0.0.1:4000/api/v1/products/:id (Update Ceratin Product)
 Protected,need Admin or employee
 Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy) one field or all fields doesn't matter
 --------------------------------------------------------------------------
+PUT http://127.0.0.1:4000/api/v1/products/update-product-images/:productId (Removing old photos (if exists) and add new photos)
+Protected,need Admin or employee
+Add photos through form-data in the name of (photos) up to 5 photos
+--------------------------------------------------------------------------
 DELTE http://127.0.0.1:4000/api/v1/products/:id (Delete Ceratin Product)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
+DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product's photos)
+Protected,need Admin or employee
+Body:(publicId,productId)
+--------------------------------------------------------------------------
 
---------------------------------------------------------------------------
---------------------------------------------------------------------------
 
 Orders Routes:
-GET http://127.0.0.1:4000/api/v1/orders/6792640012a739aa25a22cde/user (Getting a ceratin user orders)
+GET http://127.0.0.1:4000/api/v1/orders/my-orders (Getting current User orders)
+Protected,specific
+--------------------------------------------------------------------------
+POST http://127.0.0.1:4000/api/v1/orders/ (Creating an Order)
+Protected
+Body:(Items(array : "ac","quantity","priceAtPurchase"),shippingAddress,mobileNumber,orderStatus)
+--------------------------------------------------------------------------
+PATCH http://127.0.0.1:4000/api/v1/orders/:orderId (Edit an Order)
+Protected,specific
+Body:(shippingAddress,mobileNumber,items(array),orderStatus(only admin can change this))
+--------------------------------------------------------------------------
+DELETE http://127.0.0.1:4000/api/v1/orders/:orderId (Delete an order)
+Protected,specific
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/GetOrders (Get All Orders)
+Protected,need Admin or employee
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/last-month (Get All Orders in the month)
+Protected,need Admin or employee
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/last-week (Get All Orders in the month)
+Protected,need Admin or employee
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/today (Get All Orders in the day)
+Protected,need Admin or employee
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/GetOrders/:id (Getting a certain Order using ID)
+Protected,need Admin or employee
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/:userId/user (Getting a ceratin user orders)
+Protected,need Admin or employee
+--------------------------------------------------------------------------
+PATCH http://127.0.0.1:4000/api/v1/orders/:id/admin (Edit an order)
+Protected,need Admin or employee
+Body:(shippingAddress,mobileNumber,items(array),orderStatus)
+--------------------------------------------------------------------------
+DELETE http://127.0.0.1:4000/api/v1/orders/:id/admin (Delete an order)
 Protected,need Admin or employee
 --------------------------------------------------------------------------

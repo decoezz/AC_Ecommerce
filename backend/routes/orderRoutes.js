@@ -1,16 +1,22 @@
 const express = require('express');
 const OrderController = require('../controllers/orderController');
-const validateObjectId = require('../utils/validateObjectId');
+const validateObjectId = require('../utils/Data Validation utils/validateObjectId');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 const router = express.Router();
+router.use(protect);
 //Public routes for user
-router.post('/', protect, OrderController.createOrder);
+router.get('/my-orders', OrderController.GetMyOrders);
+router.post('/', OrderController.createOrder);
+router.patch('/:id', validateObjectId, OrderController.updateOrder);
+router.delete('/:id', validateObjectId, OrderController.DeleteOrder);
 //Private routes for Admin and employee
-router.use(protect, restrictTo('Admin', 'employee'));
-router.get('/', OrderController.getOrders);
+router.use(restrictTo('Admin', 'employee'));
+router.get('/GetOrders', OrderController.getOrders);
 router.get('/last-month', OrderController.getOrderLastMonth);
 router.get('/last-week', OrderController.getOrderLastWeek);
 router.get('/today', OrderController.getOrderToday);
-router.get('/:id', validateObjectId, OrderController.getOrder);
+router.get('/GetOrders/:id', validateObjectId, OrderController.getOrder);
 router.get('/:id/user', validateObjectId, OrderController.getUsersOrders);
+router.patch('/:id/admin', validateObjectId, OrderController.updateOrder);
+router.delete('/:id/admin', validateObjectId, OrderController.DeleteOrder);
 module.exports = router;

@@ -1,13 +1,21 @@
 const mongoose = require('mongoose');
 const { resolve } = require('path');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      reqyured: true,
+      required: true,
       minlength: 3,
       maxlength: 30,
+      trim: true,
+      validate: {
+        validator: function (value) {
+          return /^[A-Za-z\s]+$/.test(value); // Allows letters and spaces
+        },
+        message: 'Name must only contain alphabetic characters and spaces',
+      },
     },
     mobileNumber: {
       type: String,
@@ -21,7 +29,12 @@ const userSchema = new mongoose.Schema(
           'Mobile number must be a valid 9-digit number with an optional +20 country code',
       },
     },
-    email: { type: String, required: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      validate: [validator.isEmail, 'An Email must be entered correctly'],
+    },
     password: {
       type: String,
       required: true,
@@ -49,14 +62,16 @@ const userSchema = new mongoose.Schema(
     createdAt: { type: Date, default: Date.now },
     passwordConfirm: {
       type: String,
-      required: true,
+      required: [true, 'Please confirm your password'],
       validate: {
         validator: function (el) {
           return el === this.password;
         },
-        message: 'Password do not match!',
+        message: 'Passwords do not match!',
       },
+      select: false,
     },
+
     address: {
       type: String,
       default: 'suez',
@@ -73,6 +88,10 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    profilePicture: {
+      type: String,
+      default: 'https://via.placeholder.com/150',
+    }, // Default placeholder image
   },
   {
     versionKey: false,

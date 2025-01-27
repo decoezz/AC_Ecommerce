@@ -1,9 +1,11 @@
-const mongoose = require('mongoose');
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const jwt = require('jsonwebtoken');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+const catchAsync = require('../utils/Error Handeling utils/catchAsync');
+const AppError = require('../utils/Error Handeling utils/appError');
 const ApiFeatures = require('../utils/apiFeatures');
 const User = require('../models/userModel');
+
 const singToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -155,5 +157,33 @@ exports.me = catchAsync(async (req, res, next) => {
     data: {
       user,
     },
+  });
+});
+//Uploading profile photo
+exports.uploadUserPhoto = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(
+      new AppError('There is no User with this ID.Please try again later', 404)
+    );
+  }
+  if (!req.file || !req.file.path) {
+    return next(new AppError('No image uploaded', 400));
+  }
+  if (user.profilePicture && !user.profilePicture.includes('placeholder.com')) {
+    try {
+      const publicId = user.profilePicture.split('/').pop().split('.')[0];
+      await cloudinary.uploader.destroy(`users/${publicId}`);
+    } catch (err) {
+      console.error('Failed to delete old profile picture:', err);
+    }
+  }
+  user.profilePicture = req.file.path;
+  await user.save();
+  res.status(200).json({
+    status: 'success',
+    message: 'Profile picture uploaded successfully',
+    profilePicture: user.profilePicture,
   });
 });

@@ -7,7 +7,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const cors = require('cors');
-const AppError = require('./utils/appError');
+const AppError = require('./utils/Error Handeling utils/appError');
 const globalErrorHandler = require('./middleware/errorMiddleware');
 const userRouter = require('./routes/userRoutes');
 const productRouter = require('./routes/productRoutes');
@@ -15,6 +15,7 @@ const orderRouter = require('./routes/orderRoutes');
 const app = express();
 //All the utils needed for security and other utils
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Parses URL-encoded data
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(mongoSanitize());

@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const AppError = require('./appError');
+const AppError = require('../Error Handeling utils/appError');
 
 const updateProductSchema = Joi.object({
   brand: Joi.string().messages({ 'string.base': 'Brand must be a string.' }),

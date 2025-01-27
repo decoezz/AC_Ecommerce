@@ -1,7 +1,8 @@
 const express = require('express');
 const userController = require('../controllers/userController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
-const validateObjectId = require('../utils/validateObjectId');
+const validateObjectId = require('../utils/Data Validation utils/validateObjectId');
+const uploadUserImage = require('../utils/Uploading utils/multerUser');
 const router = express.Router();
 //Private routes for admin only and logged in only
 router.post(
@@ -17,6 +18,12 @@ router.get('/me', protect, userController.me);
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
 router.get('/:id', validateObjectId, userController.getUser);
+router.put(
+  '/upload-photo',
+  protect,
+  uploadUserImage,
+  userController.uploadUserPhoto
+);
 router.delete(
   '/:id',
   protect,

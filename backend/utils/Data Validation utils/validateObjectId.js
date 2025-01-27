@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const AppError = require('./appError');
+const AppError = require('../Error Handeling utils/appError');
 
 const validateObjectId = (req, res, next) => {
   // ✅ Ensure req.params.id exists before validating

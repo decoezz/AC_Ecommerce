@@ -1,7 +1,9 @@
 const dotenv = require('dotenv');
+dotenv.config({ path: './config.env' });
 const mongoose = require('mongoose');
 const app = require('./app');
-dotenv.config({ path: './config.env' });
+const cloudinary = require('./utils/Uploading utils/cloudinary'); // Cloudinary must load AFTER dotenv
+
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD

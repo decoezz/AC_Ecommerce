@@ -1,23 +1,58 @@
-const mongoose = require('mongoose');
-const AppError = require('../utils/appError');
-const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/Error Handeling utils/appError');
+const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const ApiFeatures = require('../utils/apiFeatures');
 const AC = require('../models/acModel');
 const Review = require('../models/reviewModel');
-const { validateProductData } = require('../utils/validateProductData');
+const {
+  validateProductData,
+} = require('../utils/Data Validation utils/validateProductData');
 const checkProductExists = require('../utils/checkProductExists');
-const { validateUpdateProduct } = require('../utils/validateUpdateProduct');
+const {
+  validateUpdateProduct,
+} = require('../utils/Data Validation utils/validateUpdateProduct');
 exports.createProduct = catchAsync(async (req, res, next) => {
+  const newBody = {};
+  Object.keys(req.body).forEach((key) => {
+    const trimmedKey = key.trim();
+    newBody[trimmedKey] = req.body[key];
+  });
+  req.body = newBody;
+  if (req.body.features) {
+    try {
+      req.body.features = JSON.parse(req.body.features);
+    } catch (err) {
+      return next(new AppError('Invalid JSON format for features', 400));
+    }
+  }
   validateProductData(req.body);
   const { modelNumber } = req.body;
   const existingProduct = await AC.findOne({ modelNumber });
   if (existingProduct) {
     return next(new AppError('Model Number must be unique', 400));
   }
-  const product = await AC.create(req.body);
+  if (!req.files || req.files.length === 0) {
+    return next(new AppError('At least one product image is required.', 400));
+  }
+  const photoUrls = req.files.map((file) => file.path);
+  const product = await AC.create({
+    ...req.body,
+    photos: photoUrls,
+  });
   res.status(201).json({
     status: 'success',
-    data: { product },
+    message: 'Product created successfully',
+    product: {
+      id: product._id,
+      brand: product.brand,
+      modelNumber: product.modelNumber,
+      powerConsumption: product.powerConsumption,
+      price: product.price,
+      features: product.features,
+      inStock: product.inStock,
+      quantityInStock: product.quantityInStock,
+      coolingCapacity: product.coolingCapacity,
+      photos: product.photos, // Cloudinary image URLs
+    },
   });
 });
 
@@ -88,5 +123,63 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Product Deleted successfully',
     data: null,
+  });
+});
+
+exports.deleteProductImage = catchAsync(async (req, res, next) => {
+  const { productId, publicId } = req.body; // Cloudinary public ID & Product ID
+  if (!productId || !publicId) {
+    return next(
+      new AppError('Product ID and Image Public ID are required', 400)
+    );
+  }
+  // Remove the image from Cloudinary
+  await cloudinary.uploader.destroy(publicId);
+  // Update the product in the database
+  const updatedProduct = await AC.findByIdAndUpdate(
+    productId,
+    {
+      $pull: {
+        photos: `https://res.cloudinary.com/your-cloud-name/image/upload/${publicId}`,
+      },
+    },
+    { new: true }
+  );
+  res.status(200).json({
+    status: 'success',
+    message: 'Image deleted successfully',
+    data: { updatedProduct },
+  });
+});
+
+exports.UpdateImages = catchAsync(async (req, res, next) => {
+  const productId = req.params.id;
+  const product = await AC.findById(productId);
+  if (!product) {
+    return next(
+      new AppError('No product found with this ID. Please try again.', 404)
+    );
+  }
+  if (!req.files || req.files.length === 0) {
+    return next(new AppError('No photos uploaded', 400));
+  }
+  // Delete existing images from Cloudinary
+  try {
+    for (let oldImage of product.photos) {
+      const publicId = oldImage.split('/').pop().split('.')[0]; // Extract Cloudinary Public ID
+      await cloudinary.uploader.destroy(publicId); // Delete from Cloudinary
+    }
+  } catch (err) {
+    console.error('Failed to delete old images:', err);
+  }
+  // Upload new images and store URLs
+  const newImageUrls = req.files.map((file) => file.path);
+  // Replace images in the database
+  product.photos = newImageUrls;
+  await product.save();
+  res.status(200).json({
+    status: 'success',
+    message: 'Images updated successfully',
+    data: { product },
   });
 });
