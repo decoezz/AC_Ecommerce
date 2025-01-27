@@ -37,6 +37,7 @@ export default function Main() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/home" element={<Home />} />
               <Route path="/create-account" element={<CreateAccount />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/users" element={<AllUsers />} />
@@ -52,7 +53,8 @@ export default function Main() {
               <Route path="/create-employee" element={<CreateEmployee />} />
               <Route path="/search-user" element={<SearchUser />} />
               <Route path="/delete-user" element={<DeleteUser />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/user-profile" element={<UserProfile />} />
+              {/*<Route path="*" element={<NotFound />} />*/}
             </Routes>
           </main>
         </div>

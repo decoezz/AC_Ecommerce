@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
 const AppError = require('../utils/Error Handeling utils/appError');
 const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const User = require('../models/userModel');
 const Review = require('../models/reviewModel');
 const Order = require('../models/orderModel');
 const AC = require('../models/acModel');
+const ApiFeatures = require('../utils/apiFeatures');
 const {
   getOrdersLastMonth,
   getOrdersLastWeek,
@@ -92,7 +92,12 @@ exports.getOrderToday = catchAsync(async (req, res, next) => {
 });
 //Getting all orders in general
 exports.getOrders = catchAsync(async (req, res, next) => {
-  const orders = await Order.find();
+  const features = new ApiFeatures(Order.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields();
+  await features.paginate();
+  const orders = await features.query;
   if (!orders || orders.length === 0) {
     return next(
       new AppError('There is no Orders available.Please try again later', 404)
@@ -161,7 +166,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       // Reduce stock
       await AC.findByIdAndUpdate(
         item.ac,
-        { $inc: { quantityInStock: -item.quantity } },
+        { $inc: { quantityInStock: -item.quantity, unitSold: +item.quantity } },
         { session }
       );
     }
@@ -316,5 +321,30 @@ exports.DeleteOrder = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Order Deleted successfully',
     data: null,
+  });
+});
+//Getting a User Order Using Mobile Number
+exports.getOrderByMobileNumber = catchAsync(async (req, res, next) => {
+  let { mobileNumber } = req.params;
+  if (!mobileNumber) {
+    return next(new AppError('Please provide a mobile number', 400));
+  }
+  // Normalize: Convert to stored format (remove +20 and add leading 0)
+  if (mobileNumber.startsWith('+20')) {
+    mobileNumber = '0' + mobileNumber.slice(3); // Convert +201111257571 -> 01111257571
+  }
+  const order = await Order.findOne({ mobileNumber: mobileNumber });
+  if (!order) {
+    return next(
+      new AppError(
+        'There is no Order with this Mobile Number.Please try again later',
+        404
+      )
+    );
+  }
+  res.status(200).json({
+    status: 'success',
+    message: 'AC Found Successfully',
+    data: { order },
   });
 });

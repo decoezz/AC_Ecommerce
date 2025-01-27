@@ -7,7 +7,19 @@ const router = express.Router();
 
 //public routes for users
 router.get('/', ProductController.getAllProducts);
-router.get('/:id', ProductController.getProduct);
+router.get('/:id', validateObjectId, ProductController.getProduct);
+router.get('/ac/:modelNumber', ProductController.getProductByModelNumber);
+//Routes for reviews
+router.get('/reviews/:productId', ProductController.getProductReviews);
+router.post('/reviews/:productId', protect, ProductController.addReview);
+router.patch('/reviews/:productId', protect, ProductController.UpdateReview);
+router.put('/reviews/:reviewId/like', protect, ProductController.LikeReview);
+router.put(
+  '/reviews/:reviewId/dislike',
+  protect,
+  ProductController.DislikeReview
+);
+router.delete('/reviews/:productId', protect, ProductController.DeleteReview);
 //Private route for admin/employees only
 router.use(protect, restrictTo('Admin', 'employee'));
 router.post('/', uploadProductImages, ProductController.createProduct);

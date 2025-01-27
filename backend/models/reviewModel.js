@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const reviewSchema = mongoose.Schema({
-  ac: {
+  product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'AC',
     required: true,
@@ -21,14 +21,27 @@ const reviewSchema = mongoose.Schema({
     type: String,
     default: '',
   },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: [],
+    },
+  ],
+  dislike: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: [],
+    },
+  ],
   createdAt: {
     type: Date,
     deafult: Date.now,
   },
 });
 
-reviewSchema.index({ ac: 1 });
-reviewSchema.index({ user: 1 });
+reviewSchema.index({ ac: 1, user: 1 }, { unique: true });
 
 const review = mongoose.model('Review', reviewSchema);
 module.exports = review;

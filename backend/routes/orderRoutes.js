@@ -17,6 +17,7 @@ router.get('/last-week', OrderController.getOrderLastWeek);
 router.get('/today', OrderController.getOrderToday);
 router.get('/GetOrders/:id', validateObjectId, OrderController.getOrder);
 router.get('/:id/user', validateObjectId, OrderController.getUsersOrders);
+router.get('/user/:mobileNumber', OrderController.getOrderByMobileNumber);
 router.patch('/:id/admin', validateObjectId, OrderController.updateOrder);
 router.delete('/:id/admin', validateObjectId, OrderController.DeleteOrder);
 module.exports = router;

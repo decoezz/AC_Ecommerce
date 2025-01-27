@@ -17,7 +17,9 @@ router.get('/logout', protect, userController.logout);
 router.get('/me', protect, userController.me);
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
+router.get('/reviews', protect, userController.getUserReviews);
 router.get('/:id', validateObjectId, userController.getUser);
+router.get('/user/:mobileNumber', userController.getUserByNumber);
 router.put(
   '/upload-photo',
   protect,

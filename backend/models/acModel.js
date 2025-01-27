@@ -18,12 +18,9 @@ const AcModelSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    starRating: {
+    averageRating: {
       type: Number,
-      min: 1,
-      max: 5,
-      default: 1,
-      set: (val) => Math.round(val * 10) / 10, //4.6666,46.666,47,4.7
+      default: 0,
     },
     price: {
       type: Number,
@@ -45,6 +42,7 @@ const AcModelSchema = new mongoose.Schema(
       type: Number,
       deafult: 0,
     },
+    reviewCount: { type: Number, default: 0 },
     createdAt: {
       type: Date,
       default: Date.now,

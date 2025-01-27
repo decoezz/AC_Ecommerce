@@ -52,7 +52,7 @@ const AdminHome = () => {
                     </Link>
                     <Link to="/view-orders" className={styles.adminHome__card}>
                         <FaListAlt className={styles.adminHome__icon} />
-                        <h3>View All Orders</h3>
+                        <h3>Order Management</h3>
                         <p>Check the status of all customer orders.</p>
                     </Link>
                     <Link to="/users" className={styles.adminHome__card}>

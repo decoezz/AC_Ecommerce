@@ -1,11 +1,9 @@
-const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const AppError = require('../utils/Error Handeling utils/appError');
 const ApiFeatures = require('../utils/apiFeatures');
 const User = require('../models/userModel');
-
+const Review = require('../models/reviewModel');
 const singToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -116,7 +114,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 //Get certain User
 exports.getUser = catchAsync(async (req, res, next) => {
   const userId = req.params.id;
-  const user = await User.findOne({ _id: userId });
+  const user = await User.findOne({ _id: userId }).select('-password');
   if (!user || user.role === 'Admin' || user.role === 'employee') {
     return next(
       new AppError('There is no user with this ID.Please try again later', 400)
@@ -128,6 +126,31 @@ exports.getUser = catchAsync(async (req, res, next) => {
     data: {
       user,
     },
+  });
+});
+//Get Ceratin User by Mobile Number
+exports.getUserByNumber = catchAsync(async (req, res, next) => {
+  let { mobileNumber } = req.params;
+  if (!mobileNumber) {
+    return next(new AppError('Please provide a mobile number', 400));
+  }
+  // Ensure the number starts with +20
+  if (!mobileNumber.startsWith('+20')) {
+    mobileNumber = `+2${mobileNumber}`;
+  }
+  const user = await User.findOne({ mobileNumber: mobileNumber });
+  if (!user) {
+    return next(
+      new AppError(
+        'There is no user with this Mobile Number.Please try again later',
+        400
+      )
+    );
+  }
+  res.status(200).json({
+    status: 'success',
+    message: 'User found successfully',
+    data: { user },
   });
 });
 //Delete Certain User
@@ -151,7 +174,7 @@ exports.DeleteUser = catchAsync(async (req, res, next) => {
 });
 //Getting the current user details
 exports.me = catchAsync(async (req, res, next) => {
-  const user = await User.findById({ _id: req.user._id });
+  const user = await User.findById({ _id: req.user._id }.select('-password'));
   res.status(200).json({
     status: 'success',
     data: {
@@ -185,5 +208,32 @@ exports.uploadUserPhoto = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Profile picture uploaded successfully',
     profilePicture: user.profilePicture,
+  });
+});
+//Get User Reviews
+exports.getUserReviews = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  const reviews = await Review.find({ user: userId })
+    .populate('product', 'name price') // Include product name & price
+    .lean();
+  console.log(reviews);
+  if (!reviews || reviews.length === 0) {
+    return next(new AppError('This User has no reviews yet.', 404));
+  }
+  // Format reviews to include like/dislike counts
+  const formattedReviews = reviews.map((review) => ({
+    _id: review._id,
+    product: review.product,
+    rating: review.rating,
+    comment: review.comment,
+    createdAt: review.createdAt,
+    likesCount: review.likes ? review.likes.length : 0,
+    dislikesCount: review.dislike ? review.dislike.length : 0,
+  }));
+  res.status(200).json({
+    status: 'success',
+    message: 'User reviews retrived Successfully',
+    results: formattedReviews.length,
+    data: formattedReviews,
   });
 });
