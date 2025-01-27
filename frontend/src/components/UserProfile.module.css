@@ -14,4 +14,32 @@
 .error {
     color: red;
     margin-bottom: 1rem;
+}
+
+.uploadForm {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.uploadForm input {
+    margin-bottom: 10px;
+}
+
+.uploadForm button {
+    padding: 10px;
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.uploadForm button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+.success {
+    color: green;
+    margin-top: 10px;
 } 

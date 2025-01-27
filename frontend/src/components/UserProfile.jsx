@@ -8,6 +8,8 @@ const UserProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [profilePicture, setProfilePicture] = useState(null);
+    const [message, setMessage] = useState('');
 
     const fetchUserProfile = async (retries = 3, delay = 1000) => {
         try {
@@ -64,6 +66,38 @@ const UserProfile = () => {
         window.location.href = '/'; // Redirect to login
     };
 
+    const handleFileChange = (e) => {
+        setProfilePicture(e.target.files[0]);
+    };
+
+    const handleUpload = async (e) => {
+        e.preventDefault();
+        setMessage('');
+        setError('');
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('No token found. Please log in.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('profilePicture', profilePicture);
+
+        try {
+            const response = await axios.put(`${import.meta.env.VITE_API_URL}/users/upload-photo`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            setMessage('Profile picture uploaded successfully!');
+            setProfilePicture(null); // Clear the file input
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to upload profile picture.');
+        }
+    };
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -89,6 +123,17 @@ const UserProfile = () => {
                 role={userProfile.role} 
             />
             <button onClick={handleLogout}>Logout</button>
+            <form onSubmit={handleUpload} className={styles.uploadForm}>
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    required
+                />
+                <button type="submit">Upload Profile Picture</button>
+            </form>
+            {message && <p className={styles.success}>{message}</p>}
+            {error && <p className={styles.error}>{error}</p>}
         </div>
     );
 };
