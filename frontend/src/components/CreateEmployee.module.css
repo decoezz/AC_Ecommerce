@@ -2,48 +2,51 @@
 .createEmployee {
   max-width: 600px;
   margin: 40px auto;
-  padding: 30px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .createEmployee h2 {
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 30px;
-  font-size: 28px;
-  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 40px;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .createEmployeeForm {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .avatarContainer {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .avatar {
   position: relative;
-  width: 150px;
-  height: 150px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #f8f9fa;
+  background-color: #f3f4f6;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 3px solid #e9ecef;
-  transition: transform 0.3s ease;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
 }
 
 .avatar:hover {
   transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .avatarImage {
@@ -53,29 +56,29 @@
 }
 
 .avatarPlaceholder {
-  font-size: 60px;
-  color: #adb5bd;
-  font-weight: 500;
+  font-size: 64px;
+  color: #94a3b8;
+  font-weight: 600;
 }
 
 .uploadButton {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background-color: #007bff;
-  width: 40px;
-  height: 40px;
+  bottom: 8px;
+  right: 8px;
+  background-color: #3b82f6;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .uploadButton:hover {
-  background-color: #0056b3;
+  background-color: #2563eb;
   transform: scale(1.1);
 }
 
@@ -95,26 +98,23 @@
 }
 
 .inputGroup label {
-  color: #495057;
   font-size: 14px;
   font-weight: 500;
-  margin-left: 4px;
+  color: #4b5563;
 }
 
 .inputGroup input {
   padding: 12px 16px;
-  border: 2px solid #e9ecef;
+  border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 16px;
-  transition: all 0.3s ease;
-  background-color: #f8f9fa;
+  transition: all 0.2s ease;
 }
 
 .inputGroup input:focus {
   outline: none;
-  border-color: #007bff;
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .inputGroup input::placeholder {
@@ -122,14 +122,13 @@
 }
 
 button {
-  margin-top: 10px;
-  padding: 14px 24px;
-  background-color: #007bff;
+  background-color: #3b82f6;
   color: white;
+  padding: 14px 24px;
   border: none;
   border-radius: 8px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -137,9 +136,9 @@ button {
 }
 
 button:hover:not(:disabled) {
-  background-color: #0056b3;
+  background-color: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 button:active:not(:disabled) {
@@ -151,31 +150,29 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.submitting {
-  opacity: 0.8;
+.success,
+.error {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
 }
 
 .success {
-  margin-top: 20px;
-  padding: 12px;
-  background-color: #d4edda;
-  color: #155724;
-  border-radius: 8px;
-  text-align: center;
-  animation: fadeIn 0.5s ease;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
 }
 
 .error {
-  margin-top: 20px;
-  padding: 12px;
-  background-color: #f8d7da;
-  color: #721c24;
-  border-radius: 8px;
-  text-align: center;
-  animation: fadeIn 0.5s ease;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
 
-@keyframes fadeIn {
+@keyframes slideIn {
   from {
     opacity: 0;
     transform: translateY(-10px);
@@ -186,15 +183,15 @@ button:disabled {
   }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .createEmployee {
     margin: 20px;
-    padding: 20px;
+    padding: 24px;
   }
 
   .createEmployee h2 {
     font-size: 24px;
+    margin-bottom: 24px;
   }
 
   .avatar {
@@ -202,17 +199,9 @@ button:disabled {
     height: 120px;
   }
 
-  .avatarPlaceholder {
-    font-size: 48px;
-  }
-
   .uploadButton {
     width: 36px;
     height: 36px;
-  }
-
-  .cameraIcon {
-    font-size: 18px;
   }
 
   button {
