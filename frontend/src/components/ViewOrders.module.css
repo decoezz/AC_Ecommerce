@@ -2,13 +2,224 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: white;
+  color: #333;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.controls {
-  margin-bottom: 2rem;
+.header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  color: #333;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.adminTools {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.adminTools h2 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.buttonGroup {
+  display: flex;
   gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.primaryButton {
+  background-color: #007bff;
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #0056b3;
+}
+
+.createButton {
+  background-color: #28a745;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.createButton:hover {
+  background-color: #218838;
+}
+
+.filterSelect {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  min-width: 200px;
+}
+
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background-color: white;
+}
+
+.ordersTable th {
+  background-color: #f8f9fa;
+  color: #333;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.ordersTable td {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  color: #333;
+}
+
+.ordersTable tr:hover {
+  background-color: #f8f9fa;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+}
+
+.pending {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.processing {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.shipped {
+  background-color: #007bff;
+  color: white;
+}
+
+.delivered {
+  background-color: #28a745;
+  color: white;
+}
+
+.cancelled {
+  background-color: #dc3545;
+  color: white;
+}
+
+.viewButton {
+  background-color: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.viewButton:hover {
+  background-color: #0056b3;
+}
+
+.noOrders {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+@media (max-width: 768px) {
+  .viewOrders {
+    padding: 1rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .ordersTable {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+.debug {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+/* Admin Panel Styles */
+.adminPanel {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.adminLinks {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.adminButton {
+  background-color: #007bff;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  font-weight: 500;
+}
+
+.adminButton:hover {
+  background-color: #0056b3;
+  text-decoration: none;
+  color: white;
+}
+
+/* Filter Styles */
+.filters {
+  margin-top: 1rem;
 }
 
 .filterControls {
@@ -19,7 +230,6 @@
 
 .select,
 .input,
-.button,
 .filterButton {
   padding: 0.5rem 1rem;
   border: 1px solid #ddd;
@@ -27,7 +237,6 @@
   font-size: 1rem;
 }
 
-.button,
 .filterButton {
   background-color: #007bff;
   color: white;
@@ -36,7 +245,6 @@
   transition: background-color 0.2s;
 }
 
-.button:hover,
 .filterButton:hover {
   background-color: #0056b3;
 }
@@ -51,42 +259,19 @@
   overflow-x: auto;
 }
 
-.orderTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.orderTable th,
-.orderTable td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.orderTable th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
-
-.orderTable tr:hover {
-  background-color: #f8f9fa;
-}
-
 .loading {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: #6c757d;
 }
 
 .error {
-  color: #dc3545;
-  padding: 1rem;
-  margin: 1rem 0;
   background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  margin-bottom: 1rem;
   border-radius: 4px;
+  border: 1px solid #f5c6cb;
 }
 
 .statusSelect {
@@ -178,34 +363,158 @@
   background-color: #5a6268;
 }
 
-@media (max-width: 768px) {
-  .filterControls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .userSearchForm {
-    flex-direction: column;
-  }
-
-  .orderTable {
-    font-size: 0.9rem;
-  }
-}
-
-.debug {
-  background-color: #f8f9fa;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.noOrders {
-  text-align: center;
+/* Edit Modal Styles */
+.editModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
   padding: 2rem;
-  color: #666;
-  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 500px;
+  z-index: 1000;
+}
+
+.editModal h3 {
+  margin-bottom: 1.5rem;
+  color: #212529;
+}
+
+.editModal input,
+.editModal select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #dee2e6;
   border-radius: 4px;
-  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.editModal button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 1rem;
+}
+
+.editModal button:first-of-type {
+  background-color: #28a745;
+  color: white;
+}
+
+.editModal button:last-of-type {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Loading State */
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+  .viewOrders {
+    padding: 1rem;
+  }
+
+  .adminLinks {
+    flex-direction: column;
+  }
+
+  .adminButton {
+    width: 100%;
+    text-align: center;
+  }
+
+  .ordersTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .editModal {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .filterSelect {
+    width: 100%;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .viewOrders {
+    background-color: #1a1a1a;
+    color: #ffffff;
+  }
+
+  .adminPanel {
+    background-color: #2d2d2d;
+  }
+
+  .ordersContainer {
+    background-color: #2d2d2d;
+  }
+
+  .ordersTable th {
+    background-color: #333333;
+    color: #ffffff;
+  }
+
+  .ordersTable td {
+    border-bottom-color: #404040;
+  }
+
+  .editModal {
+    background-color: #2d2d2d;
+    color: #ffffff;
+  }
+
+  .editModal input,
+  .editModal select {
+    background-color: #333333;
+    color: #ffffff;
+    border-color: #404040;
+  }
+
+  .filterSelect {
+    background-color: #333333;
+    color: #ffffff;
+    border-color: #404040;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .adminPanel,
+  .filters,
+  .viewButton,
+  .editModal {
+    display: none;
+  }
+
+  .viewOrders {
+    padding: 0;
+  }
+
+  .ordersTable {
+    border: 1px solid #000;
+  }
+
+  .ordersTable th,
+  .ordersTable td {
+    border: 1px solid #000;
+  }
 }

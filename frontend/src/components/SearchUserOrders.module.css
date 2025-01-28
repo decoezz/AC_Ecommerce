@@ -1,4 +1,4 @@
-.searchOrders {
+.searchUserOrders {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -9,27 +9,22 @@
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem;
+  align-items: end;
 }
 
 .formGroup {
   margin-bottom: 1rem;
 }
 
-.searchInput,
-.dateInput,
-.statusSelect {
+.searchInput {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #dee2e6;
   border-radius: 4px;
   font-size: 1rem;
-}
-
-.dateRangeContainer {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .searchButton {
@@ -40,11 +35,28 @@
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
-  width: 100%;
 }
 
 .searchButton:hover {
   background-color: #0056b3;
+}
+
+.userDetails {
+  background-color: #e9ecef;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.userDetails h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #212529;
+}
+
+.userDetails p {
+  margin: 0.5rem 0;
+  color: #495057;
 }
 
 .resultsContainer {
@@ -123,11 +135,11 @@
 }
 
 @media (max-width: 768px) {
-  .searchOrders {
+  .searchUserOrders {
     padding: 1rem;
   }
 
-  .dateRangeContainer {
+  .searchForm {
     grid-template-columns: 1fr;
   }
 

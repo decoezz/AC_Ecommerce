@@ -1,0 +1,217 @@
+.createOrder {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  border: 1px solid #f5c6cb;
+}
+
+.orderForm {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.itemsSection {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.itemRow {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.addButton,
+.removeButton,
+.submitButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.addButton {
+  background-color: #28a745;
+  color: white;
+  margin-top: 1rem;
+}
+
+.addButton:hover {
+  background-color: #218838;
+}
+
+.removeButton {
+  background-color: #dc3545;
+  color: white;
+}
+
+.removeButton:hover {
+  background-color: #c82333;
+}
+
+.removeButton:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.submitButton {
+  background-color: #007bff;
+  color: white;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.submitButton:hover {
+  background-color: #0056b3;
+}
+
+.submitButton:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.formActions {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.readOnly {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+datalist {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.itemRow .formGroup {
+  position: relative;
+}
+
+.itemRow .formGroup datalist {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.itemRow .formGroup datalist option {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.itemRow .formGroup datalist option:hover {
+  background-color: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+  .itemRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .createOrder {
+    padding: 1rem;
+  }
+
+  .orderForm {
+    padding: 1rem;
+  }
+}
+
+.retryTimer {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  text-align: center;
+  border: 1px solid #ffeeba;
+}
+
+.input:disabled,
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f8f9fa;
+}
+
+.addButton:disabled,
+.removeButton:disabled,
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #6c757d;
+}
+
+.loadingText {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.formGroup select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+}
+
+.formGroup select:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.formGroup select option {
+  padding: 0.5rem;
+}

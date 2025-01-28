@@ -1,34 +1,65 @@
 .manageOrders {
-  padding: 20px;
+  padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.filters {
-  margin: 20px 0;
+.controls {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.filterSelect,
+.actionSelect {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.bulkActions {
+  display: flex;
+  gap: 1rem;
   align-items: center;
 }
 
-.statusFilter {
-  padding: 8px;
-  border: 1px solid #ddd;
+.applyButton {
+  background-color: #28a745;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
   border-radius: 4px;
-  font-size: 16px;
+  cursor: pointer;
+}
+
+.applyButton:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.ordersContainer {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .ordersTable {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
 }
 
 .ordersTable th,
 .ordersTable td {
-  padding: 12px;
+  padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #dee2e6;
 }
 
 .ordersTable th {
@@ -36,90 +67,56 @@
   font-weight: 600;
 }
 
-.actions {
-  display: flex;
-  gap: 10px;
+.statusSelect {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background-color: white;
 }
 
 .viewButton {
-  padding: 6px 12px;
-  background-color: #28a745;
+  background-color: #6c757d;
   color: white;
-  text-decoration: none;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  font-size: 14px;
+  text-decoration: none;
+  font-size: 0.9rem;
 }
 
-.deleteButton {
-  padding: 6px 12px;
-  background-color: #dc3545;
+.viewButton:hover {
+  background-color: #5a6268;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
+  text-decoration: none;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
 }
 
 .error {
   color: #dc3545;
-  margin: 10px 0;
-}
-
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
-
-.backButton {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #6c757d;
-  color: white;
-  text-decoration: none;
+  background-color: #f8d7da;
   border-radius: 4px;
 }
 
-select[class*="status-"] {
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-}
+@media (max-width: 768px) {
+  .manageOrders {
+    padding: 1rem;
+  }
 
-.pending {
-  color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.1);
-}
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.processing {
-  color: #17a2b8;
-  background-color: rgba(23, 162, 184, 0.1);
-}
+  .bulkActions {
+    flex-direction: column;
+  }
 
-.shipped {
-  color: #007bff;
-  background-color: rgba(0, 123, 255, 0.1);
-}
-
-.delivered {
-  color: #28a745;
-  background-color: rgba(40, 167, 69, 0.1);
-}
-
-.cancelled {
-  color: #dc3545;
-  background-color: rgba(220, 53, 69, 0.1);
-}
-
-.viewButton:hover {
-  background-color: #218838;
-}
-
-.deleteButton:hover {
-  background-color: #c82333;
-}
-
-.backButton:hover {
-  background-color: #5a6268;
+  .ordersTable {
+    display: block;
+    overflow-x: auto;
+  }
 }
