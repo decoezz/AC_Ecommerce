@@ -21,6 +21,42 @@ const ViewOrders = () => {
     items: [],
   });
 
+  const formatDate = (timestamp) => {
+    try {
+      if (!timestamp) {
+        return "Date not available";
+      }
+
+      if (timestamp.length === 24) {
+        const timestampHex = timestamp.substring(0, 8);
+        const date = new Date(parseInt(timestampHex, 16) * 1000);
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      const date = new Date(timestamp);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      return "Invalid date";
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "Date not available";
+    }
+  };
+
   const checkUserRole = async () => {
     const token = localStorage.getItem("token");
     const baseURL = import.meta.env.VITE_API_URL;
@@ -198,7 +234,7 @@ const ViewOrders = () => {
   return (
     <div className={styles.viewOrders}>
       <div className={styles.header}>
-        <h2>Orders</h2>
+        <h2 className={styles.title}>Orders</h2>
         <button
           onClick={() => navigate("/orders/create")}
           className={styles.createButton}
@@ -247,7 +283,7 @@ const ViewOrders = () => {
       )}
 
       {loading ? (
-        <div className={styles.loader}>Loading...</div>
+        <div className={styles.loading}>Loading orders...</div>
       ) : (
         <div className={styles.ordersContainer}>
           {orders.length > 0 ? (
@@ -265,13 +301,17 @@ const ViewOrders = () => {
                 {orders.map((order) => (
                   <tr key={order._id}>
                     <td>{order._id}</td>
-                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td>{formatDate(order._id)}</td>
                     <td>
-                      <span className={styles[order.status || "pending"]}>
-                        {order.status || "Pending"}
+                      <span
+                        className={
+                          styles[order.orderStatus?.toLowerCase() || "pending"]
+                        }
+                      >
+                        {order.orderStatus || "Pending"}
                       </span>
                     </td>
-                    <td>${(order.totalAmount || 0).toFixed(2)}</td>
+                    <td>${order.totalAmount?.toFixed(2) || "0.00"}</td>
                     <td>
                       <Link
                         to={`/orders/details/${order._id}`}
