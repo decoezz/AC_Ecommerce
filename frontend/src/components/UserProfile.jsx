@@ -5,14 +5,22 @@ import RoleOptionsModal from "./RoleOptionsModal";
 import { FaCamera, FaEdit, FaKey } from "react-icons/fa";
 
 const UserProfile = () => {
-  const [userProfile, setUserProfile] = useState(null);
+  const [userProfile, setUserProfile] = useState(() => {
+    const cachedUser = localStorage.getItem("user");
+    if (cachedUser) {
+      const parsed = JSON.parse(cachedUser);
+      // Handle both data structures: {user: {...}} and {...}
+      return parsed.user || parsed;
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
   const [message, setMessage] = useState("");
 
-  const fetchUserProfile = async (retries = 3, delay = 1000) => {
+  const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -20,34 +28,71 @@ const UserProfile = () => {
         return;
       }
 
-      // Use the full URL from your environment variables
+      // First check if we have valid cached data
+      const cachedUser = localStorage.getItem("user");
+      if (cachedUser) {
+        const parsed = JSON.parse(cachedUser);
+        const userData = parsed.user || parsed;
+        if (userData && userData.email) {
+          setUserProfile(userData);
+          setLoading(false);
+        }
+      }
+
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://127.0.0.1:4000/api/v1";
+
       const response = await fetch(`${apiUrl}/users/me`, {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        if (response.status === 429 && retries > 0) {
-          await new Promise((res) => setTimeout(res, delay));
-          return fetchUserProfile(retries - 1, delay * 2);
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+          return;
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+
+        const errorData = await response.json();
+        // If it's the specific "select is not a function" error, we'll continue with cached data
+        if (errorData.message?.includes("select is not a function")) {
+          if (userProfile) {
+            setError("Unable to refresh profile data. Using cached version.");
+            return;
+          }
+        }
+        throw new Error(
+          errorData.message || `Server error: ${response.status}`
+        );
       }
 
       const data = await response.json();
-      if (data && data.data && data.data.user) {
-        setUserProfile(data.data.user);
+
+      // Handle different response structures
+      const userData = data.data?.user || data.user || data.data || data;
+
+      if (userData && userData.email) {
+        setUserProfile(userData);
+        localStorage.setItem("user", JSON.stringify({ user: userData }));
+        setError(null);
       } else {
         throw new Error("Invalid user data format");
       }
     } catch (err) {
-      console.error("Fetch error:", err);
-      setError(err.message);
+      console.error("Profile fetch error:", err);
+
+      // If we already have userProfile data, show a less severe error
+      if (userProfile) {
+        setError("Unable to refresh profile. Using cached data.");
+      } else {
+        setError("Failed to load profile. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
@@ -55,7 +100,16 @@ const UserProfile = () => {
 
   useEffect(() => {
     fetchUserProfile();
-  }, []);
+
+    // Refresh every 5 minutes, but only if we don't have an error
+    const interval = setInterval(() => {
+      if (!error) {
+        fetchUserProfile();
+      }
+    }, 300000);
+
+    return () => clearInterval(interval);
+  }, [error]);
 
   const handleProfileClick = () => {
     setIsModalOpen(true);
@@ -116,16 +170,19 @@ const UserProfile = () => {
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
+  if (loading && !userProfile) {
+    return <div className={styles.loadingContainer}>Loading...</div>;
   }
 
   if (!userProfile) {
-    return <div>No user profile data available.</div>;
+    return (
+      <div className={styles.errorContainer}>
+        <p className={styles.error}>{error || "No profile data available"}</p>
+        <button onClick={fetchUserProfile} className={styles.retryButton}>
+          Retry
+        </button>
+      </div>
+    );
   }
 
   const avatarLetter = userProfile.name?.charAt(0) || "?";
@@ -229,9 +286,16 @@ const UserProfile = () => {
             </div>
           </div>
         </div>
+        {error && (
+          <div className={styles.warningBanner}>
+            {error}
+            <button onClick={fetchUserProfile} className={styles.refreshButton}>
+              Refresh
+            </button>
+          </div>
+        )}
       </div>
       {message && <p className={styles.success}>{message}</p>}
-      {error && <p className={styles.error}>{error}</p>}
     </div>
   );
 };
