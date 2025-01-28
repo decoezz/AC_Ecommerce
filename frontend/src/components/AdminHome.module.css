@@ -1,135 +1,147 @@
 .adminHome {
-    padding: 20px;
-    background-color: #f4f7fa; /* Light background for a modern look */
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: var(--spacing-xl);
+  background-color: var(--background);
+  min-height: 100vh;
 }
 
 .adminHome__title {
-    font-size: 28px;
-    margin-bottom: 20px;
-    color: #333;
-    text-align: center; /* Center the title */
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
 }
 
 .adminHome__content {
-    margin-top: 20px;
-    text-align: center; /* Center content */
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .adminHome__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px; /* Space between cards */
-    justify-content: center; /* Center cards */
-    margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
 }
 
 .adminHome__card {
-    flex: 1 1 calc(30% - 20px); /* Responsive card size */
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .adminHome__card:hover {
-    transform: translateY(-5px); /* Lift effect on hover */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .adminHome__icon {
-    font-size: 50px; /* Larger icon size */
-    color: #007bff; /* Bootstrap primary color */
-    margin-bottom: 10px;
+  font-size: 2.5rem;
+  color: var(--primary);
+}
+
+.adminHome__card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.adminHome__card p {
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0;
 }
 
 .graphContainer {
-    margin-top: 30px;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  margin-top: var(--spacing-xl);
 }
 
 .graphPlaceholder {
-    height: 300px; /* Placeholder height for graphs */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px dashed #007bff; /* Dashed border for visual indication */
-    border-radius: 12px;
-    color: #aaa; /* Light gray color for placeholder text */
-    font-size: 18px; /* Slightly larger font for placeholder */
+  height: 300px;
+  border: 2px dashed var(--secondary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
 }
 
 .createEmployeeForm {
-    display: flex;
-    flex-direction: column;
-    margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
 }
 
 .createEmployeeForm input {
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .createEmployeeForm button {
-    padding: 10px;
-    background-color: #007bff; /* Bootstrap primary color */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  padding: 10px;
+  background-color: #007bff; /* Bootstrap primary color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .createEmployeeForm button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
+  background-color: #0056b3; /* Darker shade on hover */
 }
 
 .success {
-    color: green;
-    margin-top: 10px;
-    text-align: center; /* Center the success message */
+  color: green;
+  margin-top: 10px;
+  text-align: center; /* Center the success message */
 }
 
 .error {
-    color: red;
-    margin-top: 10px;
-    text-align: center; /* Center the error message */
+  color: red;
+  margin-top: 10px;
+  text-align: center; /* Center the error message */
 }
 
 .userData {
-    margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
 }
 
 .deleteInput {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%; /* Full width */
-    margin-bottom: 10px; /* Space between input and button */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%; /* Full width */
+  margin-bottom: 10px; /* Space between input and button */
 }
 
 .deleteButton {
-    padding: 10px;
-    background-color: #dc3545; /* Bootstrap danger color */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%; /* Full width */
+  padding: 10px;
+  background-color: #dc3545; /* Bootstrap danger color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%; /* Full width */
 }
 
 .deleteButton:hover {
-    background-color: #c82333; /* Darker shade on hover */
-} 
+  background-color: #c82333; /* Darker shade on hover */
+}
