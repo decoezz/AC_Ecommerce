@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import styles from "./ManageProducts.module.css";
 import {
@@ -23,6 +23,10 @@ import {
   FaCheckCircle,
   FaCamera,
   FaCloudUploadAlt,
+  FaImage,
+  FaEdit,
+  FaTrash,
+  FaPlus,
 } from "react-icons/fa";
 
 const iconStyle = {
@@ -38,7 +42,7 @@ const ManageProducts = () => {
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null);
   const [photos, setPhotos] = useState([]);
-  const [searchBrand, setSearchBrand] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [newProduct, setNewProduct] = useState({
     brand: "",
     modelNumber: "",
@@ -55,6 +59,7 @@ const ManageProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const checkServerConnection = async () => {
     try {
@@ -117,12 +122,31 @@ const ManageProducts = () => {
     // Set up periodic server connection check
     const intervalId = setInterval(checkServerConnection, 30000); // Check every 30 seconds
     return () => clearInterval(intervalId);
-  }, []);
+  }, [refreshTrigger]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchProducts(searchBrand);
-  };
+  // Combine filtering and sorting in one operation
+  const displayedProducts = useMemo(() => {
+    let result = [...products];
+
+    // Apply search filter
+    if (searchTerm) {
+      result = result.filter(
+        (product) =>
+          product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.modelNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a.price - b.price;
+      }
+      return b.price - a.price;
+    });
+
+    return result;
+  }, [products, searchTerm, sortOrder]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -207,7 +231,7 @@ const ManageProducts = () => {
       });
 
       if (response.data) {
-        setProducts((prev) => [...prev, response.data]);
+        // Reset the form
         setNewProduct({
           brand: "",
           modelNumber: "",
@@ -219,6 +243,10 @@ const ManageProducts = () => {
           photos: null,
         });
         setShowAddForm(false);
+
+        // Trigger refresh by incrementing refreshTrigger
+        setRefreshTrigger((prev) => prev + 1);
+
         alert("Product added successfully!");
       }
     } catch (error) {
@@ -241,33 +269,70 @@ const ManageProducts = () => {
   const handleEdit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    if (!token || !editingProduct) return;
+    if (!token || !editingProduct) {
+      setError("No token found or no product selected for editing");
+      return;
+    }
 
     try {
-      // Create a new object with only the allowed fields and validate quantity
-      const updates = {};
-      if (editingProduct.brand) updates.brand = editingProduct.brand;
-      if (editingProduct.modelNumber)
-        updates.modelNumber = editingProduct.modelNumber;
-      if (editingProduct.powerConsumption)
-        updates.powerConsumption = editingProduct.powerConsumption;
-      if (editingProduct.price) updates.price = Number(editingProduct.price);
-      if (editingProduct.quantityInStock) {
-        const quantity = Number(editingProduct.quantityInStock);
-        if (quantity > 500) {
-          setError("Quantity can't be more than 500");
+      // Validate inputs before sending
+      const updates = {
+        brand: editingProduct.brand?.trim(),
+        modelNumber: editingProduct.modelNumber?.trim(),
+        powerConsumption: editingProduct.powerConsumption
+          ? parseInt(editingProduct.powerConsumption)
+          : undefined,
+        price: editingProduct.price
+          ? parseFloat(editingProduct.price)
+          : undefined,
+        quantityInStock: editingProduct.quantityInStock
+          ? parseInt(editingProduct.quantityInStock)
+          : undefined,
+        inStock: Boolean(editingProduct.inStock),
+      };
+
+      // Validation checks
+      if (updates.price && updates.price < 0) {
+        setError("Price cannot be negative");
+        return;
+      }
+
+      if (updates.quantityInStock !== undefined) {
+        if (updates.quantityInStock < 0) {
+          setError("Quantity cannot be negative");
           return;
         }
-        updates.quantityInStock = quantity;
+        if (updates.quantityInStock > 500) {
+          setError("Quantity cannot exceed 500 units");
+          return;
+        }
+        // Automatically set inStock based on quantity
+        updates.inStock = updates.quantityInStock > 0;
       }
-      updates.inStock = editingProduct.inStock;
 
-      // Remove coolingCapacity as it's not allowed in updates
-      // if (editingProduct.coolingCapacity) updates.coolingCapacity = editingProduct.coolingCapacity;
+      if (updates.powerConsumption && updates.powerConsumption < 0) {
+        setError("Power consumption cannot be negative");
+        return;
+      }
+
+      // Remove undefined values
+      Object.keys(updates).forEach(
+        (key) => updates[key] === undefined && delete updates[key]
+      );
+
+      // Only proceed if there are actual changes
+      const hasChanges = Object.keys(updates).some(
+        (key) => updates[key] !== editingProduct[key]
+      );
+
+      if (!hasChanges) {
+        setError("No changes detected");
+        return;
+      }
 
       console.log("Sending update:", updates);
 
-      await axios.patch(
+      const response = await axios.patch(
         `${import.meta.env.VITE_API_URL}/products/${editingProduct._id}`,
         updates,
         {
@@ -277,13 +342,38 @@ const ManageProducts = () => {
           },
         }
       );
-      setEditingProduct(null);
-      fetchProducts();
-      setError("");
+
+      if (response.data) {
+        setEditingProduct(null);
+        // Trigger refresh
+        setRefreshTrigger((prev) => prev + 1);
+        // Show success message
+        alert("Product updated successfully!");
+        setError("");
+      }
     } catch (err) {
       console.error("Update error:", err.response?.data || err);
-      setError(err.response?.data?.message || "Failed to update product.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to update product. Please check your inputs."
+      );
     }
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    let finalValue = value;
+    if (type === "checkbox") {
+      finalValue = checked;
+    } else if (type === "number") {
+      finalValue = value === "" ? "" : value;
+    }
+
+    setEditingProduct((prev) => ({
+      ...prev,
+      [name]: finalValue,
+    }));
   };
 
   const handleDelete = async (productId) => {
@@ -416,6 +506,17 @@ const ManageProducts = () => {
     return true;
   };
 
+  // Add this helper function to get the image URL
+  const getImageUrl = (photo) => {
+    if (!photo) return null;
+
+    // If the photo is already a full URL, return it
+    if (photo.startsWith("http")) return photo;
+
+    // Otherwise, construct the URL using the API base URL
+    return `${import.meta.env.VITE_API_URL}/${photo.replace(/\\/g, "/")}`;
+  };
+
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
   }
@@ -445,26 +546,24 @@ const ManageProducts = () => {
             </div>
           </div>
         </div>
-        <button
-          className={styles.addButton}
-          onClick={() => setShowAddForm(true)}
-        >
-          <FaRegPlusSquare style={iconStyle} />
-          Add New Product
-        </button>
-      </div>
-
-      <div className={styles.toolBar}>
-        <div className={styles.searchBar}>
-          <FaSearch className={styles.searchIcon} />
+        <div className={styles.header}>
           <input
             type="text"
             placeholder="Search products..."
-            value={searchBrand}
-            onChange={(e) => setSearchBrand(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
           />
+          <button
+            className={styles.addButton}
+            onClick={() => setShowAddForm(true)}
+          >
+            <FaPlus /> Add Product
+          </button>
         </div>
+      </div>
 
+      <div className={styles.toolBar}>
         <div className={styles.filters}>
           <div className={styles.filterGroup}>
             <FaFilter style={iconStyle} />
@@ -513,80 +612,48 @@ const ManageProducts = () => {
         <div className={styles.productGrid}>
           {currentItems.map((product) => (
             <div key={product._id} className={styles.productCard}>
-              <div className={styles.cardHeader}>
-                <h3>{product.brand}</h3>
-                <span
-                  className={
-                    product.inStock
-                      ? styles.statusBadgeInStock
-                      : styles.statusBadgeOutStock
-                  }
-                >
-                  {product.inStock ? "In Stock" : "Out of Stock"}
-                </span>
-              </div>
-
-              <div className={styles.productImages}>
-                {product.images && product.images.length > 0 ? (
-                  <div className={styles.imageGallery}>
-                    {product.images.map((image, index) => (
-                      <div key={index} className={styles.imageContainer}>
-                        <img
-                          src={image.url}
-                          alt={`${product.brand} ${index + 1}`}
-                        />
-                        <button
-                          onClick={() =>
-                            handleDeleteImage(product._id, image.public_id)
-                          }
-                          className={styles.deleteImageBtn}
-                        >
-                          <FaRegTrashAlt />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+              <div className={styles.productImage}>
+                {product.photos && product.photos.length > 0 ? (
+                  <img
+                    src={getImageUrl(product.photos[0])}
+                    alt={`${product.brand} ${product.modelNumber}`}
+                    onError={(e) => {
+                      e.target.src = "/placeholder-image.png"; // Add a placeholder image
+                      e.target.onerror = null; // Prevent infinite loop
+                    }}
+                  />
                 ) : (
                   <div className={styles.noImage}>
-                    <FaCamera style={{ ...iconStyle, fontSize: "2rem" }} />
-                    <p>No images available</p>
+                    <FaImage />
+                    <p>No image available</p>
                   </div>
                 )}
               </div>
 
-              <div className={styles.productDetails}>
-                <div className={styles.detailRow}>
-                  <FaBarcode style={iconStyle} />
-                  <span>{product.modelNumber}</span>
-                </div>
-                <div className={styles.detailRow}>
-                  <FaBolt style={iconStyle} />
-                  <span>{product.powerConsumption}W</span>
-                </div>
-                <div className={styles.detailRow}>
-                  <FaRegMoneyBillAlt style={iconStyle} />
-                  <span>${product.price.toLocaleString()}</span>
-                </div>
-                <div className={styles.detailRow}>
-                  <FaWarehouse style={iconStyle} />
-                  <span>{product.quantityInStock} units</span>
-                </div>
+              <div className={styles.productInfo}>
+                <h3>
+                  {product.brand} - {product.modelNumber}
+                </h3>
+                <p>Price: ${product.price}</p>
+                <p>Stock: {product.quantityInStock}</p>
+                <p>Status: {product.inStock ? "In Stock" : "Out of Stock"}</p>
+                {product.powerConsumption && (
+                  <p>Power: {product.powerConsumption}W</p>
+                )}
               </div>
 
-              <div className={styles.cardActions}>
+              <div className={styles.productActions}>
                 <button
                   onClick={() => setEditingProduct(product)}
                   className={styles.editButton}
                 >
-                  <FaRegEdit style={iconStyle} />
-                  Edit
+                  <FaEdit /> Edit
                 </button>
                 <button
                   onClick={() => handleDelete(product._id)}
                   className={styles.deleteButton}
                 >
-                  <FaRegTrashAlt style={iconStyle} />
-                  Delete
+                  <FaTrash /> Delete
                 </button>
               </div>
             </div>
@@ -637,6 +704,12 @@ const ManageProducts = () => {
                 <FaTimes />
               </button>
             </div>
+
+            {error && (
+              <div className={styles.errorMessage}>
+                <FaExclamationCircle /> {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.formGrid}>
@@ -744,6 +817,123 @@ const ManageProducts = () => {
                 </button>
                 <button type="submit" className={styles.saveButton}>
                   Add Product
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingProduct && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>
+                <FaRegEdit style={iconStyle} /> Edit Product
+              </h3>
+              <button
+                className={styles.closeButton}
+                onClick={() => {
+                  setEditingProduct(null);
+                  setError("");
+                }}
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            {error && (
+              <div className={styles.errorMessage}>
+                <FaExclamationCircle /> {error}
+              </div>
+            )}
+
+            <form onSubmit={handleEdit} className={styles.form}>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label>Brand *</label>
+                  <input
+                    type="text"
+                    name="brand"
+                    value={editingProduct.brand || ""}
+                    onChange={handleEditInputChange}
+                    required
+                    minLength="1"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Model Number *</label>
+                  <input
+                    type="text"
+                    name="modelNumber"
+                    value={editingProduct.modelNumber || ""}
+                    onChange={handleEditInputChange}
+                    required
+                    minLength="1"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Power Consumption (W)</label>
+                  <input
+                    type="number"
+                    name="powerConsumption"
+                    value={editingProduct.powerConsumption || ""}
+                    onChange={handleEditInputChange}
+                    min="0"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Price *</label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={editingProduct.price || ""}
+                    onChange={handleEditInputChange}
+                    required
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Quantity in Stock</label>
+                  <input
+                    type="number"
+                    name="quantityInStock"
+                    value={editingProduct.quantityInStock || ""}
+                    onChange={handleEditInputChange}
+                    min="0"
+                    max="500"
+                  />
+                </div>
+
+                <div className={styles.checkboxGroup}>
+                  <input
+                    type="checkbox"
+                    name="inStock"
+                    checked={editingProduct.inStock || false}
+                    onChange={handleEditInputChange}
+                  />
+                  <label>In Stock</label>
+                </div>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setError("");
+                  }}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className={styles.saveButton}>
+                  <FaRegSave style={iconStyle} /> Save Changes
                 </button>
               </div>
             </form>
