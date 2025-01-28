@@ -37,6 +37,7 @@ export default function Main() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/home" element={<Home />} />
               <Route path="/create-account" element={<CreateAccount />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/users" element={<AllUsers />} />
