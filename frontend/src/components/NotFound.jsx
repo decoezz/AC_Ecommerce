@@ -1,35 +1,18 @@
-import React from 'react';
-import './NotFound.css'; // Ensure this CSS file is correctly linked
-import astronaut from '../assets/astronaut.svg'; // Adjust the path as necessary
-import planet from '../assets/planet.svg'; // Adjust the path as necessary
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
+import styles from "./NotFound.module.css";
 
 const NotFound = () => {
-    const navigate = useNavigate();
-
-    return (
-        <div className="permission_denied">
-            <div id="tsparticles"></div>
-            <div className="denied__wrapper">
-                <h1>404</h1>
-                <h3>
-                    LOST IN <span>SPACE</span>? Hmm, looks like that page doesn't exist.
-                </h3>
-                <img id="astronaut" src={astronaut} alt="Astronaut" />
-                <img id="planet" src={planet} alt="Planet" />
-                <div className="button-container">
-                    <button 
-                        type="button"
-                        onClick={() => navigate('/shop')} 
-                        className="denied__link"
-                    >
-                        Go Home
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div className={styles.notFound}>
+      <h1>404</h1>
+      <h2>Page Not Found</h2>
+      <p>The page you are looking for doesn't exist or has been moved.</p>
+      <Link to="/" className={styles.homeButton}>
+        Go to Home
+      </Link>
+    </div>
+  );
 };
 
 export default NotFound;
-

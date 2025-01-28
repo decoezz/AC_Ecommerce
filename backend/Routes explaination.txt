@@ -1,56 +1,56 @@
 User/Admin routes:
 
 POST http://127.0.0.1:4000/api/v1/users/signup (Sign up for nomral users)
-Body:name,mobileNumber,email,password,passwordConfirm
+Body:name,mobileNumber,email,password,passwordConfirm   (Done)
 --------------------------------------------------------------------------
 POST http://127.0.0.1:4000/api/v1/users/admin/signup (Sign up for employees users)
 Protected,need admin
-Body:name,mobileNumber,email,password,passwordConfirm
+Body:name,mobileNumber,email,password,passwordConfirm       (Done)
 --------------------------------------------------------------------------
 POST http://127.0.0.1:4000/api/v1/users/login (login for All)
-Body:email,password
+Body:email,password          (Done)
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/users/logout (Log out)
-Protected
+Protected               (Done)
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/users/me (get current user data)
-Protected
---------------------------------------------------------------------------
+Protected            (Done)
+--------------------------------------------------------------- -----------
 GET http://127.0.0.1:4000/api/v1/users (Get All Users)
 Protected,need admin
-has query:(sort,filter,limitfields,pagination)
+has query:(sort,filter,limitfields,pagination)        (Done)
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/users/:id (Get Ceratin user)
+GET http://127.0.0.1:4000/api/v1/users/:id (Get Ceratin user)    (Done)
 --------------------------------------------------------------------------
 DELETE http://127.0.0.1:4000/api/v1/users/:id (Delete Ceratin User)
-Protected,need Admin
+Protected,need Admin           (Done)
 --------------------------------------------------------------------------
 PUT http://127.0.0.1:4000/api/v1/users/upload-photo (Add Profile Picture)
 Protected
-Send picture in from-data in the name of (profilePicture)
+Send picture in from-data in the name of (profilePicture)        (Done)
 --------------------------------------------------------------------------
 
 Products Routes:
 GET http://127.0.0.1:4000/api/v1/products/?brand=Samsung (Get All product)
-has query:(sort,filter,limitfields,pagination)
+has query:(sort,filter,limitfields,pagination)        (Done)
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/products/:id (Get certain product)
+GET http://127.0.0.1:4000/api/v1/products/:id (Get certain product)     (Done)
 --------------------------------------------------------------------------
 POST http://127.0.0.1:4000/api/v1/products/ (Create Product)
 Protected,need Admin or employee
 Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy)
-can add photos through form-data(send all data in the form-data) in the name of (photos) up to 5 photos
+can add photos through form-data(send all data in the form-data) in the name of (photos) up to 5 photos       (Done)
 --------------------------------------------------------------------------
 PATCH http://127.0.0.1:4000/api/v1/products/:id (Update Ceratin Product)
 Protected,need Admin or employee
-Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy) one field or all fields doesn't matter
+Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy) one field or all fields doesn't matter         (Done)
 --------------------------------------------------------------------------
 PUT http://127.0.0.1:4000/api/v1/products/update-product-images/:productId (Removing old photos (if exists) and add new photos)
 Protected,need Admin or employee
 Add photos through form-data in the name of (photos) up to 5 photos
 --------------------------------------------------------------------------
 DELTE http://127.0.0.1:4000/api/v1/products/:id (Delete Ceratin Product)
-Protected,need Admin or employee
+Protected,need Admin or employee         (Done)
 --------------------------------------------------------------------------
 DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product's photos)
 Protected,need Admin or employee

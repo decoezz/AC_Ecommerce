@@ -1,0 +1,108 @@
+.userOrders {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.searchForm {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.searchButton {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.userInfo {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+.userInfo h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.ordersSection {
+  margin-top: 30px;
+}
+
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.ordersTable th,
+.ordersTable td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.ordersTable th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.viewButton {
+  padding: 6px 12px;
+  background-color: #28a745;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.error {
+  color: #dc3545;
+  margin: 10px 0;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.backButton {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #6c757d;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.pending {
+  color: #ffc107;
+}
+.processing {
+  color: #17a2b8;
+}
+.shipped {
+  color: #007bff;
+}
+.delivered {
+  color: #28a745;
+}
+.cancelled {
+  color: #dc3545;
+}
