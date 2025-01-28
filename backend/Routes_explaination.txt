@@ -29,6 +29,10 @@ PUT http://127.0.0.1:4000/api/v1/users/upload-photo (Add Profile Picture)
 Protected
 Send picture in from-data in the name of (profilePicture)        (Done)
 --------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/users/reviews (get all reviews of user)
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/users/user/:mobileNumber (get User by mobile number)
+--------------------------------------------------------------------------
 
 Products Routes:
 GET http://127.0.0.1:4000/api/v1/products/?brand=Samsung (Get All product)
@@ -64,7 +68,27 @@ DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product
 Protected,need Admin or employee
 Body:(publicId,productId)
 --------------------------------------------------------------------------
-
+GET http://127.0.0.1:4000/api/v1/products/ac/:modelNumber (get product by model Number)
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/products/reviews/:productId (get all reviews on product)
+--------------------------------------------------------------------------
+POST http://127.0.0.1:4000/api/v1/products/reviews/:productId (add review to product)
+Protected
+Body:(rating,comment)
+--------------------------------------------------------------------------
+PATCH http://127.0.0.1:4000/api/v1/products/reviews/:productId (Update a review)
+Protected,specific
+BODY(rating or comment)
+--------------------------------------------------------------------------
+PUT http://127.0.0.1:4000/api/v1/products/reviews/:reviewId/like (Like a review)
+Protected
+--------------------------------------------------------------------------
+PUT http://127.0.0.1:4000/api/v1/products/reviews/:reviewId/dislike (dislike a review)
+Protected
+--------------------------------------------------------------------------
+DELTE http://127.0.0.1:4000/api/v1/products/reviews/:productId (delete a review)
+Protected,specific
+--------------------------------------------------------------------------
 
 Orders Routes:
 GET http://127.0.0.1:4000/api/v1/orders/my-orders (Getting current User orders)
@@ -105,4 +129,6 @@ Body:(shippingAddress,mobileNumber,items(array),orderStatus)
 --------------------------------------------------------------------------
 DELETE http://127.0.0.1:4000/api/v1/orders/:id/admin (Delete an order)
 Protected,need Admin or employee
+--------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/user/:mobileNumber (get orders by mobile number)
 --------------------------------------------------------------------------
