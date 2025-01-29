@@ -1,7 +1,6 @@
 const AppError = require('../utils/Error Handeling utils/appError');
 const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const User = require('../models/userModel');
-const Review = require('../models/reviewModel');
 const Order = require('../models/orderModel');
 const AC = require('../models/acModel');
 const ApiFeatures = require('../utils/apiFeatures');
@@ -147,6 +146,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
           400
         );
       }
+      item.modelNumber = product.modelNumber;
     }
     // Calculate total amount
     const totalAmount = items.reduce(
@@ -156,7 +156,6 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     // Reduce stock for each item
     for (const item of items) {
       const product = await AC.findById(item.ac).session(session);
-      // Double-check stock inside the transaction
       if (!product || product.quantityInStock < item.quantity) {
         throw new AppError(
           `Product ${product.modelNumber} does not have enough stock.`,
@@ -164,9 +163,9 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         );
       }
       // Reduce stock
-      await AC.findByIdAndUpdate(
-        item.ac,
-        { $inc: { quantityInStock: -item.quantity, unitSold: +item.quantity } },
+      await AC.updateOne(
+        { _id: item.ac },
+        { $inc: { quantityInStock: -item.quantity, unitSold: item.quantity } },
         { session }
       );
     }
@@ -184,6 +183,12 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       ],
       { session }
     );
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+    user.purshacedAc.push({ items });
+    await user.save();
     // Commit the transaction
     await session.commitTransaction();
     session.endSession();
@@ -227,7 +232,7 @@ exports.GetMyOrders = catchAsync(async (req, res, next) => {
 //Editting an Order
 exports.updateOrder = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const { shippingAddress, mobileNumber, items, orderStatus } = req.body;
+  const { shippingAddress, mobileNumber, items } = req.body;
   validateUpdateOrderData(req.body);
   const session = await Order.startSession();
   session.startTransaction();
@@ -243,12 +248,6 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
     }
     if (shippingAddress) order.shippingAddress = shippingAddress;
     if (mobileNumber) order.mobileNumber = mobileNumber;
-    if (orderStatus) {
-      if (req.user.role !== 'Admin' && req.user.role !== 'employee') {
-        return next(new AppError('Only Admins can update order status', 403));
-      }
-      order.orderStatus = orderStatus;
-    }
     if (items && items.length > 0) {
       for (const newItem of items) {
         const orderItem = order.items.find(
@@ -286,6 +285,7 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
           { session }
         );
         orderItem.quantity = newItem.quantity;
+        orderItem.modelNumber = product.modelNumber;
       }
     }
     await order.save({ session });
@@ -346,5 +346,26 @@ exports.getOrderByMobileNumber = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'AC Found Successfully',
     data: { order },
+  });
+});
+//Change order Status
+exports.ChangeOrderStatus = catchAsync(async (req, res, next) => {
+  const { orderStatus } = req.body;
+  const orderId = req.params.id;
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    return next(
+      new AppError('There is no Order with this ID.Please try again later', 404)
+    );
+  }
+  order.orderStatus = orderStatus;
+  await order.save();
+  res.status(200).json({
+    status: 'success',
+    messsage: 'Order Status changed successfully',
+    data: {
+      order,
+    },
   });
 });

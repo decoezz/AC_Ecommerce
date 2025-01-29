@@ -33,6 +33,9 @@ GET http://127.0.0.1:4000/api/v1/users/reviews (get all reviews of user)
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/users/user/:mobileNumber (get User by mobile number)
 --------------------------------------------------------------------------
+GET  http://127.0.0.1:4000/api/v1/users/user/likedProducts
+Protected,specific
+--------------------------------------------------------------------------
 
 Products Routes:
 GET http://127.0.0.1:4000/api/v1/products/?brand=Samsung (Get All product)
@@ -70,23 +73,18 @@ Body:(publicId,productId)
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/products/ac/:modelNumber (get product by model Number)
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/products/reviews/:productId (get all reviews on product)
---------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/products/reviews/:productId (add review to product)
+POST http://127.0.0.1:4000/api/v1/products/ratings/:productId (add rating to product)
 Protected
-Body:(rating,comment)
+Body:(rating)
 --------------------------------------------------------------------------
-PATCH http://127.0.0.1:4000/api/v1/products/reviews/:productId (Update a review)
+PATCH http://127.0.0.1:4000/api/v1/products/ratings/:productId (Update a rating)
 Protected,specific
 BODY(rating or comment)
 --------------------------------------------------------------------------
-PUT http://127.0.0.1:4000/api/v1/products/reviews/:reviewId/like (Like a review)
+PUT http://127.0.0.1:4000/api/v1/products/ratings/:reviewId/like (Like a product)
 Protected
 --------------------------------------------------------------------------
-PUT http://127.0.0.1:4000/api/v1/products/reviews/:reviewId/dislike (dislike a review)
-Protected
---------------------------------------------------------------------------
-DELTE http://127.0.0.1:4000/api/v1/products/reviews/:productId (delete a review)
+DELTE http://127.0.0.1:4000/api/v1/products/ratings/:productId (delete a rating)
 Protected,specific
 --------------------------------------------------------------------------
 
@@ -125,7 +123,7 @@ Protected,need Admin or employee
 --------------------------------------------------------------------------
 PATCH http://127.0.0.1:4000/api/v1/orders/:id/admin (Edit an order)
 Protected,need Admin or employee
-Body:(shippingAddress,mobileNumber,items(array),orderStatus)
+Body:(orderStatus)
 --------------------------------------------------------------------------
 DELETE http://127.0.0.1:4000/api/v1/orders/:id/admin (Delete an order)   (Done)
 Protected,need Admin or employee

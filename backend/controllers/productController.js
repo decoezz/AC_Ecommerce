@@ -2,7 +2,6 @@ const AppError = require('../utils/Error Handeling utils/appError');
 const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const ApiFeatures = require('../utils/apiFeatures');
 const AC = require('../models/acModel');
-const Review = require('../models/reviewModel');
 const {
   validateProductData,
 } = require('../utils/Data Validation utils/validateProductData');
@@ -10,6 +9,7 @@ const checkProductExists = require('../utils/checkProductExists');
 const {
   validateUpdateProduct,
 } = require('../utils/Data Validation utils/validateUpdateProduct');
+const User = require('../models/userModel');
 //Create Product
 exports.createProduct = catchAsync(async (req, res, next) => {
   const newBody = {};
@@ -83,19 +83,26 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
 });
 //Get a certain Product
 exports.getProduct = catchAsync(async (req, res, next) => {
-  const acId = req.params.id;
-  const Ac = await AC.findById(acId);
-  if (!Ac) {
-    return next(
-      new AppError(
-        `There no AC with this ID : ${acId}.Please try again later`,
-        400
-      )
-    );
+  const productId = req.params.productId;
+  const product = await AC.findById(productId).populate('ratings.user');
+  if (!product) {
+    return next(new AppError('Product not found', 404));
   }
+  // Calculate average rating
+  const averageRating = product.ratings.length
+    ? product.ratings.reduce((acc, review) => acc + review.rating, 0) /
+      product.ratings.length
+    : 0;
+  const likesCount = product.likes.length || 0;
   res.status(200).json({
     status: 'success',
-    data: { Ac },
+    data: {
+      product: {
+        ...product.toObject(), // Spread the original product fields
+        averageRating,
+        likesCount,
+      },
+    },
   });
 });
 //Get Product by modelNumber
@@ -206,122 +213,64 @@ exports.UpdateImages = catchAsync(async (req, res, next) => {
   });
 });
 //Create a Review
-exports.addReview = catchAsync(async (req, res, next) => {
+exports.addRating = catchAsync(async (req, res, next) => {
   const productId = req.params.productId;
-  const { rating, comment } = req.body;
+  const { rating } = req.body;
   const userId = req.user.id;
   const product = await AC.findById(productId);
   if (!product) {
     return next(new AppError('No Product found with this ID', 400));
   }
   //Check if the user has already reviewed this product
-  const existingReview = await Review.findOne({
-    product: productId,
-    user: userId,
-  });
+  const existingReview = product.ratings.find(
+    (rating) => rating.user.toString() === userId
+  );
   if (existingReview) {
-    return next(new AppError('You have already reviewd this product', 400));
+    return next(new AppError('You have already reviewed this product', 400));
   }
-  const review = await Review.create({
-    product: productId,
+  product.ratings.push({
     user: userId,
     rating,
-    comment,
   });
-  // Update product's average rating
-  const stats = await Review.aggregate([
-    { $match: { product: product._id } },
-    {
-      $group: {
-        _id: '$product',
-        avgRating: { $avg: '$rating' },
-        reviewCount: { $sum: 1 },
-      },
-    },
-  ]);
-  if (stats.length > 0) {
-    product.averageRating = stats[0].avgRating;
-    product.reviewCount = stats[0].reviewCount;
-  } else {
-    product.averageRating = 0;
-    product.reviewCount = 0;
-  }
+  // Recalculate average rating
+  const averageRating =
+    product.ratings.length > 0
+      ? product.ratings.reduce((acc, review) => acc + review.rating, 0) /
+        product.ratings.length
+      : 0;
+  product.averageRating = averageRating;
   await product.save();
   res.status(201).json({
     status: 'success',
-    message: 'Review Added Successfully',
-    data: { review },
-  });
-});
-//Get All Reviews For a product
-exports.getProductReviews = catchAsync(async (req, res, next) => {
-  const productId = req.params.productId;
-  const reviews = await Review.find({ product: productId })
-    .populate('user', 'name email')
-    .lean(); // Converts Mongoose docs to plain objects for modification
-  if (!reviews || reviews.length === 0) {
-    return next(new AppError('There is no reviews for this product yet.', 404));
-  }
-  // Modify reviews to return counts instead of actual user lists
-  const formattedReviews = reviews.map((review) => ({
-    _id: review._id,
-    user: review.user,
-    rating: review.rating,
-    comment: review.comment,
-    createdAt: review.createdAt,
-    likesCount: review.likes ? review.likes.length : 0,
-    dislikesCount: review.dislike ? review.dislike.length : 0,
-  }));
-  res.status(200).json({
-    status: 'success',
-    message: 'Reviews retrived Successfully',
-    results: formattedReviews.length,
-    data: { formattedReviews },
+    message: 'Rating Added Successfully',
+    data: { review: { rating } },
   });
 });
 //Update a Review
-exports.UpdateReview = catchAsync(async (req, res, next) => {
+exports.UpdateRating = catchAsync(async (req, res, next) => {
   const productId = req.params.productId;
   const userId = req.user.id;
-  const userRole = req.user.role;
-  const { rating, comment } = req.body;
-  // Find the review
-  let review;
-  if (userRole === 'Admin') {
-    // If the user is an admin, allow them to update any review for the product
-    review = await Review.findOne({ product: productId });
-  } else {
-    // If the user is not an admin, only allow them to update their own review
-    review = await Review.findOne({ product: productId, user: userId });
-  }
-  if (!review) {
-    return next(
-      new AppError('You have not reviewed this product or not authorized', 403)
-    );
-  }
-  if (rating !== undefined) review.rating = rating;
-  if (comment !== undefined) review.comment = comment;
-  await review.save({
-    new: true,
-  });
-  const stats = await Review.aggregate([
-    { $match: { product: productId } },
-    {
-      $group: {
-        _id: '$product',
-        avgRating: { $avg: '$rating' },
-        reviewCount: { $sum: 1 },
-      },
-    },
-  ]);
+  const { rating } = req.body;
   const product = await AC.findById(productId);
-  if (stats.length > 0) {
-    product.averageRating = stats[0].avgRating;
-    product.reviewCount = stats[0].reviewCount;
-  } else {
-    product.averageRating = 0;
-    product.reviewCount = 0;
+  const review = product.ratings.find(
+    (ratingObj) => ratingObj.user.toString() === userId
+  );
+  if (!review) {
+    return next(new AppError('You have not reviewed this product yet', 404));
   }
+  // Update the review rating
+  review.rating = rating;
+  // Recalculate the average rating and review count
+  const stats = product.ratings.reduce(
+    (acc, ratingObj) => {
+      acc.totalRating += ratingObj.rating;
+      acc.reviewCount += 1;
+      return acc;
+    },
+    { totalRating: 0, reviewCount: 0 }
+  );
+  product.averageRating = stats.totalRating / stats.reviewCount;
+  product.reviewCount = stats.reviewCount;
   await product.save();
   res.status(200).json({
     status: 'success',
@@ -330,83 +279,68 @@ exports.UpdateReview = catchAsync(async (req, res, next) => {
   });
 });
 //Delete a Review
-exports.DeleteReview = catchAsync(async (req, res, next) => {
+exports.DeleteRating = catchAsync(async (req, res, next) => {
   const productId = req.params.productId;
   const userId = req.user.id;
-  const review = await Review.findOne({ product: productId, user: userId });
-  if (!review) {
+  const product = await AC.findById(productId);
+  const reviewIndex = product.ratings.findIndex(
+    (ratingObj) => ratingObj.user.toString() === userId
+  );
+  if (reviewIndex === -1) {
     return next(
       new AppError('You have not reviewed this product or not authorized', 403)
     );
   }
-  if (review.user.toString() !== userId && req.user.role !== 'admin') {
-    return next(new AppError('Not authorized to delete this review', 403));
-  }
-  await review.deleteOne();
+  // Remove the review from the ratings array
+  product.ratings.splice(reviewIndex, 1);
+
+  // Recalculate average rating and review count
+  const stats = product.ratings.reduce(
+    (acc, ratingObj) => {
+      acc.totalRating += ratingObj.rating;
+      acc.reviewCount += 1;
+      return acc;
+    },
+    { totalRating: 0, reviewCount: 0 }
+  );
+  product.averageRating = stats.totalRating / stats.reviewCount;
+  product.reviewCount = stats.reviewCount;
+
+  await product.save();
   res.status(204).json({
     status: 'success',
-    message: 'Review Deleted Successfully',
+    message: 'rating Deleted Successfully',
     data: null,
   });
 });
 //Like a review
-exports.LikeReview = catchAsync(async (req, res, next) => {
-  const { reviewId } = req.params;
+exports.LikeProduct = catchAsync(async (req, res, next) => {
+  const productId = req.params.productId;
   const userId = req.user.id;
-  const review = await Review.findById(reviewId);
-  if (!review) {
-    return next(
-      new AppError(
-        'There is no Review with this ID.Please try again later',
-        400
-      )
-    );
+  const product = await AC.findById(productId);
+  const user = await User.findById(userId);
+  if (!product) {
+    return next(new AppError('Product not found', 404));
   }
-  if (!review.likes) review.likes = [];
-  if (!review.dislike) review.dislike = [];
-  review.dislike = review.dislike.filter((id) => id.toString() !== userId);
-
-  const alreadyLiked = review.likes.includes(userId);
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+  const alreadyLiked = product.likes.includes(userId);
   if (alreadyLiked) {
-    review.likes = review.likes.filter((id) => id.toString() !== userId);
-  } else {
-    review.likes.push(userId);
-  }
-  await review.save();
-  res.status(200).json({
-    status: 'success',
-    message: alreadyLiked ? 'Like Removed' : 'Review Liked Successfully',
-    data: { review },
-  });
-});
-//Dislike a review
-exports.DislikeReview = catchAsync(async (req, res, next) => {
-  const { reviewId } = req.params;
-  const userId = req.user.id;
-  const review = await Review.findById(reviewId);
-  if (!review) {
-    return next(
-      new AppError(
-        'There is no Review with this ID.Please try again later',
-        400
-      )
+    // If already liked, remove like
+    product.likes = product.likes.filter((id) => id.toString() !== userId);
+    user.likedProducts = user.likedProducts.filter(
+      (likedProductId) => likedProductId.toString() !== productId
     );
-  }
-  if (!review.likes) review.likes = [];
-  if (!review.dislike) review.dislike = [];
-  review.likes = review.likes.filter((id) => id.toString() !== userId);
-  const alreadyDisliked = review.dislike.includes(userId);
-  if (alreadyDisliked) {
-    review.dislike = review.dislike.filter((id) => id.toString() !== userId);
   } else {
-    review.dislike.push(userId);
+    product.likes.push(userId);
+    user.likedProducts.push(productId);
   }
-  await review.save();
+  await product.save();
+  await user.save();
   res.status(200).json({
     status: 'success',
-    message: alreadyDisliked
-      ? 'Dislike Removed'
-      : 'Review Disliked Successfully',
-    data: { review },
+    message: alreadyLiked ? 'Like Removed' : 'Product Liked Successfully',
+    data: { product },
   });
 });

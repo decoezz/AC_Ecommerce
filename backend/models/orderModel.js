@@ -13,6 +13,10 @@ const orderSchema = mongoose.Schema({
         ref: 'AC',
         required: true,
       },
+      modelNumber: {
+        type: String,
+        required: true, // Store modelNumber in order
+      },
       quantity: {
         type: Number,
         default: 1,

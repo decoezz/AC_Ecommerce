@@ -91,7 +91,39 @@ const userSchema = new mongoose.Schema(
     profilePicture: {
       type: String,
       default: 'https://via.placeholder.com/150',
-    }, // Default placeholder image
+    },
+    purshacedAc: [
+      {
+        items: [
+          {
+            ac: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'AC', // reference to the 'AC' model
+              required: true,
+            },
+            quantity: {
+              type: Number,
+              required: true,
+            },
+            priceAtPurchase: {
+              type: Number,
+              required: true,
+            },
+            modelNumber: {
+              type: String,
+              required: true,
+            },
+          },
+        ],
+      },
+    ],
+    likedProducts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AC',
+        default: null,
+      },
+    ],
   },
   {
     versionKey: false,

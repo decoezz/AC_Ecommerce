@@ -3,7 +3,6 @@ const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const AppError = require('../utils/Error Handeling utils/appError');
 const ApiFeatures = require('../utils/apiFeatures');
 const User = require('../models/userModel');
-const Review = require('../models/reviewModel');
 const singToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -174,7 +173,9 @@ exports.DeleteUser = catchAsync(async (req, res, next) => {
 });
 //Getting the current user details
 exports.me = catchAsync(async (req, res, next) => {
-  const user = await User.findById({ _id: req.user._id }.select('-password'));
+  const user = await User.findById(req.user.id)
+    .select('-password')
+    .populate('likedProducts');
   res.status(200).json({
     status: 'success',
     data: {
@@ -210,30 +211,25 @@ exports.uploadUserPhoto = catchAsync(async (req, res, next) => {
     profilePicture: user.profilePicture,
   });
 });
-//Get User Reviews
-exports.getUserReviews = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
-  const reviews = await Review.find({ user: userId })
-    .populate('product', 'name price') // Include product name & price
-    .lean();
-  console.log(reviews);
-  if (!reviews || reviews.length === 0) {
-    return next(new AppError('This User has no reviews yet.', 404));
+//Getting Liked Products by current user
+exports.likedProduct = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).populate('likedProducts');
+  if (!user) {
+    return next(
+      new AppError(
+        'There was a problem with your user.Please try again later',
+        404
+      )
+    );
   }
-  // Format reviews to include like/dislike counts
-  const formattedReviews = reviews.map((review) => ({
-    _id: review._id,
-    product: review.product,
-    rating: review.rating,
-    comment: review.comment,
-    createdAt: review.createdAt,
-    likesCount: review.likes ? review.likes.length : 0,
-    dislikesCount: review.dislike ? review.dislike.length : 0,
-  }));
+  const likedProducts = user.likedProducts;
+  if (!likedProducts || likedProducts === 0) {
+    return next(new AppError('There is no liked Products for this user', 404));
+  }
   res.status(200).json({
     status: 'success',
-    message: 'User reviews retrived Successfully',
-    results: formattedReviews.length,
-    data: formattedReviews,
+    message: 'Liked Product retrived successfully',
+    results: likedProducts.length,
+    data: { likedProducts },
   });
 });

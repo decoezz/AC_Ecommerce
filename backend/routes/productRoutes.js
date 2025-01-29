@@ -5,21 +5,17 @@ const validateObjectId = require('../utils/Data Validation utils/validateObjectI
 const uploadProductImages = require('../utils/Uploading utils/multerProduct');
 const router = express.Router();
 
+//Routes for ratings
+router.post('/ratings/:productId', protect, ProductController.addRating);
+router.patch('/ratings/:productId', protect, ProductController.UpdateRating);
+router.put('/like/:productId', protect, ProductController.LikeProduct);
+router.delete('/ratings/:productId', protect, ProductController.DeleteRating);
+
 //public routes for users
 router.get('/', ProductController.getAllProducts);
+
 router.get('/:id', validateObjectId, ProductController.getProduct);
 router.get('/ac/:modelNumber', ProductController.getProductByModelNumber);
-//Routes for reviews
-router.get('/reviews/:productId', ProductController.getProductReviews);
-router.post('/reviews/:productId', protect, ProductController.addReview);
-router.patch('/reviews/:productId', protect, ProductController.UpdateReview);
-router.put('/reviews/:reviewId/like', protect, ProductController.LikeReview);
-router.put(
-  '/reviews/:reviewId/dislike',
-  protect,
-  ProductController.DislikeReview
-);
-router.delete('/reviews/:productId', protect, ProductController.DeleteReview);
 //Private route for admin/employees only
 router.use(protect, restrictTo('Admin', 'employee'));
 router.post('/', uploadProductImages, ProductController.createProduct);

@@ -42,12 +42,38 @@ const AcModelSchema = new mongoose.Schema(
       type: Number,
       deafult: 0,
     },
-    reviewCount: { type: Number, default: 0 },
     createdAt: {
       type: Date,
       default: Date.now,
     },
+    reviewCount: { type: Number, default: 0 },
     photos: [{ type: String, required: true }], // Array of image URLs
+    ratings: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        rating: {
+          type: Number,
+          min: 1,
+          max: 5,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: [],
+      },
+    ],
   },
   { timestamps: true }
 );
