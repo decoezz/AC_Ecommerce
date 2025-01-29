@@ -1,7 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import styles from "./ManageOrders.module.css";
+import {
+  FaSpinner,
+  FaUser,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaClock,
+  FaTrash,
+  FaEye,
+} from "react-icons/fa";
+import {
+  MdOutlineLocalShipping,
+  MdPending,
+  MdDone,
+  MdCancel,
+  MdPayment,
+  MdFilterList,
+} from "react-icons/md";
+import { BsBoxSeam, BsCurrencyDollar } from "react-icons/bs";
+import { toast } from "react-hot-toast";
 
 const ManageOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -13,33 +33,63 @@ const ManageOrders = () => {
   const [retryAfter, setRetryAfter] = useState(0);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [searchMobile, setSearchMobile] = useState("");
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [isSearching, setIsSearching] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState("");
+  const [acDetails, setAcDetails] = useState({});
+  const [isLoadingAc, setIsLoadingAc] = useState(true);
 
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const baseURL =
-        import.meta.env.VITE_API_URL || "http://127.0.0.1:4000/api/v1";
+      const baseURL = "http://127.0.0.1:4000/api/v1";
 
-      let endpoint;
-      switch (filter) {
-        case "today":
-          endpoint = `${baseURL}/orders/today`;
-          break;
-        case "week":
-          endpoint = `${baseURL}/orders/last-week`;
-          break;
-        case "month":
-          endpoint = `${baseURL}/orders/last-month`;
-          break;
-        default:
-          endpoint = `${baseURL}/orders/GetOrders`;
-      }
-
-      const response = await axios.get(endpoint, {
+      // Simplified to use single endpoint for all orders
+      const response = await axios.get(`${baseURL}/orders/GetOrders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setOrders(response.data.data || []);
+      let filteredOrders = response.data.data || [];
+
+      // Client-side filtering
+      switch (filter) {
+        case "today": {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          filteredOrders = filteredOrders.filter((order) => {
+            const orderDate = new Date(order.purchasedAt);
+            return orderDate >= today;
+          });
+          break;
+        }
+        case "week": {
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          filteredOrders = filteredOrders.filter((order) => {
+            const orderDate = new Date(order.purchasedAt);
+            return orderDate >= weekAgo;
+          });
+          break;
+        }
+        case "month": {
+          const monthAgo = new Date();
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          filteredOrders = filteredOrders.filter((order) => {
+            const orderDate = new Date(order.purchasedAt);
+            return orderDate >= monthAgo;
+          });
+          break;
+        }
+      }
+
+      setOrders(filteredOrders);
       setError("");
     } catch (err) {
       handleError(err);
@@ -73,41 +123,128 @@ const ManageOrders = () => {
     fetchOrders();
   }, [filter]);
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  // Check server connection
+  const checkServerConnection = async () => {
     try {
-      setStatusUpdateLoading(true);
-      const token = localStorage.getItem("token");
-      const baseURL = import.meta.env.VITE_API_URL;
+      await axios.get("http://127.0.0.1:4000/api/v1/health"); // You might need to create this endpoint
+      return true;
+    } catch (error) {
+      console.error("Server connection error:", error);
+      return false;
+    }
+  };
 
-      // Get current order data
-      const orderResponse = await axios.get(
-        `${baseURL}/orders/GetOrders/${orderId}`,
+  // Function to fetch order details
+  const fetchOrderDetails = async (orderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://127.0.0.1:4000/api/v1/orders/GetOrders/${orderId}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      const currentOrder = orderResponse.data.data;
+      // Ensure we have the correct data structure
+      const orderData = response.data.data || response.data;
+      if (!orderData) {
+        throw new Error("Invalid order data received");
+      }
+      return orderData;
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      throw new Error("Failed to fetch order details");
+    }
+  };
 
-      // Update order status
-      await axios.patch(
-        `${baseURL}/orders/${orderId}/admin`,
+  // Handle status change
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      setIsUpdating(true);
+      setUpdateError("");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Using status instead of orderStatus
+      const updateData = {
+        status: newStatus, // Changed from orderStatus to status
+      };
+
+      console.log("Updating order status:", {
+        orderId,
+        updateData,
+        endpoint: `http://127.0.0.1:4000/api/v1/orders/${orderId}/admin`,
+      });
+
+      const response = await axios.patch(
+        `http://127.0.0.1:4000/api/v1/orders/${orderId}/admin`,
+        updateData,
         {
-          orderStatus: newStatus,
-          shippingAddress: currentOrder.shippingAddress,
-          mobileNumber: currentOrder.mobileNumber,
-          items: currentOrder.items,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
 
-      // Refresh orders
-      await fetchOrders();
-      setError("");
-    } catch (err) {
-      handleError(err);
+      if (response.data) {
+        // Update the local state using status instead of orderStatus
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === orderId ? { ...order, status: newStatus } : order
+          )
+        );
+
+        // Update selected order
+        setSelectedOrder((prev) => ({
+          ...prev,
+          status: newStatus,
+        }));
+
+        toast.success("Order status updated successfully");
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      console.error("Error response:", error.response?.data);
+
+      let errorMessage = "Failed to update order status";
+
+      if (error.response) {
+        switch (error.response.status) {
+          case 401:
+            errorMessage = "Not authorized. Please login as admin or employee";
+            break;
+          case 403:
+            errorMessage = "You do not have permission to update orders";
+            break;
+          case 404:
+            errorMessage = "Order not found";
+            break;
+          case 400:
+            errorMessage = error.response.data?.message || "Invalid order data";
+            break;
+          case 500:
+            errorMessage = "Server error. Please check server logs.";
+            break;
+          default:
+            errorMessage =
+              error.response.data?.message || "Failed to update order status";
+        }
+      } else if (error.request) {
+        errorMessage = "No response from server. Please try again";
+      } else {
+        errorMessage = error.message;
+      }
+
+      setUpdateError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setStatusUpdateLoading(false);
+      setIsUpdating(false);
     }
   };
 
@@ -116,7 +253,7 @@ const ManageOrders = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const baseURL = import.meta.env.VITE_API_URL;
+      const baseURL = "http://127.0.0.1:4000/api/v1";
 
       await axios.delete(`${baseURL}/orders/${orderId}/admin`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -135,7 +272,7 @@ const ManageOrders = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const baseURL = import.meta.env.VITE_API_URL;
+      const baseURL = "http://127.0.0.1:4000/api/v1";
 
       const response = await axios.get(
         `${baseURL}/orders/user/${searchMobile}`,
@@ -144,7 +281,12 @@ const ManageOrders = () => {
         }
       );
 
-      setOrders(response.data.data || []);
+      // Handle single order response
+      if (response.data.data?.order) {
+        setOrders([response.data.data.order]);
+      } else {
+        setOrders([]);
+      }
       setError("");
     } catch (err) {
       handleError(err);
@@ -158,26 +300,14 @@ const ManageOrders = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const baseURL = import.meta.env.VITE_API_URL;
+      const baseURL = "http://127.0.0.1:4000/api/v1";
 
       await Promise.all(
         selectedOrders.map(async (orderId) => {
-          const orderResponse = await axios.get(
-            `${baseURL}/orders/GetOrders/${orderId}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-
-          const currentOrder = orderResponse.data.data;
-
           return axios.patch(
             `${baseURL}/orders/${orderId}/admin`,
             {
-              orderStatus: bulkAction,
-              shippingAddress: currentOrder.shippingAddress,
-              mobileNumber: currentOrder.mobileNumber,
-              items: currentOrder.items,
+              status: bulkAction,
             },
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -193,164 +323,632 @@ const ManageOrders = () => {
     }
   };
 
-  return (
-    <div className={styles.manageOrders}>
-      <h2>Manage Orders</h2>
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
 
-      {error && <div className={styles.error}>{error}</div>}
-      {retryAfter > 0 && (
-        <div className={styles.retryTimer}>
-          Please wait {retryAfter} seconds before making another request
-        </div>
-      )}
+      return date.toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
+  };
 
-      <div className={styles.controls}>
-        <div className={styles.searchSection}>
-          <input
-            type="text"
-            placeholder="Search by mobile number"
-            value={searchMobile}
-            onChange={(e) => setSearchMobile(e.target.value)}
-            className={styles.searchInput}
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "pending":
+        return (
+          <MdPending className={`${styles.statusIcon} ${styles.pendingIcon}`} />
+        );
+      case "processing":
+        return (
+          <BsBoxSeam
+            className={`${styles.statusIcon} ${styles.processingIcon}`}
           />
-          <button
-            onClick={handleSearchByMobile}
-            className={styles.searchButton}
-            disabled={!searchMobile || retryAfter > 0}
-          >
-            Search
-          </button>
+        );
+      case "shipped":
+        return (
+          <MdOutlineLocalShipping
+            className={`${styles.statusIcon} ${styles.shippedIcon}`}
+          />
+        );
+      case "delivered":
+        return (
+          <MdDone className={`${styles.statusIcon} ${styles.deliveredIcon}`} />
+        );
+      case "cancelled":
+        return (
+          <MdCancel
+            className={`${styles.statusIcon} ${styles.cancelledIcon}`}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "pending":
+        return styles.statusPending;
+      case "processing":
+        return styles.statusProcessing;
+      case "shipped":
+        return styles.statusShipped;
+      case "delivered":
+        return styles.statusDelivered;
+      case "cancelled":
+        return styles.statusCancelled;
+      default:
+        return "";
+    }
+  };
+
+  const handleDeleteClick = (orderId) => {
+    setSelectedOrderId(orderId);
+    setShowConfirmDelete(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const baseURL = "http://127.0.0.1:4000/api/v1";
+      await axios.delete(`${baseURL}/orders/${selectedOrderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order._id !== selectedOrderId)
+      );
+      setShowConfirmDelete(false);
+      setSelectedOrderId(null);
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      setError("Failed to delete order");
+    }
+  };
+
+  const handleViewDetails = (order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  };
+
+  // Filter and sort orders
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+
+    return orders
+      .filter((order) => {
+        // Only filter by status if it's not 'all'
+        return filterStatus === "all" || order.status === filterStatus;
+      })
+      .sort((a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+      });
+  }, [orders, filterStatus, sortOrder]);
+
+  // Debounce function
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  // Search by phone number
+  const searchByPhone = async (phoneNumber) => {
+    try {
+      setIsSearching(true);
+      const token = localStorage.getItem("token");
+
+      if (!phoneNumber || phoneNumber.length < 11) {
+        if (!phoneNumber.trim()) {
+          fetchOrders();
+        }
+        return;
+      }
+
+      const response = await axios.get(
+        `http://127.0.0.1:4000/api/v1/orders/${phoneNumber}/user`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (response.data && response.data.orders) {
+        setOrders(response.data.orders);
+        setError("");
+      } else {
+        setOrders([]);
+        setError("No orders found for this phone number");
+      }
+    } catch (error) {
+      console.error("Error searching orders:", error);
+      setOrders([]);
+
+      if (error.response?.status === 401) {
+        setError("Not authorized. Please login as admin or employee");
+      } else if (error.response?.status === 404) {
+        setError("No orders found for this phone number");
+      } else {
+        setError("Failed to search orders. Please try again.");
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced search with minimum length check
+  const debouncedSearch = debounce((term) => {
+    // Only search if we have at least 11 digits
+    const digitsOnly = term.replace(/\D/g, "");
+    if (digitsOnly.length === 11) {
+      searchByPhone(digitsOnly);
+    } else if (!term.trim()) {
+      fetchOrders();
+    }
+  }, 500);
+
+  // Handle search input change with formatting
+  const handleSearchChange = (e) => {
+    let value = e.target.value;
+
+    // Only allow numbers and common separators
+    value = value.replace(/[^\d-\s()]/g, "");
+
+    // Format as phone number: 01234567890
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 11) {
+      setSearchTerm(value);
+      debouncedSearch(value);
+    }
+  };
+
+  // Reset search
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    fetchOrders();
+  };
+
+  // Function to fetch AC details
+  const fetchAcDetails = async (acId) => {
+    try {
+      console.log("Fetching AC details for:", acId);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://127.0.0.1:4000/api/v1/products/${acId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("AC details response:", response.data);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Error fetching AC details:", error);
+      return null;
+    }
+  };
+
+  // Fetch AC details when order is selected
+  useEffect(() => {
+    const fetchAllAcDetails = async () => {
+      if (selectedOrder?.items) {
+        setIsLoadingAc(true);
+        console.log("Selected order items:", selectedOrder.items);
+
+        try {
+          const acPromises = selectedOrder.items.map((item) =>
+            fetchAcDetails(item.ac)
+          );
+
+          const acResults = await Promise.all(acPromises);
+          const newAcDetails = {};
+
+          selectedOrder.items.forEach((item, index) => {
+            if (acResults[index]) {
+              newAcDetails[item.ac] = acResults[index];
+            }
+          });
+
+          console.log("Fetched AC details:", newAcDetails);
+          setAcDetails(newAcDetails);
+        } catch (error) {
+          console.error("Error fetching AC details:", error);
+        } finally {
+          setIsLoadingAc(false);
+        }
+      }
+    };
+
+    fetchAllAcDetails();
+  }, [selectedOrder]);
+
+  const renderOrderItems = (items) => {
+    return items.map((item, index) => {
+      const acDetail = acDetails[item.ac];
+      console.log("Rendering item:", item, "AC Details:", acDetail);
+
+      return (
+        <div key={index} className={styles.itemCard}>
+          <div className={styles.itemDetails}>
+            <div className={styles.itemInfo}>
+              <h4 className={styles.itemTitle}>
+                {isLoadingAc ? (
+                  <span className={styles.loading}>Loading AC details...</span>
+                ) : acDetail ? (
+                  `${acDetail.brand || "Unknown Brand"} - Model: ${
+                    acDetail.modelNumber || "Unknown Model"
+                  }`
+                ) : (
+                  `AC Unit (ID: ${item.ac})`
+                )}
+              </h4>
+              {acDetail && (
+                <div className={styles.itemSpecs}>
+                  {acDetail.coolingCapacity && (
+                    <span className={styles.specItem}>
+                      Cooling: {acDetail.coolingCapacity} BTU
+                    </span>
+                  )}
+                  {acDetail.powerConsumption && (
+                    <span className={styles.specItem}>
+                      Power: {acDetail.powerConsumption}W
+                    </span>
+                  )}
+                </div>
+              )}
+              <div className={styles.itemQuantity}>
+                <span className={styles.quantityLabel}>Quantity:</span>
+                <span>{item.quantity}</span>
+              </div>
+              <div className={styles.itemPrice}>
+                <span className={styles.priceLabel}>Price:</span>
+                <span>${(item.priceAtPurchase || 0).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+          {!isLoadingAc && !acDetail && (
+            <div className={styles.errorMessage}>Could not load AC details</div>
+          )}
+        </div>
+      );
+    });
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.dashboardHeader}>
+        <h1 className={styles.title}>
+          <BsBoxSeam className={styles.titleIcon} />
+          Order Management Dashboard
+        </h1>
+      </div>
+
+      <div className={styles.controlsContainer}>
+        <div className={styles.searchSection}>
+          <div className={styles.searchBar}>
+            <div className={styles.searchInputWrapper}>
+              <input
+                type="tel"
+                placeholder="Enter 11-digit phone number..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className={styles.searchInput}
+                maxLength="11"
+              />
+              {isSearching && <FaSpinner className={styles.searchSpinner} />}
+            </div>
+          </div>
         </div>
 
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className={styles.filterSelect}
-          disabled={retryAfter > 0}
-        >
-          <option value="all">All Orders</option>
-          <option value="today">Today</option>
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-        </select>
-
-        {selectedOrders.length > 0 && (
-          <div className={styles.bulkActions}>
+        <div className={styles.filterControls}>
+          <div className={styles.filterGroup}>
             <select
-              value={bulkAction}
-              onChange={(e) => setBulkAction(e.target.value)}
-              className={styles.actionSelect}
-              disabled={retryAfter > 0}
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className={styles.filterSelect}
             >
-              <option value="">Select Action</option>
-              <option value="pending">Mark as Pending</option>
-              <option value="processing">Mark as Processing</option>
-              <option value="shipped">Mark as Shipped</option>
-              <option value="delivered">Mark as Delivered</option>
-              <option value="cancelled">Mark as Cancelled</option>
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="on hold">On Hold</option>
             </select>
-            <button
-              onClick={handleBulkAction}
-              className={styles.applyButton}
-              disabled={!bulkAction || retryAfter > 0}
+          </div>
+
+          <div className={styles.filterGroup}>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className={styles.filterSelect}
             >
-              Apply to Selected
-            </button>
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.searchStats}>
+        <span className={styles.resultCount}>
+          {searchTerm
+            ? `Showing orders for: ${searchTerm}`
+            : `Showing ${filteredOrders.length} orders`}
+          {filterStatus !== "all" && ` • Status: ${filterStatus}`}
+        </span>
+      </div>
+
+      <div className={styles.ordersGrid}>
+        {filteredOrders.length > 0 ? (
+          filteredOrders.map((order) => (
+            <div key={order._id} className={styles.orderCard}>
+              <div className={styles.orderHeader}>
+                <div className={styles.orderIdSection}>
+                  <span className={styles.orderIdLabel}>Order ID</span>
+                  <span className={styles.orderId}>#{order._id.slice(-6)}</span>
+                </div>
+                <div className={styles.orderActions}>
+                  <button
+                    onClick={() => handleViewDetails(order)}
+                    className={`${styles.actionButton} ${styles.viewButton}`}
+                  >
+                    <FaEye /> View
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(order._id)}
+                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                  >
+                    <FaTrash /> Delete
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.orderContent}>
+                <div className={styles.customerSection}>
+                  <h3>
+                    <FaUser className={styles.icon} /> Customer Information
+                  </h3>
+                  <div className={styles.customerDetails}>
+                    <p>
+                      <FaMapMarkerAlt className={styles.icon} />{" "}
+                      {order.shippingAddress || "No address provided"}
+                    </p>
+                    <p>
+                      <FaPhone className={styles.icon} />{" "}
+                      {order.mobileNumber || "No phone provided"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.itemsSection}>
+                  <h3>
+                    <BsBoxSeam className={styles.icon} /> Order Items
+                  </h3>
+                  <div className={styles.itemsList}>
+                    {renderOrderItems(order.items || [])}
+                  </div>
+                </div>
+
+                <div className={styles.paymentSection}>
+                  <h3>
+                    <MdPayment className={styles.icon} /> Payment Details
+                  </h3>
+                  <div className={styles.paymentDetails}>
+                    <div className={styles.paymentItem}>
+                      <span>Total Amount:</span>
+                      <span className={styles.amount}>
+                        <BsCurrencyDollar className={styles.icon} />
+                        {order.totalAmount}
+                      </span>
+                    </div>
+                    <div className={styles.paymentItem}>
+                      <span>Payment Status:</span>
+                      <span className={styles.paymentStatus}>
+                        {order.paymentStatus || "Pending"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.statusSection}>
+                  <h3>Order Status</h3>
+                  <div className={styles.statusSelectWrapper}>
+                    {getStatusIcon(order.status)}
+                    <select
+                      value={order.status}
+                      onChange={(e) =>
+                        handleStatusChange(order._id, e.target.value).catch(
+                          (error) => {
+                            console.error("All retries failed:", error);
+                            toast.error(
+                              "Failed to update status after multiple attempts"
+                            );
+                          }
+                        )
+                      }
+                      className={`${styles.statusSelect} ${getStatusColor(
+                        order.status
+                      )} ${statusUpdateLoading ? styles.loading : ""}`}
+                      disabled={statusUpdateLoading}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    {statusUpdateLoading && (
+                      <FaSpinner className={styles.spinner} />
+                    )}
+                  </div>
+                  {updateError && (
+                    <div className={styles.error}>{updateError}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className={styles.noResults}>
+            <FaPhone className={styles.noResultsIcon} />
+            <h3>No Orders Found</h3>
+            <p>{error || "Try adjusting your search or filter criteria"}</p>
           </div>
         )}
       </div>
 
-      {loading ? (
-        <div className={styles.loading}>Loading orders...</div>
-      ) : (
-        <div className={styles.ordersContainer}>
-          {orders.length > 0 ? (
-            <table className={styles.ordersTable}>
-              <thead>
-                <tr>
-                  <th>
-                    <input
-                      type="checkbox"
-                      checked={selectedOrders.length === orders.length}
-                      onChange={(e) => {
-                        setSelectedOrders(
-                          e.target.checked
-                            ? orders.map((order) => order._id)
-                            : []
-                        );
-                      }}
-                      disabled={retryAfter > 0}
-                    />
-                  </th>
-                  <th>Order ID</th>
-                  <th>Mobile</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order._id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedOrders.includes(order._id)}
-                        onChange={(e) => {
-                          setSelectedOrders(
-                            e.target.checked
-                              ? [...selectedOrders, order._id]
-                              : selectedOrders.filter((id) => id !== order._id)
-                          );
-                        }}
-                        disabled={retryAfter > 0}
-                      />
-                    </td>
-                    <td>{order._id}</td>
-                    <td>{order.mobileNumber}</td>
-                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td>
-                      <select
-                        value={order.orderStatus}
-                        onChange={(e) =>
-                          handleStatusChange(order._id, e.target.value)
-                        }
-                        className={styles.statusSelect}
-                        disabled={retryAfter > 0 || statusUpdateLoading}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </td>
-                    <td>${order.totalAmount?.toFixed(2) || "0.00"}</td>
-                    <td>
-                      <div className={styles.actionButtons}>
-                        <Link
-                          to={`/orders/details/${order._id}`}
-                          className={styles.viewButton}
-                        >
-                          View
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(order._id)}
-                          className={styles.deleteButton}
-                          disabled={retryAfter > 0}
-                        >
-                          Delete
-                        </button>
+      {/* Delete Confirmation Modal */}
+      {showConfirmDelete && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h2>Confirm Delete</h2>
+            <p>Are you sure you want to delete this order?</p>
+            <div className={styles.modalActions}>
+              <button
+                onClick={handleConfirmDelete}
+                className={styles.confirmDelete}
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setShowConfirmDelete(false)}
+                className={styles.cancelDelete}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {showOrderDetails && selectedOrder && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2>Order Details</h2>
+              <button
+                onClick={() => setShowOrderDetails(false)}
+                className={styles.closeButton}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.detailSection}>
+                <h3>Customer Information</h3>
+                <div className={styles.customerInfo}>
+                  <p>{selectedOrder.shippingAddress}</p>
+                  <p>{selectedOrder.mobileNumber}</p>
+                </div>
+              </div>
+
+              <div className={styles.detailSection}>
+                <h3>Order Items</h3>
+                <div className={styles.itemsList}>
+                  {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                    <>
+                      {renderOrderItems(selectedOrder.items)}
+                      <div className={styles.orderSummary}>
+                        <div className={styles.summaryItem}>
+                          <span>Total Items:</span>
+                          <span>{selectedOrder.items.length}</span>
+                        </div>
+                        <div className={styles.summaryItem}>
+                          <span>Total Amount:</span>
+                          <span>
+                            ${selectedOrder.totalAmount.toLocaleString()}
+                          </span>
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className={styles.noResults}>No orders found.</div>
-          )}
+                    </>
+                  ) : (
+                    <div className={styles.noItems}>No items in this order</div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.detailSection}>
+                <h3>Payment Details</h3>
+                <div className={styles.paymentInfo}>
+                  <div className={styles.paymentRow}>
+                    <span>Total Amount:</span>
+                    <span className={styles.totalAmount}>
+                      ${selectedOrder.totalAmount?.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className={styles.paymentRow}>
+                    <span>Payment Status:</span>
+                    <span
+                      className={`${styles.paymentStatus} ${
+                        styles[
+                          selectedOrder.paymentStatus?.toLowerCase() ||
+                            "pending"
+                        ]
+                      }`}
+                    >
+                      {selectedOrder.paymentStatus || "Pending"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.detailSection}>
+                <h3>Order Status</h3>
+                <div className={styles.statusUpdateSection}>
+                  <div className={styles.statusSelectWrapper}>
+                    <select
+                      value={selectedOrder.status || "pending"}
+                      onChange={(e) =>
+                        handleStatusChange(selectedOrder._id, e.target.value)
+                      }
+                      className={`${styles.statusSelect} ${
+                        styles[selectedOrder.status || "pending"]
+                      }`}
+                      disabled={isUpdating}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="on hold">On Hold</option>
+                    </select>
+                    {isUpdating && (
+                      <div className={styles.statusSpinner}>
+                        <FaSpinner className={styles.spinner} />
+                      </div>
+                    )}
+                  </div>
+                  {updateError && (
+                    <div className={styles.statusError}>{updateError}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

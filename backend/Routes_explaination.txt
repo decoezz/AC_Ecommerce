@@ -120,15 +120,15 @@ Protected,need Admin or employee
 GET http://127.0.0.1:4000/api/v1/orders/GetOrders/:id (Getting a certain Order using ID)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/:userId/user (Getting a ceratin user orders)
+GET http://127.0.0.1:4000/api/v1/orders/:userId/user (Getting a ceratin user orders)  (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
 PATCH http://127.0.0.1:4000/api/v1/orders/:id/admin (Edit an order)
 Protected,need Admin or employee
 Body:(shippingAddress,mobileNumber,items(array),orderStatus)
 --------------------------------------------------------------------------
-DELETE http://127.0.0.1:4000/api/v1/orders/:id/admin (Delete an order)
+DELETE http://127.0.0.1:4000/api/v1/orders/:id/admin (Delete an order)   (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/user/:mobileNumber (get orders by mobile number)
+GET http://127.0.0.1:4000/api/v1/orders/user/:mobileNumber (get orders by mobile number)     (Done)
 --------------------------------------------------------------------------

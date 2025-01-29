@@ -21,36 +21,17 @@ const ViewOrders = () => {
     items: [],
   });
 
-  const formatDate = (timestamp) => {
+  const formatDate = (date) => {
     try {
-      if (!timestamp) {
-        return "Date not available";
-      }
-
-      if (timestamp.length === 24) {
-        const timestampHex = timestamp.substring(0, 8);
-        const date = new Date(parseInt(timestampHex, 16) * 1000);
-        return date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      }
-
-      const date = new Date(timestamp);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      }
-
-      return "Invalid date";
+      const orderDate = new Date(date);
+      return orderDate.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
     } catch (error) {
       console.error("Date formatting error:", error);
       return "Date not available";
@@ -130,48 +111,61 @@ const ViewOrders = () => {
   };
 
   const handleFilterChange = async (type) => {
-    if (retryAfter > 0) {
-      setError(`Please wait ${retryAfter} seconds before trying again.`);
-      return;
-    }
-
     setFilterType(type);
     const token = localStorage.getItem("token");
-    const baseURL = import.meta.env.VITE_API_URL;
 
     try {
       setLoading(true);
-      let endpoint = `${baseURL}/orders/`;
 
+      // Get all orders first
+      const response = await axios.get(
+        "http://127.0.0.1:4000/api/v1/orders/GetOrders",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      let filteredOrders = response.data.data || [];
+
+      // Filter the orders based on the selected type
       switch (type) {
-        case "today":
-          endpoint += "today";
+        case "today": {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          filteredOrders = filteredOrders.filter((order) => {
+            const orderDate = new Date(order.purchasedAt);
+            return orderDate >= today;
+          });
           break;
-        case "week":
-          endpoint += "last-week";
+        }
+        case "week": {
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          filteredOrders = filteredOrders.filter((order) => {
+            const orderDate = new Date(order.purchasedAt);
+            return orderDate >= weekAgo;
+          });
           break;
-        case "month":
-          endpoint += "last-month";
+        }
+        case "month": {
+          const monthAgo = new Date();
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          filteredOrders = filteredOrders.filter((order) => {
+            const orderDate = new Date(order.purchasedAt);
+            return orderDate >= monthAgo;
+          });
           break;
+        }
         default:
-          endpoint += "GetOrders";
+          // "all" - no filtering needed
+          break;
       }
 
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setOrders(response.data.data || []);
+      setOrders(filteredOrders);
       setError("");
     } catch (err) {
-      if (err.response?.status === 429) {
-        const retrySeconds =
-          parseInt(err.response.headers["retry-after"]) || 60;
-        setRetryAfter(retrySeconds);
-        setError(`Too many requests. Please wait ${retrySeconds} seconds.`);
-      } else {
-        setError(err.response?.data?.message || "Failed to fetch orders");
-      }
+      console.error("Filter error:", err);
+      setError(err.response?.data?.message || "Failed to fetch orders");
     } finally {
       setLoading(false);
     }
@@ -258,9 +252,6 @@ const ViewOrders = () => {
             <Link to="/orders/search" className={styles.adminButton}>
               Search Orders
             </Link>
-            <Link to="/orders/user-search" className={styles.adminButton}>
-              Search User Orders
-            </Link>
             <Link to="/orders/manage" className={styles.adminButton}>
               Manage Orders
             </Link>
@@ -301,7 +292,7 @@ const ViewOrders = () => {
                 {orders.map((order) => (
                   <tr key={order._id}>
                     <td>{order._id}</td>
-                    <td>{formatDate(order._id)}</td>
+                    <td>{formatDate(order.purchasedAt)}</td>
                     <td>
                       <span
                         className={
