@@ -1,81 +1,242 @@
 .adminHome {
-  padding: var(--spacing-xl);
-  background-color: var(--background);
+  padding: 2rem;
   min-height: 100vh;
+  background: linear-gradient(135deg, #f6f9fc 0%, #f1f5f9 100%);
 }
 
 .adminHome__title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-xl);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1a365d;
+  margin-bottom: 2rem;
   text-align: center;
+  background: linear-gradient(120deg, #2c5282, #2b6cb0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding: 1rem 0;
 }
 
 .adminHome__content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.adminHome__content h2 {
+  font-size: 1.8rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.adminHome__content p {
+  color: #4a5568;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
 }
 
 .adminHome__links {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 .adminHome__card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
   text-decoration: none;
-  color: var(--text-primary);
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: var(--shadow-md);
+  color: #2d3748;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 1rem;
+}
+
+.adminHome__card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3182ce, #63b3ed);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 
 .adminHome__card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+}
+
+.adminHome__card:hover::before {
+  transform: scaleX(1);
 }
 
 .adminHome__icon {
   font-size: 2.5rem;
-  color: var(--primary);
+  color: #3182ce;
+  background: #ebf8ff;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.adminHome__card:hover .adminHome__icon {
+  transform: scale(1.1);
+  color: #2b6cb0;
 }
 
 .adminHome__card h3 {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 600;
   margin: 0;
+  text-align: center;
+  color: #2d3748;
 }
 
 .adminHome__card p {
-  color: var(--text-secondary);
+  color: #718096;
   text-align: center;
   margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .graphContainer {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-md);
-  margin-top: var(--spacing-xl);
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-top: 2rem;
+}
+
+.graphContainer h3 {
+  font-size: 1.6rem;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .graphPlaceholder {
-  height: 300px;
-  border: 2px dashed var(--secondary);
-  border-radius: var(--radius-md);
+  height: 400px;
+  background: linear-gradient(135deg, #f6f9fc 0%, #f1f5f9 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: #718096;
+  font-size: 1.1rem;
+  border: 2px dashed #cbd5e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .adminHome {
+    padding: 1rem;
+  }
+
+  .adminHome__title {
+    font-size: 2rem;
+  }
+
+  .adminHome__content {
+    padding: 1.5rem;
+  }
+
+  .adminHome__links {
+    grid-template-columns: 1fr;
+  }
+
+  .adminHome__card {
+    padding: 1.5rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .adminHome {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  }
+
+  .adminHome__content {
+    background: rgba(26, 32, 44, 0.9);
+  }
+
+  .adminHome__title {
+    background: linear-gradient(120deg, #63b3ed, #4299e1);
+    -webkit-background-clip: text;
+  }
+
+  .adminHome__card {
+    background: #2d3748;
+    color: #e2e8f0;
+  }
+
+  .adminHome__card h3 {
+    color: #e2e8f0;
+  }
+
+  .adminHome__card p {
+    color: #a0aec0;
+  }
+
+  .adminHome__icon {
+    background: #2a4365;
+    color: #63b3ed;
+  }
+
+  .graphContainer {
+    background: #2d3748;
+  }
+
+  .graphContainer h3 {
+    color: #e2e8f0;
+    border-bottom-color: #4a5568;
+  }
+
+  .graphPlaceholder {
+    background: #1a202c;
+    border-color: #4a5568;
+    color: #a0aec0;
+  }
+}
+
+/* Animation for cards */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.adminHome__card {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.adminHome__links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.adminHome__links > * {
+  animation-delay: calc(var(--i) * 0.1s);
 }
 
 .createEmployeeForm {
@@ -144,4 +305,294 @@
 
 .deleteButton:hover {
   background-color: #c82333; /* Darker shade on hover */
+}
+
+/* Loading Screen */
+.loadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f6f9fc 0%, #f1f5f9 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loadingContent {
+  text-align: center;
+}
+
+.loadingSpinner {
+  font-size: 3rem;
+  color: #3182ce;
+  animation: spin 1s linear infinite;
+}
+
+.loadingContent h2 {
+  color: #2d3748;
+  margin: 1rem 0;
+  font-size: 1.5rem;
+}
+
+.loadingBar {
+  width: 200px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 1rem auto;
+}
+
+.loadingBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #3182ce, #63b3ed);
+  animation: fillBar 1.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fillBar {
+  0% {
+    width: 0;
+  }
+  50% {
+    width: 100%;
+  }
+  100% {
+    width: 0;
+  }
+}
+
+.slideIn {
+  animation: slideIn 0.6s ease-out forwards;
+}
+
+.fadeIn {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.slideInUp {
+  opacity: 0;
+  animation: slideInUp 0.6s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Enhanced Card Styles */
+.adminHome__iconWrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.iconRipple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: rgba(49, 130, 206, 0.1);
+  border-radius: 50%;
+  animation: ripple 1.5s ease-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* Graph Animation */
+.graphAnimation {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+
+.graphLine {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #3182ce, #63b3ed);
+  animation: drawLine 2s ease-out infinite;
+}
+
+.graphDot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #3182ce;
+  border-radius: 50%;
+  animation: moveDot 2s ease-out infinite;
+}
+
+@keyframes drawLine {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes moveDot {
+  0% {
+    left: 0;
+    bottom: 0;
+  }
+  50% {
+    bottom: 100px;
+  }
+  100% {
+    left: 100%;
+    bottom: 0;
+  }
+}
+
+/* Card Hover Effects */
+.cardOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(49, 130, 206, 0.1) 0%,
+    rgba(99, 179, 237, 0.1) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 16px;
+}
+
+.adminHome__card:hover .cardOverlay {
+  opacity: 1;
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+  .loadingScreen {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  }
+
+  .loadingContent h2 {
+    color: #e2e8f0;
+  }
+
+  .loadingBar {
+    background: #4a5568;
+  }
+
+  .graphLine {
+    background: linear-gradient(90deg, #63b3ed, #4299e1);
+  }
+
+  .graphDot {
+    background: #63b3ed;
+  }
+}
+
+/* Add these new styles to your existing CSS */
+
+.highlightCard {
+  grid-column: span 2;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  border: 2px solid #e2e8f0;
+}
+
+.featuresList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  width: 100%;
+}
+
+.featuresList span {
+  color: #4a5568;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.highlightCard .adminHome__icon {
+  font-size: 3rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+  color: #2b6cb0;
+}
+
+.highlightCard:hover .adminHome__icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+@media (max-width: 1024px) {
+  .highlightCard {
+    grid-column: span 1;
+  }
+
+  .featuresList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode support for the new elements */
+@media (prefers-color-scheme: dark) {
+  .highlightCard {
+    background: linear-gradient(145deg, #2d3748, #1a202c);
+    border-color: #4a5568;
+  }
+
+  .featuresList {
+    border-top-color: #4a5568;
+  }
+
+  .featuresList span {
+    color: #e2e8f0;
+  }
+
+  .highlightCard .adminHome__icon {
+    background: linear-gradient(135deg, #2c5282, #2b6cb0);
+    color: #63b3ed;
+  }
 }

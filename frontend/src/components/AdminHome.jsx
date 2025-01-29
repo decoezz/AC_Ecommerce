@@ -1,91 +1,133 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaProductHunt, FaListAlt, FaUsers, FaUserPlus, FaSearch, FaTrash } from 'react-icons/fa';
+import {
+  FaProductHunt,
+  FaListAlt,
+  FaUsers,
+  FaUserPlus,
+  FaSearch,
+  FaTrash,
+  FaChartLine,
+  FaSpinner,
+  FaUserCog,
+} from "react-icons/fa";
 import axios from "axios";
 import styles from "./AdminHome.module.css";
 
 const AdminHome = () => {
-    const navigate = useNavigate();
-    const [userId, setUserId] = useState('');
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-    const handleLogout = () => {
-        localStorage.removeItem('token'); // Remove the token
-        navigate('/login'); // Redirect to login page
-    };
+  useEffect(() => {
+    // Simulate loading time
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+  }, []);
 
-    const handleDeleteUser = async () => {
-        setMessage('');
-        setError('');
+  const adminCards = [
+    {
+      to: "/manage-products",
+      icon: <FaProductHunt />,
+      title: "Manage Products",
+      description: "View, add, edit, or remove products from your inventory.",
+      delay: 1,
+    },
+    {
+      to: "/view-orders",
+      icon: <FaListAlt />,
+      title: "Order Management",
+      description: "Track and manage all customer orders and their status.",
+      delay: 2,
+    },
+    {
+      to: "/user-management",
+      icon: <FaUserCog />,
+      title: "User Management",
+      description:
+        "Comprehensive user control: View all users, create employee accounts, search and manage user profiles.",
+      delay: 3,
+      highlight: true,
+    },
+  ];
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setError('No token found. Please log in.');
-            return;
-        }
-
-        try {
-            await axios.delete(`${import.meta.env.VITE_API_URL}/users/${userId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            setMessage('User deleted successfully!');
-            setUserId(''); // Clear the input field
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to delete user.');
-        }
-    };
-
+  if (isLoading) {
     return (
-        <div className={styles.adminHome}>
-            <h2 className={styles.adminHome__title}>Admin Dashboard</h2>
-            <div className={styles.adminHome__content}>
-                <h2>Welcome, Admin!</h2>
-                <p>Manage your application effectively:</p>
-                <div className={styles.adminHome__links}>
-                    <Link to="/manage-products" className={styles.adminHome__card}>
-                        <FaProductHunt className={styles.adminHome__icon} />
-                        <h3>Manage Products</h3>
-                        <p>View, add, or edit products in your inventory.</p>
-                    </Link>
-                    <Link to="/view-orders" className={styles.adminHome__card}>
-                        <FaListAlt className={styles.adminHome__icon} />
-                        <h3>Order Management</h3>
-                        <p>Check the status of all customer orders.</p>
-                    </Link>
-                    <Link to="/users" className={styles.adminHome__card}>
-                        <FaUsers className={styles.adminHome__icon} />
-                        <h3>View All Users</h3>
-                        <p>Manage user accounts and permissions.</p>
-                    </Link>
-                    <Link to="/create-employee" className={styles.adminHome__card}>
-                        <FaUserPlus className={styles.adminHome__icon} />
-                        <h3>Create Employee Account</h3>
-                        <p>Add new employee accounts.</p>
-                    </Link>
-                    <Link to="/search-user" className={styles.adminHome__card}>
-                        <FaSearch className={styles.adminHome__icon} />
-                        <h3>Search User by ID</h3>
-                        <p>Find user details by their ID.</p>
-                    </Link>
-                    <Link to="/delete-user" className={styles.adminHome__card}>
-                        <FaTrash className={styles.adminHome__icon} />
-                        <h3>Delete User by ID</h3>
-                        <p>Remove a user from the system.</p>
-                    </Link>
-                </div>
-                <div className={styles.graphContainer}>
-                    <h3>Graphs and Analytics</h3>
-                    <div className={styles.graphPlaceholder}>
-                        {/* Placeholder for future graphs */}
-                        <p>Graph area (to be implemented)</p>
-                    </div>
-                </div>
-            </div>
+      <div className={styles.loadingScreen}>
+        <div className={styles.loadingContent}>
+          <FaSpinner className={styles.loadingSpinner} />
+          <h2>Loading Dashboard</h2>
+          <div className={styles.loadingBar}>
+            <div className={styles.loadingBarFill}></div>
+          </div>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className={styles.adminHome}>
+      <div className={styles.adminHome__header}>
+        <h2 className={`${styles.adminHome__title} ${styles.slideIn}`}>
+          Admin Dashboard
+        </h2>
+        <div className={`${styles.welcomeMessage} ${styles.fadeIn}`}>
+          <h3>Welcome, Admin!</h3>
+          <p>Manage your application effectively</p>
+        </div>
+      </div>
+
+      <div className={`${styles.adminHome__content} ${styles.fadeIn}`}>
+        <div className={styles.adminHome__links}>
+          {adminCards.map((card, index) => (
+            <Link
+              to={card.to}
+              className={`${styles.adminHome__card} ${styles.slideInUp} ${
+                card.highlight ? styles.highlightCard : ""
+              }`}
+              style={{ "--delay": `${card.delay * 0.1}s` }}
+              key={index}
+            >
+              <div className={styles.adminHome__iconWrapper}>
+                <div className={styles.adminHome__icon}>{card.icon}</div>
+                <div className={styles.iconRipple}></div>
+              </div>
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+              {card.highlight && (
+                <div className={styles.featuresList}>
+                  <span>• View All Users</span>
+                  <span>• Create Employee Accounts</span>
+                  <span>• Search Users</span>
+                  <span>• Manage User Access</span>
+                </div>
+              )}
+              <div className={styles.cardOverlay}></div>
+            </Link>
+          ))}
+        </div>
+
+        <div className={`${styles.graphContainer} ${styles.slideInUp}`}>
+          <div className={styles.graphHeader}>
+            <h3>
+              <FaChartLine className={styles.graphIcon} />
+              Analytics Overview
+            </h3>
+          </div>
+          <div className={styles.graphPlaceholder}>
+            <div className={styles.graphAnimation}>
+              <div className={styles.graphLine}></div>
+              <div className={styles.graphDot}></div>
+            </div>
+            <p>Interactive analytics coming soon</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-export default AdminHome; 
+export default AdminHome;

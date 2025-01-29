@@ -518,14 +518,3 @@
     border: 1px solid #000;
   }
 }
-
-.filterLoading {
-  margin-left: 10px;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.filterSelect:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}

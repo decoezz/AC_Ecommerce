@@ -11,6 +11,13 @@ import {
   FaClock,
   FaTrash,
   FaEye,
+  FaExclamationTriangle,
+  FaThermometerHalf,
+  FaBolt,
+  FaBoxes,
+  FaShoppingCart,
+  FaDollarSign,
+  FaCalculator,
 } from "react-icons/fa";
 import {
   MdOutlineLocalShipping,
@@ -586,50 +593,149 @@ const ManageOrders = () => {
   const renderOrderItems = (items) => {
     return items.map((item, index) => {
       const acDetail = acDetails[item.ac];
-      console.log("Rendering item:", item, "AC Details:", acDetail);
 
       return (
         <div key={index} className={styles.itemCard}>
           <div className={styles.itemDetails}>
             <div className={styles.itemInfo}>
-              <h4 className={styles.itemTitle}>
+              <div className={styles.itemHeader}>
                 {isLoadingAc ? (
-                  <span className={styles.loading}>Loading AC details...</span>
+                  <div className={styles.loadingContainer}>
+                    <FaSpinner className={styles.loadingSpinner} />
+                    <span>Loading AC details...</span>
+                  </div>
                 ) : acDetail ? (
-                  `${acDetail.brand || "Unknown Brand"} - Model: ${
-                    acDetail.modelNumber || "Unknown Model"
-                  }`
+                  <div className={styles.productHeader}>
+                    <div className={styles.productImage}>
+                      <img
+                        src={acDetail.image || "default-ac.png"}
+                        alt={acDetail.brand}
+                      />
+                    </div>
+                    <div className={styles.productInfo}>
+                      <h4 className={styles.itemTitle}>
+                        {acDetail.brand || "Unknown Brand"}
+                      </h4>
+                      <span className={styles.modelBadge}>
+                        Model: {acDetail.modelNumber || "Unknown Model"}
+                      </span>
+                      <div className={styles.productMeta}>
+                        <span className={styles.productId}>ID: {item.ac}</span>
+                        <span
+                          className={`${styles.stockBadge} ${
+                            acDetail.inStock
+                              ? styles.inStock
+                              : styles.outOfStock
+                          }`}
+                        >
+                          {acDetail.inStock ? "In Stock" : "Out of Stock"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
-                  `AC Unit (ID: ${item.ac})`
+                  <div className={styles.errorState}>
+                    <FaExclamationTriangle className={styles.errorIcon} />
+                    <h4 className={styles.itemTitle}>
+                      AC Unit (ID: {item.ac})
+                    </h4>
+                  </div>
                 )}
-              </h4>
+              </div>
+
               {acDetail && (
-                <div className={styles.itemSpecs}>
-                  {acDetail.coolingCapacity && (
-                    <span className={styles.specItem}>
-                      Cooling: {acDetail.coolingCapacity} BTU
-                    </span>
-                  )}
-                  {acDetail.powerConsumption && (
-                    <span className={styles.specItem}>
-                      Power: {acDetail.powerConsumption}W
-                    </span>
-                  )}
+                <div className={styles.specGrid}>
+                  <div className={styles.specCard}>
+                    <FaThermometerHalf className={styles.specIcon} />
+                    <div className={styles.specContent}>
+                      <span className={styles.specLabel}>Cooling Capacity</span>
+                      <span className={styles.specValue}>
+                        {acDetail.coolingCapacity} BTU
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.specCard}>
+                    <FaBolt className={styles.specIcon} />
+                    <div className={styles.specContent}>
+                      <span className={styles.specLabel}>
+                        Power Consumption
+                      </span>
+                      <span className={styles.specValue}>
+                        {acDetail.powerConsumption}W
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.specCard}>
+                    <FaBoxes className={styles.specIcon} />
+                    <div className={styles.specContent}>
+                      <span className={styles.specLabel}>Stock Level</span>
+                      <span className={styles.specValue}>
+                        {acDetail.quantityInStock || 0} units
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
-              <div className={styles.itemQuantity}>
-                <span className={styles.quantityLabel}>Quantity:</span>
-                <span>{item.quantity}</span>
-              </div>
-              <div className={styles.itemPrice}>
-                <span className={styles.priceLabel}>Price:</span>
-                <span>${(item.priceAtPurchase || 0).toLocaleString()}</span>
+
+              <div className={styles.orderSummary}>
+                <div className={styles.summaryGrid}>
+                  <div className={styles.summaryCard}>
+                    <div className={styles.summaryIcon}>
+                      <FaShoppingCart />
+                    </div>
+                    <div className={styles.summaryContent}>
+                      <span className={styles.summaryLabel}>Quantity</span>
+                      <span className={styles.summaryValue}>
+                        {item.quantity}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.summaryCard}>
+                    <div className={styles.summaryIcon}>
+                      <FaDollarSign />
+                    </div>
+                    <div className={styles.summaryContent}>
+                      <span className={styles.summaryLabel}>Unit Price</span>
+                      <span className={styles.summaryValue}>
+                        ${(item.priceAtPurchase || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.summaryCard}>
+                    <div className={styles.summaryIcon}>
+                      <FaCalculator />
+                    </div>
+                    <div className={styles.summaryContent}>
+                      <span className={styles.summaryLabel}>Total</span>
+                      <span className={styles.summaryValue}>
+                        $
+                        {(
+                          (item.priceAtPurchase || 0) * item.quantity
+                        ).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {acDetail && acDetail.price !== item.priceAtPurchase && (
+                  <div className={styles.priceHistory}>
+                    <span className={styles.priceLabel}>Original Price:</span>
+                    <span className={styles.originalPrice}>
+                      ${acDetail.price.toLocaleString()}
+                    </span>
+                    <span className={styles.priceDiff}>
+                      {item.priceAtPurchase < acDetail.price
+                        ? "Saved"
+                        : "Increased"}
+                      : $
+                      {Math.abs(
+                        acDetail.price - item.priceAtPurchase
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          {!isLoadingAc && !acDetail && (
-            <div className={styles.errorMessage}>Could not load AC details</div>
-          )}
         </div>
       );
     });
