@@ -18,6 +18,11 @@ import {
   FaShoppingCart,
   FaDollarSign,
   FaCalculator,
+  FaEdit,
+  FaCheck,
+  FaTimes,
+  FaBox,
+  FaTruck,
 } from "react-icons/fa";
 import {
   MdOutlineLocalShipping,
@@ -29,6 +34,7 @@ import {
 } from "react-icons/md";
 import { BsBoxSeam, BsCurrencyDollar } from "react-icons/bs";
 import { toast } from "react-hot-toast";
+import { createPortal } from "react-dom";
 
 const ManageOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -52,58 +58,82 @@ const ManageOrders = () => {
   const [updateError, setUpdateError] = useState("");
   const [acDetails, setAcDetails] = useState({});
   const [isLoadingAc, setIsLoadingAc] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Define orderStatuses at the component level
+  const orderStatuses = [
+    "processing", // lowercase
+    "shipped", // lowercase
+    "delivered", // lowercase
+    "canceled", // lowercase
+    "on hold", // lowercase
+  ];
 
   const fetchOrders = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const baseURL = "http://127.0.0.1:4000/api/v1";
+    // Add loading check to prevent multiple requests
+    if (isLoading) return;
 
-      // Simplified to use single endpoint for all orders
-      const response = await axios.get(`${baseURL}/orders/GetOrders`, {
-        headers: { Authorization: `Bearer ${token}` },
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await axios({
+        method: "GET",
+        url: "http://127.0.0.1:4000/api/v1/orders/GetOrders",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
-      let filteredOrders = response.data.data || [];
+      console.log("Fetched orders:", response.data);
 
-      // Client-side filtering
-      switch (filter) {
-        case "today": {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          filteredOrders = filteredOrders.filter((order) => {
-            const orderDate = new Date(order.purchasedAt);
-            return orderDate >= today;
-          });
-          break;
-        }
-        case "week": {
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          filteredOrders = filteredOrders.filter((order) => {
-            const orderDate = new Date(order.purchasedAt);
-            return orderDate >= weekAgo;
-          });
-          break;
-        }
-        case "month": {
-          const monthAgo = new Date();
-          monthAgo.setMonth(monthAgo.getMonth() - 1);
-          filteredOrders = filteredOrders.filter((order) => {
-            const orderDate = new Date(order.purchasedAt);
-            return orderDate >= monthAgo;
-          });
-          break;
-        }
+      if (
+        response.data.status === "success" &&
+        Array.isArray(response.data.data)
+      ) {
+        setOrders(response.data.data);
+        setError("");
+      } else {
+        throw new Error("Invalid response format");
       }
-
-      setOrders(filteredOrders);
-      setError("");
     } catch (err) {
-      handleError(err);
+      console.error("Error fetching orders:", err);
+      if (err.response?.status === 429) {
+        setError(
+          "Too many requests. Please wait a moment before trying again."
+        );
+        // Add a delay before retrying
+        setTimeout(() => {
+          setError("");
+          setIsLoading(false);
+        }, 5000); // Wait 5 seconds before allowing retry
+        return;
+      }
+      setError(err.response?.data?.message || "Failed to fetch orders");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
+
+  // Update useEffect to handle cleanup
+  useEffect(() => {
+    let mounted = true;
+
+    const loadOrders = async () => {
+      if (!mounted) return;
+      await fetchOrders();
+    };
+
+    loadOrders();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleError = (err) => {
     console.error("Error:", err);
@@ -125,10 +155,6 @@ const ManageOrders = () => {
       setError(err.response?.data?.message || "An error occurred");
     }
   };
-
-  useEffect(() => {
-    fetchOrders();
-  }, [filter]);
 
   // Check server connection
   const checkServerConnection = async () => {
@@ -166,92 +192,33 @@ const ManageOrders = () => {
     }
   };
 
-  // Handle status change
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    if (!orderId) return;
+
     try {
-      setIsUpdating(true);
-      setUpdateError("");
-
+      setIsLoading(true);
       const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Authentication token not found");
-      }
+      const formattedStatus = newStatus.toLowerCase();
 
-      // Using status instead of orderStatus
-      const updateData = {
-        status: newStatus, // Changed from orderStatus to status
-      };
-
-      console.log("Updating order status:", {
-        orderId,
-        updateData,
-        endpoint: `http://127.0.0.1:4000/api/v1/orders/${orderId}/admin`,
+      const response = await axios({
+        method: "PATCH",
+        url: `http://127.0.0.1:4000/api/v1/orders/${orderId}/admin`,
+        data: { orderStatus: formattedStatus },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
-      const response = await axios.patch(
-        `http://127.0.0.1:4000/api/v1/orders/${orderId}/admin`,
-        updateData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data) {
-        // Update the local state using status instead of orderStatus
-        setOrders((prevOrders) =>
-          prevOrders.map((order) =>
-            order._id === orderId ? { ...order, status: newStatus } : order
-          )
-        );
-
-        // Update selected order
-        setSelectedOrder((prev) => ({
-          ...prev,
-          status: newStatus,
-        }));
-
+      if (response.data.status === "success") {
         toast.success("Order status updated successfully");
+        await fetchOrders(); // Refresh orders
       }
-    } catch (error) {
-      console.error("Error updating order status:", error);
-      console.error("Error response:", error.response?.data);
-
-      let errorMessage = "Failed to update order status";
-
-      if (error.response) {
-        switch (error.response.status) {
-          case 401:
-            errorMessage = "Not authorized. Please login as admin or employee";
-            break;
-          case 403:
-            errorMessage = "You do not have permission to update orders";
-            break;
-          case 404:
-            errorMessage = "Order not found";
-            break;
-          case 400:
-            errorMessage = error.response.data?.message || "Invalid order data";
-            break;
-          case 500:
-            errorMessage = "Server error. Please check server logs.";
-            break;
-          default:
-            errorMessage =
-              error.response.data?.message || "Failed to update order status";
-        }
-      } else if (error.request) {
-        errorMessage = "No response from server. Please try again";
-      } else {
-        errorMessage = error.message;
-      }
-
-      setUpdateError(errorMessage);
-      toast.error(errorMessage);
+    } catch (err) {
+      console.error("Error updating status:", err);
+      toast.error(err.response?.data?.message || "Failed to update status");
     } finally {
-      setIsUpdating(false);
+      setIsLoading(false);
     }
   };
 
@@ -331,21 +298,13 @@ const ManageOrders = () => {
   };
 
   const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "Invalid Date";
-
-      return date.toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch (error) {
-      return "Invalid Date";
-    }
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const getStatusIcon = (status) => {
@@ -382,20 +341,14 @@ const ManageOrders = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return styles.statusPending;
-      case "processing":
-        return styles.statusProcessing;
-      case "shipped":
-        return styles.statusShipped;
-      case "delivered":
-        return styles.statusDelivered;
-      case "cancelled":
-        return styles.statusCancelled;
-      default:
-        return "";
-    }
+    const colors = {
+      pending: "#fff7ed",
+      processing: "#eff6ff",
+      shipped: "#f5f3ff",
+      delivered: "#ecfdf5",
+      canceled: "#fef2f2",
+    };
+    return colors[status.toLowerCase()] || "#f8f9fa";
   };
 
   const handleDeleteClick = (orderId) => {
@@ -552,14 +505,17 @@ const ManageOrders = () => {
       return response.data.data || response.data;
     } catch (error) {
       console.error("Error fetching AC details:", error);
-      return null;
+      return {
+        brand: "N/A",
+        model: "N/A",
+      };
     }
   };
 
   // Fetch AC details when order is selected
   useEffect(() => {
     const fetchAllAcDetails = async () => {
-      if (selectedOrder?.items) {
+      if (selectedOrder?.items && selectedOrder.items.length > 0) {
         setIsLoadingAc(true);
         console.log("Selected order items:", selectedOrder.items);
 
@@ -568,19 +524,25 @@ const ManageOrders = () => {
             fetchAcDetails(item.ac)
           );
 
-          const acResults = await Promise.all(acPromises);
-          const newAcDetails = {};
+          const acResults = await Promise.all(
+            acPromises.map((p) =>
+              p.catch((e) => ({
+                brand: "N/A",
+                model: "N/A",
+              }))
+            )
+          );
 
+          const newAcDetails = {};
           selectedOrder.items.forEach((item, index) => {
-            if (acResults[index]) {
-              newAcDetails[item.ac] = acResults[index];
-            }
+            newAcDetails[item.ac] = acResults[index];
           });
 
           console.log("Fetched AC details:", newAcDetails);
           setAcDetails(newAcDetails);
         } catch (error) {
           console.error("Error fetching AC details:", error);
+          setError("Failed to load AC details");
         } finally {
           setIsLoadingAc(false);
         }
@@ -599,146 +561,203 @@ const ManageOrders = () => {
           <div className={styles.itemDetails}>
             <div className={styles.itemInfo}>
               <div className={styles.itemHeader}>
-                {isLoadingAc ? (
-                  <div className={styles.loadingContainer}>
-                    <FaSpinner className={styles.loadingSpinner} />
-                    <span>Loading AC details...</span>
-                  </div>
-                ) : acDetail ? (
-                  <div className={styles.productHeader}>
-                    <div className={styles.productImage}>
-                      <img
-                        src={acDetail.image || "default-ac.png"}
-                        alt={acDetail.brand}
-                      />
-                    </div>
-                    <div className={styles.productInfo}>
-                      <h4 className={styles.itemTitle}>
-                        {acDetail.brand || "Unknown Brand"}
-                      </h4>
-                      <span className={styles.modelBadge}>
-                        Model: {acDetail.modelNumber || "Unknown Model"}
+                <div className={styles.productHeader}>
+                  <div className={styles.productInfo}>
+                    <h4 className={styles.itemTitle}>{acDetail?.brand}</h4>
+                    <span className={styles.modelBadge}>
+                      Model: {item.modelNumber}
+                    </span>
+                    <div className={styles.productMeta}>
+                      <span className={styles.productId}>ID: {item.ac}</span>
+                      <span className={styles.quantity}>
+                        Quantity: {item.quantity}
                       </span>
-                      <div className={styles.productMeta}>
-                        <span className={styles.productId}>ID: {item.ac}</span>
-                        <span
-                          className={`${styles.stockBadge} ${
-                            acDetail.inStock
-                              ? styles.inStock
-                              : styles.outOfStock
-                          }`}
-                        >
-                          {acDetail.inStock ? "In Stock" : "Out of Stock"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.errorState}>
-                    <FaExclamationTriangle className={styles.errorIcon} />
-                    <h4 className={styles.itemTitle}>
-                      AC Unit (ID: {item.ac})
-                    </h4>
-                  </div>
-                )}
-              </div>
-
-              {acDetail && (
-                <div className={styles.specGrid}>
-                  <div className={styles.specCard}>
-                    <FaThermometerHalf className={styles.specIcon} />
-                    <div className={styles.specContent}>
-                      <span className={styles.specLabel}>Cooling Capacity</span>
-                      <span className={styles.specValue}>
-                        {acDetail.coolingCapacity} BTU
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.specCard}>
-                    <FaBolt className={styles.specIcon} />
-                    <div className={styles.specContent}>
-                      <span className={styles.specLabel}>
-                        Power Consumption
-                      </span>
-                      <span className={styles.specValue}>
-                        {acDetail.powerConsumption}W
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.specCard}>
-                    <FaBoxes className={styles.specIcon} />
-                    <div className={styles.specContent}>
-                      <span className={styles.specLabel}>Stock Level</span>
-                      <span className={styles.specValue}>
-                        {acDetail.quantityInStock || 0} units
+                      <span className={styles.price}>
+                        Price: ${item.priceAtPurchase}
                       </span>
                     </div>
                   </div>
                 </div>
-              )}
-
-              <div className={styles.orderSummary}>
-                <div className={styles.summaryGrid}>
-                  <div className={styles.summaryCard}>
-                    <div className={styles.summaryIcon}>
-                      <FaShoppingCart />
-                    </div>
-                    <div className={styles.summaryContent}>
-                      <span className={styles.summaryLabel}>Quantity</span>
-                      <span className={styles.summaryValue}>
-                        {item.quantity}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.summaryCard}>
-                    <div className={styles.summaryIcon}>
-                      <FaDollarSign />
-                    </div>
-                    <div className={styles.summaryContent}>
-                      <span className={styles.summaryLabel}>Unit Price</span>
-                      <span className={styles.summaryValue}>
-                        ${(item.priceAtPurchase || 0).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.summaryCard}>
-                    <div className={styles.summaryIcon}>
-                      <FaCalculator />
-                    </div>
-                    <div className={styles.summaryContent}>
-                      <span className={styles.summaryLabel}>Total</span>
-                      <span className={styles.summaryValue}>
-                        $
-                        {(
-                          (item.priceAtPurchase || 0) * item.quantity
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {acDetail && acDetail.price !== item.priceAtPurchase && (
-                  <div className={styles.priceHistory}>
-                    <span className={styles.priceLabel}>Original Price:</span>
-                    <span className={styles.originalPrice}>
-                      ${acDetail.price.toLocaleString()}
-                    </span>
-                    <span className={styles.priceDiff}>
-                      {item.priceAtPurchase < acDetail.price
-                        ? "Saved"
-                        : "Increased"}
-                      : $
-                      {Math.abs(
-                        acDetail.price - item.priceAtPurchase
-                      ).toLocaleString()}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
       );
     });
+  };
+
+  const Modal = ({ children, isOpen, onClose }) => {
+    if (!isOpen) return null;
+
+    return createPortal(
+      <div className={styles.modalOverlay} onClick={onClose}>
+        <div
+          className={styles.modalWrapper}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {children}
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  const renderOrderDetails = () => {
+    return (
+      <Modal
+        isOpen={showOrderDetails}
+        onClose={() => setShowOrderDetails(false)}
+      >
+        <div className={styles.orderDetailsModal}>
+          <div className={styles.modalHeader}>
+            <h3>Order #{selectedOrder?._id?.slice(-6)}</h3>
+            <div className={styles.headerActions}>
+              <button
+                className={styles.editButton}
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                {isEditing ? "Save Changes" : "Edit Order"}
+              </button>
+              <button
+                className={styles.closeButton}
+                onClick={() => setShowOrderDetails(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.orderDetailsContent}>
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaBox className={styles.sectionIcon} />
+                <h4>Order Status</h4>
+              </div>
+              <div className={styles.statusContainer}>
+                {isEditing ? (
+                  <select
+                    value={selectedOrder?.orderStatus || "Pending"}
+                    onChange={(e) =>
+                      handleStatusUpdate(selectedOrder?._id, e.target.value)
+                    }
+                    className={styles.statusSelect}
+                    data-status={selectedOrder?.orderStatus?.toLowerCase()}
+                  >
+                    {orderStatuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span
+                    className={`${styles.statusBadge} ${
+                      styles[selectedOrder?.orderStatus?.toLowerCase()]
+                    }`}
+                  >
+                    {selectedOrder?.orderStatus}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaUser className={styles.sectionIcon} />
+                <h4>Customer Information</h4>
+              </div>
+              <div className={styles.customerDetails}>
+                <p>
+                  <FaUser /> {selectedOrder?.customerName}
+                </p>
+                <p>
+                  <FaPhone /> {selectedOrder?.mobileNumber}
+                </p>
+                <p>
+                  <FaMapMarkerAlt /> {selectedOrder?.shippingAddress}
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaTruck className={styles.sectionIcon} />
+                <h4>Order Items</h4>
+              </div>
+              <div className={styles.itemsList}>
+                {selectedOrder?.items?.map((item, index) => (
+                  <div key={index} className={styles.itemCard}>
+                    <div className={styles.itemDetails}>
+                      <div className={styles.itemInfo}>
+                        <h5>{item.brand || "Product"}</h5>
+                        <p className={styles.modelNumber}>
+                          Model: {item.modelNumber}
+                        </p>
+                        <p className={styles.quantity}>
+                          Quantity: {item.quantity}
+                        </p>
+                      </div>
+                      <div className={styles.itemPrice}>
+                        <FaDollarSign />
+                        {item.priceAtPurchase}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaDollarSign className={styles.sectionIcon} />
+                <h4>Payment Details</h4>
+              </div>
+              <div className={styles.paymentDetails}>
+                <div className={styles.paymentRow}>
+                  <span>Total Amount:</span>
+                  <span className={styles.amount}>
+                    ${selectedOrder?.totalAmount}
+                  </span>
+                </div>
+                <div className={styles.paymentRow}>
+                  <span>Payment Status:</span>
+                  <span
+                    className={`${styles.paymentStatus} ${
+                      styles[selectedOrder?.paymentStatus]
+                    }`}
+                  >
+                    {selectedOrder?.paymentStatus}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaCalendarAlt className={styles.sectionIcon} />
+                <h4>Order Timeline</h4>
+              </div>
+              <div className={styles.timeline}>
+                <div className={styles.timelineItem}>
+                  <span className={styles.timelineDate}>
+                    {new Date(selectedOrder?.purchasedAt).toLocaleDateString()}
+                  </span>
+                  <span className={styles.timelineLabel}>Order Placed</span>
+                </div>
+                {selectedOrder?.updatedAt && (
+                  <div className={styles.timelineItem}>
+                    <span className={styles.timelineDate}>
+                      {new Date(selectedOrder?.updatedAt).toLocaleDateString()}
+                    </span>
+                    <span className={styles.timelineLabel}>Last Updated</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    );
   };
 
   return (
@@ -807,7 +826,26 @@ const ManageOrders = () => {
       </div>
 
       <div className={styles.ordersGrid}>
-        {filteredOrders.length > 0 ? (
+        {isLoading && !editingOrder ? (
+          <div className={styles.loading}>
+            <FaSpinner className={styles.spinner} />
+            <p>Loading orders...</p>
+          </div>
+        ) : error ? (
+          <div className={styles.error}>
+            <p>{error}</p>
+            <button
+              onClick={() => {
+                if (!isLoading) {
+                  fetchOrders();
+                }
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? "Please wait..." : "Retry"}
+            </button>
+          </div>
+        ) : filteredOrders.length > 0 ? (
           filteredOrders.map((order) => (
             <div key={order._id} className={styles.orderCard}>
               <div className={styles.orderHeader}>
@@ -881,32 +919,33 @@ const ManageOrders = () => {
                 <div className={styles.statusSection}>
                   <h3>Order Status</h3>
                   <div className={styles.statusSelectWrapper}>
-                    {getStatusIcon(order.status)}
-                    <select
-                      value={order.status}
-                      onChange={(e) =>
-                        handleStatusChange(order._id, e.target.value).catch(
-                          (error) => {
-                            console.error("All retries failed:", error);
-                            toast.error(
-                              "Failed to update status after multiple attempts"
-                            );
-                          }
-                        )
-                      }
-                      className={`${styles.statusSelect} ${getStatusColor(
-                        order.status
-                      )} ${statusUpdateLoading ? styles.loading : ""}`}
-                      disabled={statusUpdateLoading}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                    {statusUpdateLoading && (
-                      <FaSpinner className={styles.spinner} />
+                    {editingOrder === order._id.$oid ? (
+                      <select
+                        value={selectedOrder?.orderStatus || "pending"}
+                        onChange={(e) =>
+                          handleStatusUpdate(selectedOrder?._id, e.target.value)
+                        }
+                        className={styles.statusSelect}
+                        data-status={selectedOrder?.orderStatus || "pending"}
+                        disabled={isLoading}
+                      >
+                        {orderStatuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span
+                        className={styles.statusBadge}
+                        style={{
+                          backgroundColor: getStatusColor(
+                            order.orderStatus || "pending"
+                          ),
+                        }}
+                      >
+                        {(order.orderStatus || "pending").toUpperCase()}
+                      </span>
                     )}
                   </div>
                   {updateError && (
@@ -950,113 +989,7 @@ const ManageOrders = () => {
       )}
 
       {/* Order Details Modal */}
-      {showOrderDetails && selectedOrder && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h2>Order Details</h2>
-              <button
-                onClick={() => setShowOrderDetails(false)}
-                className={styles.closeButton}
-              >
-                ×
-              </button>
-            </div>
-            <div className={styles.modalBody}>
-              <div className={styles.detailSection}>
-                <h3>Customer Information</h3>
-                <div className={styles.customerInfo}>
-                  <p>{selectedOrder.shippingAddress}</p>
-                  <p>{selectedOrder.mobileNumber}</p>
-                </div>
-              </div>
-
-              <div className={styles.detailSection}>
-                <h3>Order Items</h3>
-                <div className={styles.itemsList}>
-                  {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                    <>
-                      {renderOrderItems(selectedOrder.items)}
-                      <div className={styles.orderSummary}>
-                        <div className={styles.summaryItem}>
-                          <span>Total Items:</span>
-                          <span>{selectedOrder.items.length}</span>
-                        </div>
-                        <div className={styles.summaryItem}>
-                          <span>Total Amount:</span>
-                          <span>
-                            ${selectedOrder.totalAmount.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className={styles.noItems}>No items in this order</div>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.detailSection}>
-                <h3>Payment Details</h3>
-                <div className={styles.paymentInfo}>
-                  <div className={styles.paymentRow}>
-                    <span>Total Amount:</span>
-                    <span className={styles.totalAmount}>
-                      ${selectedOrder.totalAmount?.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className={styles.paymentRow}>
-                    <span>Payment Status:</span>
-                    <span
-                      className={`${styles.paymentStatus} ${
-                        styles[
-                          selectedOrder.paymentStatus?.toLowerCase() ||
-                            "pending"
-                        ]
-                      }`}
-                    >
-                      {selectedOrder.paymentStatus || "Pending"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.detailSection}>
-                <h3>Order Status</h3>
-                <div className={styles.statusUpdateSection}>
-                  <div className={styles.statusSelectWrapper}>
-                    <select
-                      value={selectedOrder.status || "pending"}
-                      onChange={(e) =>
-                        handleStatusChange(selectedOrder._id, e.target.value)
-                      }
-                      className={`${styles.statusSelect} ${
-                        styles[selectedOrder.status || "pending"]
-                      }`}
-                      disabled={isUpdating}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                      <option value="on hold">On Hold</option>
-                    </select>
-                    {isUpdating && (
-                      <div className={styles.statusSpinner}>
-                        <FaSpinner className={styles.spinner} />
-                      </div>
-                    )}
-                  </div>
-                  {updateError && (
-                    <div className={styles.statusError}>{updateError}</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showOrderDetails && selectedOrder && renderOrderDetails()}
     </div>
   );
 };
