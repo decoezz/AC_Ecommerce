@@ -342,14 +342,16 @@ const ManageOrders = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: "#fff7ed",
-      processing: "#eff6ff",
-      shipped: "#f5f3ff",
-      delivered: "#ecfdf5",
-      canceled: "#fef2f2",
+      pending: "#FFCC80",     // Warm Orange
+      processing: "#64B5F6",  // Soft Blue
+      shipped: "#B39DDB",     // Muted Purple
+      delivered: "#81C784",   // Fresh Green
+      canceled: "#E57373",    // Soft Red
     };
-    return colors[status.toLowerCase()] || "#f8f9fa";
-  };
+    return colors[status] ?? "#524949";
+};
+
+   
 
   const handleDeleteClick = (orderId) => {
     setSelectedOrderId(orderId);
