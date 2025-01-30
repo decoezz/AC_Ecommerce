@@ -285,7 +285,7 @@ const ViewOrders = () => {
                   <th>Date</th>
                   <th>Status</th>
                   <th>Total</th>
-                  <th>Actions</th>
+                  
                 </tr>
               </thead>
               <tbody>
@@ -303,14 +303,7 @@ const ViewOrders = () => {
                       </span>
                     </td>
                     <td>${order.totalAmount?.toFixed(2) || "0.00"}</td>
-                    <td>
-                      <Link
-                        to={`/orders/details/${order._id}`}
-                        className={styles.viewButton}
-                      >
-                        View Details
-                      </Link>
-                    </td>
+                    
                   </tr>
                 ))}
               </tbody>

@@ -38,6 +38,7 @@ import { createPortal } from "react-dom";
 
 const ManageOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
@@ -62,6 +63,7 @@ const ManageOrders = () => {
   const [message, setMessage] = useState("");
   const [editingOrder, setEditingOrder] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
 
   // Define orderStatuses at the component level
   const orderStatuses = [
@@ -96,6 +98,7 @@ const ManageOrders = () => {
         Array.isArray(response.data.data)
       ) {
         setOrders(response.data.data);
+        setAllOrders(response.data.data);
         setError("");
       } else {
         throw new Error("Invalid response format");
@@ -342,16 +345,14 @@ const ManageOrders = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: "#FFCC80",     // Warm Orange
-      processing: "#64B5F6",  // Soft Blue
-      shipped: "#B39DDB",     // Muted Purple
-      delivered: "#81C784",   // Fresh Green
-      canceled: "#E57373",    // Soft Red
+      pending: "#FFCC80", // Warm Orange
+      processing: "#64B5F6", // Soft Blue
+      shipped: "#B39DDB", // Muted Purple
+      delivered: "#81C784", // Fresh Green
+      canceled: "#E57373", // Soft Red
     };
     return colors[status] ?? "#524949";
-};
-
-   
+  };
 
   const handleDeleteClick = (orderId) => {
     setSelectedOrderId(orderId);
@@ -412,51 +413,6 @@ const ManageOrders = () => {
     };
   };
 
-  // Search by phone number
-  const searchByPhone = async (phoneNumber) => {
-    try {
-      setIsSearching(true);
-      const token = localStorage.getItem("token");
-
-      if (!phoneNumber || phoneNumber.length < 11) {
-        if (!phoneNumber.trim()) {
-          fetchOrders();
-        }
-        return;
-      }
-
-      const response = await axios.get(
-        `http://127.0.0.1:4000/api/v1/orders/${phoneNumber}/user`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        }
-      );
-
-      if (response.data && response.data.orders) {
-        setOrders(response.data.orders);
-        setError("");
-      } else {
-        setOrders([]);
-        setError("No orders found for this phone number");
-      }
-    } catch (error) {
-      console.error("Error searching orders:", error);
-      setOrders([]);
-
-      if (error.response?.status === 401) {
-        setError("Not authorized. Please login as admin or employee");
-      } else if (error.response?.status === 404) {
-        setError("No orders found for this phone number");
-      } else {
-        setError("Failed to search orders. Please try again.");
-      }
-    } finally {
-      setIsSearching(false);
-    }
-  };
 
   // Debounced search with minimum length check
   const debouncedSearch = debounce((term) => {
@@ -762,6 +718,11 @@ const ManageOrders = () => {
     );
   };
 
+  // Handle search by mobile number
+  
+
+    
+
   return (
     <div className={styles.container}>
       <div className={styles.dashboardHeader}>
@@ -771,52 +732,7 @@ const ManageOrders = () => {
         </h1>
       </div>
 
-      <div className={styles.controlsContainer}>
-        <div className={styles.searchSection}>
-          <div className={styles.searchBar}>
-            <div className={styles.searchInputWrapper}>
-              <input
-                type="tel"
-                placeholder="Enter 11-digit phone number..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className={styles.searchInput}
-                maxLength="11"
-              />
-              {isSearching && <FaSpinner className={styles.searchSpinner} />}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.filterControls}>
-          <div className={styles.filterGroup}>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={styles.filterSelect}
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="on hold">On Hold</option>
-            </select>
-          </div>
-
-          <div className={styles.filterGroup}>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className={styles.filterSelect}
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      
 
       <div className={styles.searchStats}>
         <span className={styles.resultCount}>
