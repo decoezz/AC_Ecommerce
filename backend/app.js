@@ -12,6 +12,7 @@ const globalErrorHandler = require('./middleware/errorMiddleware');
 const userRouter = require('./routes/userRoutes');
 const productRouter = require('./routes/productRoutes');
 const orderRouter = require('./routes/orderRoutes');
+const cartRouter = require('./routes/cartRoutes');
 const app = express();
 //All the utils needed for security and other utils
 app.use(express.json());
@@ -48,6 +49,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/orders', orderRouter);
+app.use('/api/v1/cart', cartRouter);
 //Handle undefined routes
 app.all('*', (req, res, next) => {
   next(new AppError(`can\'t find ${req.originalUrl} on this server!`, 404));

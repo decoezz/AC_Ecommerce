@@ -20,6 +20,7 @@ router.post('/signup', userController.signup);
 router.post('/login', userController.login);
 router.get('/:id', validateObjectId, userController.getUser);
 router.get('/user/:mobileNumber', userController.getUserByNumber);
+router.patch('/', protect,userController.updateUser);
 router.put(
   '/upload-photo',
   protect,

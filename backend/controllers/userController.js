@@ -1,8 +1,12 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const User = require('../models/userModel');
 const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const AppError = require('../utils/Error Handeling utils/appError');
 const ApiFeatures = require('../utils/apiFeatures');
-const User = require('../models/userModel');
+const {
+  updateUserData,
+} = require('../utils/Data Validation utils/validateUpdateUser');
 const singToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -178,6 +182,66 @@ exports.me = catchAsync(async (req, res, next) => {
     .populate('likedProducts');
   res.status(200).json({
     status: 'success',
+    data: {
+      user,
+    },
+  });
+});
+//Update User data
+exports.updateUser = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  const {
+    name,
+    email,
+    mobileNumber,
+    password,
+    passwordConfirm,
+    currentPassword,
+  } = req.body;
+  const { error } = updateUserData.validate(req.body, { abortEarly: false });
+  if (error) {
+    const errorMessages = error.details.map((detail) => detail.message);
+    return next(
+      new AppError(`Validation failed: ${errorMessages.join(', ')}`, 400)
+    );
+  }
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+  // Validate current password if the user is trying to update sensitive fields
+  if (password || email || mobileNumber) {
+    if (!currentPassword) {
+      return next(
+        new AppError(
+          'Please provide your current password to update sensitive information',
+          400
+        )
+      );
+    }
+    // Compare the provided current password with the stored password
+    const isPasswordCorrect = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+    if (!isPasswordCorrect) {
+      return next(new AppError('Current password is incorrect', 401));
+    }
+  }
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (mobileNumber) user.mobileNumber = mobileNumber;
+  if (password) {
+    user.password = password;
+    user.passwordConfirm = passwordConfirm;
+    user.passwordChangedAt = Date.now();
+  }
+  await user.save();
+  user.password = undefined;
+  user.passwordConfirm = undefined;
+  res.status(200).json({
+    status: 'success',
+    message: 'User Update successfully',
     data: {
       user,
     },

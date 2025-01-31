@@ -76,45 +76,25 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'suez',
     },
-    orders: [
-      {
-        orderId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Order',
-        },
-        orderedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
     profilePicture: {
       type: String,
       default: 'https://via.placeholder.com/150',
     },
-    purshacedAc: [
+    purchasedAC: [
       {
         items: [
           {
-            ac: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: 'AC', // reference to the 'AC' model
-              required: true,
-            },
-            quantity: {
-              type: Number,
-              required: true,
-            },
-            priceAtPurchase: {
-              type: Number,
-              required: true,
-            },
-            modelNumber: {
-              type: String,
-              required: true,
-            },
+            ac: { type: mongoose.Schema.Types.ObjectId, ref: 'AC' },
+            quantity: Number,
+            priceAtPurchase: Number,
           },
         ],
+      },
+    ],
+    orders: [
+      {
+        orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+        orderedAt: { type: Date, default: Date.now },
       },
     ],
     likedProducts: [

@@ -3,6 +3,7 @@ const catchAsync = require('../utils/Error Handeling utils/catchAsync');
 const User = require('../models/userModel');
 const Order = require('../models/orderModel');
 const AC = require('../models/acModel');
+const Cart = require('../models/cartModel');
 const ApiFeatures = require('../utils/apiFeatures');
 const {
   getOrdersLastMonth,
@@ -126,45 +127,35 @@ exports.getOrder = catchAsync(async (req, res, next) => {
 });
 //Create an Order
 exports.createOrder = catchAsync(async (req, res, next) => {
-  // Validate request data
   const userId = req.user.id;
-  validateOrderData(req.body);
-  const { items, shippingAddress, mobileNumber, orderStatus } = req.body;
-  // Start a session for transaction
+  const { shippingAddress, mobileNumber, orderStatus } = req.body;
   const session = await Order.startSession();
   session.startTransaction();
   try {
+    // Get the user's cart
+    const cart = await Cart.findOne({ user: userId })
+      .populate('Items.product')
+      .session(session);
+    if (!cart || cart.Items.length === 0) {
+      throw new AppError('Cart is empty', 400);
+    }
     // Check if all items are in stock
-    for (const item of items) {
-      const product = await AC.findById(item.ac).session(session);
-      if (!product) {
-        throw new AppError(`Product with ID ${item.ac} not found`, 404);
-      }
+    for (const item of cart.Items) {
+      const product = item.product;
       if (!product.inStock || product.quantityInStock < item.quantity) {
         throw new AppError(
           `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
           400
         );
       }
-      item.modelNumber = product.modelNumber;
     }
     // Calculate total amount
-    const totalAmount = items.reduce(
-      (total, item) => total + item.quantity * item.priceAtPurchase,
-      0
-    );
+    const totalAmount = cart.totalPrice;
     // Reduce stock for each item
-    for (const item of items) {
-      const product = await AC.findById(item.ac).session(session);
-      if (!product || product.quantityInStock < item.quantity) {
-        throw new AppError(
-          `Product ${product.modelNumber} does not have enough stock.`,
-          400
-        );
-      }
-      // Reduce stock
+    for (const item of cart.Items) {
+      const product = item.product;
       await AC.updateOne(
-        { _id: item.ac },
+        { _id: product._id },
         { $inc: { quantityInStock: -item.quantity, unitSold: item.quantity } },
         { session }
       );
@@ -174,7 +165,11 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       [
         {
           user: userId,
-          items,
+          items: cart.Items.map((item) => ({
+            ac: item.product._id,
+            quantity: item.quantity,
+            priceAtPurchase: item.priceAtTimeOfAddition,
+          })),
           shippingAddress,
           mobileNumber,
           orderStatus,
@@ -183,12 +178,20 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       ],
       { session }
     );
-    const user = await User.findById(req.user.id);
+    // Update user's orders and purchased ACs
+    const user = await User.findById(userId).session(session);
     if (!user) {
       throw new AppError('User not found', 404);
     }
-    user.purshacedAc.push({ items });
-    await user.save();
+    user.orders.push({ orderId: order[0]._id, orderedAt: Date.now() });
+    user.purchasedAC.push({ items: cart.Items });
+    await user.save({ session });
+    // Clear the cart
+    await Cart.findOneAndUpdate(
+      { user: userId },
+      { Items: [], totalPrice: 0 },
+      { session }
+    );
     // Commit the transaction
     await session.commitTransaction();
     session.endSession();
@@ -366,6 +369,106 @@ exports.ChangeOrderStatus = catchAsync(async (req, res, next) => {
     messsage: 'Order Status changed successfully',
     data: {
       order,
+    },
+  });
+});
+//Employee sell in Shop
+exports.SellInShop = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  validateOrderData(req.body);
+  const { items, shippingAddress, mobileNumber } = req.body;
+  const orderStatus = 'on hold';
+  const session = await Order.startSession();
+  session.startTransaction();
+  try {
+    // Check if all items are in stock
+    for (const item of items) {
+      const product = await AC.findById(item.ac).session(session);
+      if (!product) {
+        throw new AppError(`Product with ID ${item.ac} not found`, 404);
+      }
+      if (!product.inStock || product.quantityInStock < item.quantity) {
+        throw new AppError(
+          `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
+          400
+        );
+      }
+      item.modelNumber = product.modelNumber;
+    }
+    // Calculate total amount
+    const totalAmount = items.reduce(
+      (total, item) => total + item.quantity * item.priceAtPurchase,
+      0
+    );
+    // Reduce stock for each item
+    for (const item of items) {
+      const product = await AC.findById(item.ac).session(session);
+      if (!product || product.quantityInStock < item.quantity) {
+        throw new AppError(
+          `Product ${product.modelNumber} does not have enough stock.`,
+          400
+        );
+      }
+      // Reduce stock
+      await AC.updateOne(
+        { _id: item.ac },
+        { $inc: { quantityInStock: -item.quantity, unitSold: item.quantity } },
+        { session }
+      );
+    }
+    // Create new order inside the transaction
+    const order = await Order.create(
+      [
+        {
+          user: userId,
+          items,
+          shippingAddress,
+          mobileNumber,
+          orderStatus,
+          totalAmount,
+          soldInShop: true,
+        },
+      ],
+      { session }
+    );
+    const user = await User.findById(req.user.id).session(session);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+    user.orders.push({ orderId: order[0]._id, orderedAt: Date.now() });
+    user.purchasedAC.push({ items });
+    await user.save({ session });
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+    res.status(201).json({
+      status: 'success',
+      message: 'Order Placed Successfully',
+      data: { order },
+    });
+  } catch (error) {
+    // If any error occurs, rollback transaction
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+});
+//Get All Orders sold in Shop
+exports.getOrdersSoldInShop = catchAsync(async (req, res, next) => {
+  const orders = await Order.find({ soldInShop: true }).populate({
+    path: 'user',
+    select: 'name email role', // Optionally populate user details
+  });
+  if (orders.length === 0) {
+    return next(
+      new AppError('No orders found that were sold in the shop', 404)
+    );
+  }
+  res.status(200).json({
+    status: 'success',
+    results: orders.length,
+    data: {
+      orders,
     },
   });
 });

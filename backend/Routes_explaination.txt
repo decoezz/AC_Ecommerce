@@ -33,9 +33,12 @@ GET http://127.0.0.1:4000/api/v1/users/reviews (get all reviews of user)
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/users/user/:mobileNumber (get User by mobile number)   (Done)
 --------------------------------------------------------------------------
-GET  http://127.0.0.1:4000/api/v1/users/user/likedProducts
+GET  http://127.0.0.1:4000/api/v1/users/user/likedProducts (Get liked Products/wishlist)
 Protected,specific
 --------------------------------------------------------------------------
+PATCH http://127.0.0.1:4000/api/v1/users/ (Update User) 
+Protected,specific
+Body:(currentPassword(needed to change anything),password,passwordConfirm,name,email,mobileNumber)
 
 Products Routes:
 GET http://127.0.0.1:4000/api/v1/products/?brand=Samsung (Get All product)
@@ -94,6 +97,7 @@ Protected,specific
 --------------------------------------------------------------------------
 POST http://127.0.0.1:4000/api/v1/orders/ (Creating an Order)        (Done)
 Protected
+Products are pushed from the cart
 Body:(Items(array : "ac","quantity","priceAtPurchase"),shippingAddress,mobileNumber,orderStatus)
 --------------------------------------------------------------------------
 PATCH http://127.0.0.1:4000/api/v1/orders/:orderId (Edit an Order)          (Done)
@@ -130,3 +134,27 @@ Protected,need Admin or employee
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/orders/user/:mobileNumber (get orders by mobile number)     (Done)
 --------------------------------------------------------------------------
+GET http://127.0.0.1:4000/api/v1/orders/SoldInShop (Get Orders Sold In Shop)
+need Admin or employee
+--------------------------------------------------------------------------
+POST http://127.0.0.1:4000/api/v1/orders/sellEmployee (Sell Product in Shop)
+need Admin or employee
+Body:(Items[ac,quantity,priceAtPurchase],shippingAddress,mobileNumber)
+
+Cart Routes:
+Get http://127.0.0.1:4000/api/v1/cart/ (Get Cart)
+Protected
+--------------------------------------------------------------------------
+POST http://127.0.0.1:4000/api/v1/cart/ (Add item to product)
+Protected
+Body:(productId,quantity)
+--------------------------------------------------------------------------
+PATCH http://127.0.0.1:4000/api/v1/cart/:productId (Update the item quantity in cart)
+Protected
+Body:(quantity)
+--------------------------------------------------------------------------
+DELETE http://127.0.0.1:4000/api/v1/cart/:productId (Delete ceratin item from cart)
+Protected
+--------------------------------------------------------------------------
+DELETE http://127.0.0.1:4000/api/v1/cart/ (Clear the Cart)
+Protected

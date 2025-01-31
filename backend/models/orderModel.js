@@ -6,6 +6,10 @@ const orderSchema = mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  soldInShop: {
+    type: Boolean,
+    default: false, // Default to false (not sold in the shop)
+  },
   items: [
     {
       ac: {
