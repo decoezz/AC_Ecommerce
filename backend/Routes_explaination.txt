@@ -31,7 +31,7 @@ Send picture in from-data in the name of (profilePicture)        (Done)
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/users/reviews (get all reviews of user)
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/users/user/:mobileNumber (get User by mobile number)
+GET http://127.0.0.1:4000/api/v1/users/user/:mobileNumber (get User by mobile number)   (Done)
 --------------------------------------------------------------------------
 GET  http://127.0.0.1:4000/api/v1/users/user/likedProducts
 Protected,specific
@@ -56,7 +56,7 @@ PUT http://127.0.0.1:4000/api/v1/products/update-product-images/:productId (Remo
 Protected,need Admin or employee
 Add photos through form-data in the name of (photos) up to 5 photos
 --------------------------------------------------------------------------
-PUT http://127.0.0.1:4000/api/v1/products/update-product-images/:productId (Removing old photos (if exists) and add new photos)
+PUT http://127.0.0.1:4000/api/v1/products/update-product-images/:productId (Removing old photos (if exists) and add new photos)         
 Protected,need Admin or employee
 Add photos through form-data in the name of (photos) up to 5 photos
 --------------------------------------------------------------------------
@@ -67,11 +67,11 @@ DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product
 Protected,need Admin or employee
 Body:(publicId,productId)
 --------------------------------------------------------------------------
-DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product's photos)
+DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product's photos)     
 Protected,need Admin or employee
 Body:(publicId,productId)
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/products/ac/:modelNumber (get product by model Number)
+GET http://127.0.0.1:4000/api/v1/products/ac/:modelNumber (get product by model Number) 
 --------------------------------------------------------------------------
 POST http://127.0.0.1:4000/api/v1/products/ratings/:productId (add rating to product)
 Protected
@@ -89,21 +89,21 @@ Protected,specific
 --------------------------------------------------------------------------
 
 Orders Routes:
-GET http://127.0.0.1:4000/api/v1/orders/my-orders (Getting current User orders)
+GET http://127.0.0.1:4000/api/v1/orders/my-orders (Getting current User orders)       (Done)
 Protected,specific
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/orders/ (Creating an Order)
+POST http://127.0.0.1:4000/api/v1/orders/ (Creating an Order)        (Done)
 Protected
 Body:(Items(array : "ac","quantity","priceAtPurchase"),shippingAddress,mobileNumber,orderStatus)
 --------------------------------------------------------------------------
-PATCH http://127.0.0.1:4000/api/v1/orders/:orderId (Edit an Order)
+PATCH http://127.0.0.1:4000/api/v1/orders/:orderId (Edit an Order)          (Done)
 Protected,specific
 Body:(shippingAddress,mobileNumber,items(array),orderStatus(only admin can change this))
 --------------------------------------------------------------------------
-DELETE http://127.0.0.1:4000/api/v1/orders/:orderId (Delete an order)
+DELETE http://127.0.0.1:4000/api/v1/orders/:orderId (Delete an order)      (Done)
 Protected,specific
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/GetOrders (Get All Orders)
+GET http://127.0.0.1:4000/api/v1/orders/GetOrders (Get All Orders)      (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/orders/last-month (Get All Orders in the month)
@@ -115,13 +115,13 @@ Protected,need Admin or employee
 GET http://127.0.0.1:4000/api/v1/orders/today (Get All Orders in the day)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/GetOrders/:id (Getting a certain Order using ID)
+GET http://127.0.0.1:4000/api/v1/orders/GetOrders/:id (Getting a certain Order using ID)     (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/orders/:userId/user (Getting a ceratin user orders)  (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
-PATCH http://127.0.0.1:4000/api/v1/orders/:id/admin (Edit an order)
+PATCH http://127.0.0.1:4000/api/v1/orders/:id/admin (Edit an order)     (Done)
 Protected,need Admin or employee
 Body:(orderStatus)
 --------------------------------------------------------------------------
