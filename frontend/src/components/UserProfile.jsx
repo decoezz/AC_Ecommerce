@@ -219,12 +219,7 @@ const UserProfile = () => {
           <div className={styles.userProfile__headerInfo}>
             <div className={styles.userProfile__nameContainer}>
               <h1 className={styles.userProfile__name}>{userProfile.name}</h1>
-              <button
-                className={styles.userProfile__iconButton}
-                title="Edit Profile"
-              >
-                <FaEdit />
-              </button>
+              
             </div>
             <div className={styles.userProfile__email}>{userProfile.email}</div>
             <div className={styles.userProfile__role}>{userProfile.role}</div>
@@ -240,17 +235,7 @@ const UserProfile = () => {
         </div>
 
         <div className={styles.userProfile__section}>
-          <div className={styles.userProfile__sectionHeader}>
-            <h2 className={styles.userProfile__sectionTitle}>
-              Personal Information
-            </h2>
-            <button
-              className={styles.userProfile__passwordButton}
-              title="Change Password"
-            >
-              <FaKey /> Change Password
-            </button>
-          </div>
+          
           <div className={styles.userProfile__grid}>
             <div className={styles.userProfile__field}>
               <div className={styles.userProfile__fieldLabel}>Name</div>
