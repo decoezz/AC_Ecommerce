@@ -150,15 +150,18 @@ html {
 }
 
 .searchWrapper {
-  flex: 2;
-  min-width: 200px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .searchInput {
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  width: 100%;
+  font-size: 1rem;
 }
 
 .filterSelect {
@@ -290,11 +293,10 @@ html {
 }
 
 .searchIcon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #718096;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  color: #000000;
 }
 
 .sortButton {

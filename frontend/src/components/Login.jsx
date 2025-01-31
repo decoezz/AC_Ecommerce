@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./Login.module.css";
@@ -9,6 +9,39 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+
+    if (token && user) {
+      // Get user role and redirect accordingly
+      try {
+        const userData = JSON.parse(user);
+        const userRole = (userData.role || "").toLowerCase();
+
+        switch (userRole) {
+          case "admin":
+            navigate("/admin-home");
+            break;
+          case "employee":
+            navigate("/employee-home");
+            break;
+          case "user":
+            navigate("/user-home");
+            break;
+          default:
+            navigate("/");
+            break;
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -273,15 +273,6 @@ const Home = () => {
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
           <div className={styles.searchWrapper}>
-            <FaSearch
-              style={{
-                ...iconStyle,
-                position: "absolute",
-                left: "0.75rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-              }}
-            />
             <input
               type="text"
               placeholder="Search by brand, model, or features..."
