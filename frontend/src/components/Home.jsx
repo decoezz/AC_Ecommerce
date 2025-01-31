@@ -9,9 +9,23 @@ import {
   FaImage,
   FaShoppingCart,
   FaBolt,
-  FaStar,
+  FaSnowflake,
+  FaLeaf,
   FaThermometerHalf,
+  FaWind,
+  FaPercent,
 } from "react-icons/fa";
+import { motion } from "framer-motion";
+
+const iconStyle = {
+  color: "#000000", // Black color for icons
+  fontSize: "1.5rem",
+};
+
+const largeIconStyle = {
+  color: "#000000", // Black color for larger icons
+  fontSize: "2.5rem",
+};
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -108,42 +122,169 @@ const Home = () => {
       : `${import.meta.env.VITE_API_URL}/${photo.replace(/\\/g, "/")}`;
   };
 
-  return (
-    <div className={styles.home}>
-      {/* Hero Section */}
-      <div className={styles.hero}>
-        <div className={styles.hero__content}>
-          <h1 className={styles.hero__title}>Premium Air Conditioners</h1>
-          <p className={styles.hero__subtitle}>
-            Discover comfort with our selection of top-brand AC units
-          </p>
-        </div>
-      </div>
+  const handleAddToCart = (product) => {
+    try {
+      // Get existing cart from localStorage
+      const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
 
-      {/* Categories Section */}
-      <div className={styles.categories}>
-        <div className={styles.category}>
-          <FaBolt />
-          <span>Energy Efficient</span>
-        </div>
-        <div className={styles.category}>
-          <FaThermometerHalf />
-          <span>Smart Cooling</span>
-        </div>
-        <div className={styles.category}>
-          <FaStar />
-          <span>Best Sellers</span>
+      // Check if product already exists in cart
+      const existingProduct = existingCart.find(
+        (item) => item._id === product._id
+      );
+
+      if (existingProduct) {
+        // Update quantity if product exists
+        existingProduct.quantity += 1;
+        alert(
+          `Increased ${product.brand} ${product.modelNumber} quantity in cart`
+        );
+      } else {
+        // Add new product to cart
+        existingCart.push({
+          ...product,
+          quantity: 1,
+        });
+        alert(`Added ${product.brand} ${product.modelNumber} to cart`);
+      }
+
+      // Save updated cart to localStorage
+      localStorage.setItem("cart", JSON.stringify(existingCart));
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Failed to add item to cart");
+    }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+    },
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.loadingScreen}>
+        <div className={styles.loadingContent}>
+          <div className={styles.loadingIcon}>
+            <FaSnowflake style={largeIconStyle} className={styles.snowflake} />
+          </div>
+          <h2>Loading Amazing Products</h2>
+          <div className={styles.loadingBar}>
+            <div className={styles.loadingProgress}></div>
+          </div>
+          <p>Please wait while we cool things down...</p>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <motion.div
+      className={styles.home}
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {/* Hero Section with Animation */}
+      <motion.div
+        className={styles.hero}
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className={styles.hero__content}>
+          <h1 className={styles.hero__title}>Stay Cool & Comfortable</h1>
+          <p className={styles.hero__subtitle}>
+            Premium Air Conditioners from Top Brands
+          </p>
+          <div className={styles.hero__features}>
+            <span>
+              <FaBolt style={iconStyle} /> Energy Efficient
+            </span>
+            <span>
+              <FaLeaf style={iconStyle} /> Eco-Friendly
+            </span>
+            <span>
+              <FaWind style={iconStyle} /> Smart Cooling
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Promotional Banner with Animation */}
+      <motion.div className={styles.promoBanner} variants={containerVariants}>
+        <div className={styles.promoItem}>
+          <FaPercent />
+          <span>Special Summer Discount</span>
+        </div>
+        <div className={styles.promoItem}>
+          <FaShoppingCart />
+          <span>Free Installation</span>
+        </div>
+        <div className={styles.promoItem}>
+          <FaSnowflake />
+          <span>2 Year Warranty</span>
+        </div>
+      </motion.div>
+
+      {/* Categories with Animation */}
+      <motion.div className={styles.categories} variants={containerVariants}>
+        <motion.h2 className={styles.sectionTitle} variants={itemVariants}>
+          Shop by Category
+        </motion.h2>
+        <div className={styles.categoryGrid}>
+          <div className={styles.categoryCard}>
+            <FaSnowflake style={iconStyle} />
+            <h3>Split ACs</h3>
+            <p>Perfect for single rooms</p>
+          </div>
+          <div className={styles.categoryCard}>
+            <FaWind style={iconStyle} />
+            <h3>Window ACs</h3>
+            <p>Compact and efficient</p>
+          </div>
+          <div className={styles.categoryCard}>
+            <FaBolt style={iconStyle} />
+            <h3>Inverter ACs</h3>
+            <p>Energy saving technology</p>
+          </div>
+          <div className={styles.categoryCard}>
+            <FaThermometerHalf style={iconStyle} />
+            <h3>Smart ACs</h3>
+            <p>WiFi enabled control</p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Enhanced Filters */}
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
           <div className={styles.searchWrapper}>
-            <FaSearch className={styles.searchIcon} />
+            <FaSearch
+              style={{
+                ...iconStyle,
+                position: "absolute",
+                left: "0.75rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            />
             <input
               type="text"
-              placeholder="Search for your perfect AC..."
+              placeholder="Search by brand, model, or features..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
@@ -156,9 +297,9 @@ const Home = () => {
                 value={filterInStock}
                 onChange={(e) => setFilterInStock(e.target.value)}
               >
-                <option value="all">All Products</option>
-                <option value="inStock">Available Now</option>
-                <option value="outOfStock">Coming Soon</option>
+                <option value="all">Availability</option>
+                <option value="inStock">Ready to Install</option>
+                <option value="outOfStock">Pre-Order</option>
               </select>
             </div>
 
@@ -193,82 +334,127 @@ const Home = () => {
         </div>
       )}
 
-      {/* Products Grid with Enhanced Cards */}
-      <div className={styles.products__grid}>
-        {!loading && !error && currentItems.length > 0
-          ? currentItems.map((product) => (
-              <div key={product._id} className={styles.product__card}>
-                <div className={styles.product__imageContainer}>
-                  {product.photos && product.photos.length > 0 ? (
-                    <img
-                      src={getImageUrl(product.photos[0])}
-                      alt={`${product.brand} ${product.modelNumber}`}
-                      className={styles.product__image}
-                      onError={(e) => {
-                        e.target.src = "/placeholder-image.png";
-                        e.target.onerror = null;
-                      }}
-                    />
-                  ) : (
-                    <div className={styles.noImage}>
-                      <FaImage />
-                      <p>Image Coming Soon</p>
-                    </div>
-                  )}
-                  {product.inStock && (
-                    <div className={styles.product__badge}>Available</div>
-                  )}
-                </div>
-                <div className={styles.product__info}>
-                  <div className={styles.product__brand}>{product.brand}</div>
-                  <h3 className={styles.product__title}>
-                    {product.modelNumber}
-                  </h3>
-                  <div className={styles.product__specs}>
-                    {product.powerConsumption && (
-                      <span className={styles.spec}>
-                        <FaBolt /> {product.powerConsumption}W
-                      </span>
+      {/* Products Grid with Animation */}
+      <motion.div
+        className={styles.productsSection}
+        variants={containerVariants}
+      >
+        <motion.h2 className={styles.sectionTitle} variants={itemVariants}>
+          Featured Air Conditioners
+        </motion.h2>
+        <div className={styles.products__grid}>
+          {!loading && !error && currentItems.length > 0
+            ? currentItems.map((product) => (
+                <motion.div
+                  key={product._id}
+                  className={styles.product__card}
+                  variants={itemVariants}
+                  whileHover={{
+                    scale: 1.02,
+                    transition: { duration: 0.2 },
+                  }}
+                >
+                  <div className={styles.product__imageContainer}>
+                    {product.photos && product.photos.length > 0 ? (
+                      <img
+                        src={getImageUrl(product.photos[0])}
+                        alt={`${product.brand} ${product.modelNumber}`}
+                        className={styles.product__image}
+                        onError={(e) => {
+                          e.target.src = "/placeholder-image.png";
+                          e.target.onerror = null;
+                        }}
+                      />
+                    ) : (
+                      <div className={styles.noImage}>
+                        <FaImage />
+                        <p>Image Coming Soon</p>
+                      </div>
                     )}
-                    <span
-                      className={`${styles.product__stock} ${
-                        product.inStock ? styles.inStock : styles.outOfStock
-                      }`}
-                    >
-                      {product.inStock ? "In Stock" : "Out of Stock"}
-                    </span>
+                    {product.inStock && (
+                      <div className={styles.product__badge}>
+                        Quick Installation Available
+                      </div>
+                    )}
                   </div>
-                  <div className={styles.product__footer}>
-                    <div className={styles.product__price}>
-                      ${product.price.toLocaleString()}
+                  <div className={styles.product__info}>
+                    <div className={styles.product__brand}>{product.brand}</div>
+                    <h3 className={styles.product__title}>
+                      {product.modelNumber}
+                    </h3>
+                    <div className={styles.product__features}>
+                      {product.powerConsumption && (
+                        <span className={styles.feature}>
+                          <FaBolt style={iconStyle} />{" "}
+                          {product.powerConsumption}W
+                        </span>
+                      )}
+                      <span className={styles.feature}>
+                        <FaSnowflake style={iconStyle} />{" "}
+                        {product.coolingCapacity || "1.5"} Ton
+                      </span>
                     </div>
-                    <Link
-                      to={`/product/${product._id}`}
-                      className={styles.product__button}
-                    >
-                      View Details
-                    </Link>
+                    <div className={styles.product__footer}>
+                      <div className={styles.priceSection}>
+                        <div className={styles.product__price}>
+                          ${product.price.toLocaleString()}
+                        </div>
+                        <div className={styles.installment}>
+                          or ${Math.round(product.price / 12)}/mo with EMI
+                        </div>
+                      </div>
+                      <div className={styles.product__actions}>
+                        <Link
+                          to={`/product/${product._id}`}
+                          className={styles.viewDetails__button}
+                        >
+                          View Details
+                        </Link>
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          className={styles.addToCart__button}
+                          disabled={!product.inStock}
+                        >
+                          <FaShoppingCart style={iconStyle} />
+                          {product.inStock ? "Add to Cart" : "Out of Stock"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
+                </motion.div>
+              ))
+            : !loading &&
+              !error && (
+                <div className={styles.noResults}>
+                  <FaSearch style={largeIconStyle} />
+                  <h3>No Products Found</h3>
+                  <p>Try adjusting your search criteria</p>
                 </div>
-              </div>
-            ))
-          : !loading &&
-            !error && (
-              <div className={styles.noResults}>
-                <FaSearch size={48} />
-                <h3>No Products Found</h3>
-                <p>Try adjusting your search or filters</p>
-              </div>
-            )}
-      </div>
-
-      {/* Enhanced Loading State */}
-      {loading && (
-        <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
-          <p>Discovering perfect ACs for you...</p>
+              )}
         </div>
-      )}
+      </motion.div>
+
+      {/* Why Choose Us Section */}
+      <div className={styles.whyChooseUs}>
+        <h2 className={styles.sectionTitle}>Why Choose Us</h2>
+        <div className={styles.features}>
+          <div className={styles.feature}>
+            <FaShoppingCart />
+            <h3>Expert Installation</h3>
+            <p>Professional installation by certified technicians</p>
+          </div>
+          <div className={styles.feature}>
+            <FaBolt />
+            <h3>Energy Efficient</h3>
+            <p>Save on electricity bills with our energy-rated ACs</p>
+          </div>
+          <div className={styles.feature}>
+            <FaLeaf />
+            <h3>Eco-Friendly</h3>
+            <p>Environmental-friendly cooling solutions</p>
+          </div>
+        </div>
+      </div>
 
       {/* Enhanced Pagination */}
       {!loading && !error && totalPages > 1 && (
@@ -300,7 +486,7 @@ const Home = () => {
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

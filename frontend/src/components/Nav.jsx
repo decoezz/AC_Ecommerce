@@ -28,7 +28,9 @@ export default function Nav() {
             <FaBars size={20} style={{ color: "#333" }} />
           )}
         </div>
-        <Search/>
+
+        {/*<Search /> */}
+
         <ul className={click ? "nav-menu active" : "nav-menu"}>
           <li>
             <Link to="/profile" aria-label="User Profile">
