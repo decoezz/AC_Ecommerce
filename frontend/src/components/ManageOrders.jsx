@@ -384,20 +384,23 @@ const ManageOrders = () => {
     setShowOrderDetails(true);
   };
 
-  // Filter and sort orders
+  // Enhanced filtering logic with proper status check
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
     return orders
       .filter((order) => {
-        // Mobile number filter
+        // Mobile number filter with multiple fields check
         const mobileMatch = mobileSearch
-          ? order.mobileNumber?.includes(mobileSearch)
+          ? String(order.mobileNumber)?.includes(mobileSearch) ||
+            String(order.customer?.phone)?.includes(mobileSearch) ||
+            String(order.shippingAddress?.phone)?.includes(mobileSearch)
           : true;
 
-        // Status filter
+        // Status filter - make sure to check orderStatus instead of status
         const statusMatch =
-          filterStatus === "all" || order.status === filterStatus;
+          filterStatus === "all" ||
+          order.orderStatus?.toLowerCase() === filterStatus?.toLowerCase();
 
         // Combine filters
         return mobileMatch && statusMatch;
@@ -409,6 +412,16 @@ const ManageOrders = () => {
         return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
       });
   }, [orders, filterStatus, sortOrder, mobileSearch]);
+
+  // Update filter status handler
+  const handleStatusFilter = (e) => {
+    setFilterStatus(e.target.value.toLowerCase());
+  };
+
+  // Update sort order handler
+  const handleSortOrder = (e) => {
+    setSortOrder(e.target.value);
+  };
 
   // Debounce function
   const debounce = (func, delay) => {
@@ -727,10 +740,14 @@ const ManageOrders = () => {
     );
   };
 
-  // Add this function to handle mobile number search
+  // Enhanced mobile search handler with validation
   const handleMobileSearch = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, ""); // Only allow numbers
-    setMobileSearch(value);
+    if (value.length <= 15) {
+      // Limit to 15 digits
+      setMobileSearch(value);
+      setError(null);
+    }
   };
 
   return (
@@ -743,7 +760,7 @@ const ManageOrders = () => {
       </div>
 
       <div className={styles.controlsContainer}>
-        {/* Mobile search input without phone icon */}
+        {/* Enhanced mobile search section */}
         <div className={styles.searchGroup}>
           <label className={styles.searchLabel}>Search by Mobile:</label>
           <div className={styles.searchInputWrapper}>
@@ -764,17 +781,51 @@ const ManageOrders = () => {
               </button>
             )}
           </div>
+          {error && <div className={styles.error}>{error}</div>}
         </div>
 
-        {/* ... rest of your existing controls ... */}
+        {/* Updated filter controls */}
+        <div className={styles.filterControls}>
+          <div className={styles.filterGroup}>
+            <select
+              className={styles.filterSelect}
+              value={filterStatus}
+              onChange={handleStatusFilter}
+            >
+              <option value="all">All Status</option>
+              {orderStatuses.map((status) => (
+                <option key={status} value={status.toLowerCase()}>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          
+        </div>
+
+        {/* Clear filters button */}
+        {(mobileSearch || filterStatus !== "all" || sortOrder !== "newest") && (
+          <button
+            className={styles.clearAllFilters}
+            onClick={() => {
+              setMobileSearch("");
+              setFilterStatus("all");
+              setSortOrder("newest");
+            }}
+          >
+            Clear All Filters
+          </button>
+        )}
       </div>
 
+      {/* Results count */}
       <div className={styles.searchStats}>
-        <span className={styles.resultCount}>
-          {searchTerm
-            ? `Showing orders for: ${searchTerm}`
-            : `Showing ${filteredOrders.length} orders`}
-          {filterStatus !== "all" && ` • Status: ${filterStatus}`}
+        <span>
+          {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}{" "}
+          found
+          {filterStatus !== "all" && ` with status: ${filterStatus}`}
+          {mobileSearch && ` matching: ${mobileSearch}`}
         </span>
       </div>
 
