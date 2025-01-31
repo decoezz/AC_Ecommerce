@@ -245,3 +245,31 @@
     transform: rotate(360deg);
   }
 }
+
+/* Add these status-specific styles */
+.status_delivered {
+  background-color: #c6f6d5;
+  color: #2f855a;
+}
+
+.status_processing {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+}
+
+.status_pending {
+  background-color: #fefcbf;
+  color: #b7791f;
+}
+
+.status_cancelled {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+.order__status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
