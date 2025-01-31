@@ -27,6 +27,7 @@
 
 .titleIcon {
   font-size: 2.5rem;
+  color: #000;
 }
 
 .controlsContainer {
@@ -39,40 +40,206 @@
 }
 
 .searchSection {
-  margin-bottom: 1.5rem;
-}
-
-.searchBar {
+  margin: 2rem auto;
+  max-width: 600px;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.searchInputWrapper {
+.searchContainer {
   position: relative;
-}
-
-.searchInput {
-  width: 100%;
-  padding: 1rem 2.5rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
   background: white;
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 500px;
 }
 
-.searchInput:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-  outline: none;
+.searchContainer:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .searchIcon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
   color: #000;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  margin-right: 1rem;
+  transition: color 0.3s ease;
+}
+
+.searchContainer:focus-within .searchIcon {
+  color: #3b82f6;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.1rem;
+  color: #1f2937;
+  background: transparent;
+  padding: 0.25rem 0;
+  font-weight: 400;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.clearSearch {
+  background: none;
+  border: none;
+  color: #000;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+}
+
+.clearSearch:hover {
+  background: #f3f4f6;
+}
+
+.searchResults {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.resultCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #e9ecef;
+  border-radius: 30px;
+  color: #495057;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.resultIcon {
+  font-size: 1rem;
+  color: #000;
+}
+
+.searchStats {
+  margin: 1rem auto;
+  max-width: 800px;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.searchInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.searchTags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.searchTag {
+  background: #e5e7eb;
+  color: #4b5563;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Animation for search results */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resultCount {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .searchSection {
+    margin: 1.5rem auto;
+  }
+
+  .searchContainer {
+    padding: 0.75rem 1rem;
+  }
+
+  .searchInput {
+    font-size: 1rem;
+  }
+
+  .searchStats {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .searchContainer {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .searchInput {
+    color: #f3f4f6;
+  }
+
+  .searchInput::placeholder {
+    color: #6b7280;
+  }
+
+  .resultCount {
+    background: #ff0000;
+    color: #e5e7eb;
+  }
+
+  .searchTag {
+    background: #374151;
+    color: #e5e7eb;
+  }
 }
 
 .filterControls {
@@ -242,7 +409,8 @@
 }
 
 .icon {
-  color: var(--primary-color);
+  color: #000 !important;
+  font-size: 1.25rem;
 }
 
 .orderContent {
@@ -1378,7 +1546,7 @@ h3 {
 }
 
 .sectionIcon {
-  color: #4f46e5;
+  color: #000;
   font-size: 1.25rem;
 }
 
@@ -1713,3 +1881,26 @@ h3 {
     transform: rotate(360deg);
   }
 }
+
+/* Single icon style for all icons */
+.icon {
+  color: #000 !important; /* Using !important to override any inline styles */
+  font-size: 1.25rem; /* Default size */
+}
+
+/* Specific size overrides if needed */
+.icon.titleIcon {
+  font-size: 2.5rem;
+}
+
+.icon.resultIcon {
+  font-size: 1rem;
+}
+
+/* Button icons should stay white for contrast */
+.viewButton .icon,
+.deleteButton .icon {
+  color: #fff !important;
+}
+
+/* Remove any other individual icon color styles */

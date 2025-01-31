@@ -23,6 +23,7 @@ import {
   FaTimes,
   FaBox,
   FaTruck,
+  FaSearch,
 } from "react-icons/fa";
 import {
   MdOutlineLocalShipping,
@@ -383,67 +384,37 @@ const ManageOrders = () => {
     setShowOrderDetails(true);
   };
 
-  // Filter and sort orders
+  // Combine search and filter logic in the useMemo
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
-    return orders
-      .filter((order) => {
-        // Only filter by status if it's not 'all'
-        return filterStatus === "all" || order.status === filterStatus;
-      })
-      .sort((a, b) => {
-        if (!a.createdAt || !b.createdAt) return 0;
-        const dateA = new Date(a.createdAt);
-        const dateB = new Date(b.createdAt);
-        return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
-      });
-  }, [orders, filterStatus, sortOrder]);
+    let filtered = orders;
 
-  // Debounce function
-  const debounce = (func, delay) => {
-    let timeoutId;
-    return (...args) => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => {
-        func(...args);
-      }, delay);
-    };
-  };
-
-
-  // Debounced search with minimum length check
-  const debouncedSearch = debounce((term) => {
-    // Only search if we have at least 11 digits
-    const digitsOnly = term.replace(/\D/g, "");
-    if (digitsOnly.length === 11) {
-      searchByPhone(digitsOnly);
-    } else if (!term.trim()) {
-      fetchOrders();
+    // Apply search filter
+    if (searchTerm) {
+      const searchValue = searchTerm.replace(/\D/g, "");
+      filtered = filtered.filter((order) =>
+        order.mobileNumber.replace(/\D/g, "").includes(searchValue)
+      );
     }
-  }, 500);
 
-  // Handle search input change with formatting
-  const handleSearchChange = (e) => {
-    let value = e.target.value;
-
-    // Only allow numbers and common separators
-    value = value.replace(/[^\d-\s()]/g, "");
-
-    // Format as phone number: 01234567890
-    const digits = value.replace(/\D/g, "");
-    if (digits.length <= 11) {
-      setSearchTerm(value);
-      debouncedSearch(value);
+    // Apply status filter
+    if (filterStatus !== "all") {
+      filtered = filtered.filter((order) => order.status === filterStatus);
     }
-  };
 
-  // Reset search
-  const handleClearSearch = () => {
-    setSearchTerm("");
-    fetchOrders();
+    // Apply sorting
+    return filtered.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+  }, [orders, filterStatus, sortOrder, searchTerm]);
+
+  // Update the search handler
+  const handleSearch = (value) => {
+    setSearchTerm(value);
   };
 
   // Function to fetch AC details
@@ -614,20 +585,13 @@ const ManageOrders = () => {
                     }`}
                   >
                     {selectedOrder?.orderStatus}
-                  </span>
+                  </span>   
                 )}
               </div>
             </div>
 
             <div className={styles.orderSection}>
-              <div className={styles.sectionHeader}>
-                <FaUser className={styles.sectionIcon} />
-                <h4>Customer Information</h4>
-              </div>
               <div className={styles.customerDetails}>
-                <p>
-                  <FaUser /> {selectedOrder?.customerName}
-                </p>
                 <p>
                   <FaPhone /> {selectedOrder?.mobileNumber}
                 </p>
@@ -718,11 +682,6 @@ const ManageOrders = () => {
     );
   };
 
-  // Handle search by mobile number
-  
-
-    
-
   return (
     <div className={styles.container}>
       <div className={styles.dashboardHeader}>
@@ -732,7 +691,34 @@ const ManageOrders = () => {
         </h1>
       </div>
 
-      
+      {/* Search Section */}
+      <div className={styles.searchSection}>
+        <div className={styles.searchContainer}>
+          <FaSearch className={styles.icon} />
+          <input
+            type="text"
+            placeholder="Search by mobile number..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className={styles.searchInput}
+          />
+          {searchTerm && (
+            <button
+              className={styles.clearSearch}
+              onClick={() => setSearchTerm("")}
+            >
+              <FaTimes className={styles.icon} />
+            </button>
+          )}
+        </div>
+        <div className={styles.searchResults}>
+          {searchTerm && (
+            <span className={styles.resultCount}>
+              Found {filteredOrders.length} order(s)
+            </span>
+          )}
+        </div>
+      </div>
 
       <div className={styles.searchStats}>
         <span className={styles.resultCount}>
