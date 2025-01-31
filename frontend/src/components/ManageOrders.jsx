@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import styles from "./ManageOrders.module.css";
 import {
   FaSpinner,
@@ -11,10 +12,17 @@ import {
   FaTrash,
   FaEye,
   FaExclamationTriangle,
+  FaThermometerHalf,
+  FaBolt,
+  FaBoxes,
+  FaShoppingCart,
+  FaDollarSign,
+  FaCalculator,
+  FaEdit,
+  FaCheck,
+  FaTimes,
   FaBox,
   FaTruck,
-  FaDollarSign,
-  FaEdit,
 } from "react-icons/fa";
 import {
   MdOutlineLocalShipping,
@@ -22,6 +30,7 @@ import {
   MdDone,
   MdCancel,
   MdPayment,
+  MdFilterList,
 } from "react-icons/md";
 import { BsBoxSeam, BsCurrencyDollar } from "react-icons/bs";
 import { toast } from "react-hot-toast";
@@ -29,10 +38,15 @@ import { createPortal } from "react-dom";
 
 const ManageOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filter, setFilter] = useState("all");
   const [selectedOrders, setSelectedOrders] = useState([]);
+  const [bulkAction, setBulkAction] = useState("");
+  const [retryAfter, setRetryAfter] = useState(0);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
+  const [searchMobile, setSearchMobile] = useState("");
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
@@ -46,19 +60,22 @@ const ManageOrders = () => {
   const [acDetails, setAcDetails] = useState({});
   const [isLoadingAc, setIsLoadingAc] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [editingOrder, setEditingOrder] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
 
-  // Define order statuses
+  // Define orderStatuses at the component level
   const orderStatuses = [
-    "processing",
-    "shipped",
-    "delivered",
-    "canceled",
-    "on hold",
+    "processing", // lowercase
+    "shipped", // lowercase
+    "delivered", // lowercase
+    "canceled", // lowercase
+    "on hold", // lowercase
   ];
 
   const fetchOrders = async () => {
+    // Add loading check to prevent multiple requests
     if (isLoading) return;
 
     try {
@@ -74,20 +91,38 @@ const ManageOrders = () => {
         },
       });
 
-      if (response.data.status === "success" && Array.isArray(response.data.data)) {
+      console.log("Fetched orders:", response.data);
+
+      if (
+        response.data.status === "success" &&
+        Array.isArray(response.data.data)
+      ) {
         setOrders(response.data.data);
+        setAllOrders(response.data.data);
         setError("");
       } else {
         throw new Error("Invalid response format");
       }
     } catch (err) {
       console.error("Error fetching orders:", err);
+      if (err.response?.status === 429) {
+        setError(
+          "Too many requests. Please wait a moment before trying again."
+        );
+        // Add a delay before retrying
+        setTimeout(() => {
+          setError("");
+          setIsLoading(false);
+        }, 5000); // Wait 5 seconds before allowing retry
+        return;
+      }
       setError(err.response?.data?.message || "Failed to fetch orders");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Update useEffect to handle cleanup
   useEffect(() => {
     let mounted = true;
 
@@ -103,41 +138,60 @@ const ManageOrders = () => {
     };
   }, []);
 
-  const searchByPhone = async (phoneNumber) => {
-    if (!phoneNumber) return;
-    
-    try {
-      setIsSearching(true);
-      const token = localStorage.getItem("token");
-      const formattedPhone = phoneNumber.replace(/\D/g, '');
-      
-      const response = await axios.get(
-        `http://127.0.0.1:4000/api/v1/orders/user/${formattedPhone}`,
-        {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+  const handleError = (err) => {
+    console.error("Error:", err);
+    if (err.response?.status === 429) {
+      const retrySeconds = parseInt(err.response.headers["retry-after"]) || 60;
+      setRetryAfter(retrySeconds);
+      setError(`Too many requests. Please wait ${retrySeconds} seconds.`);
+
+      const timer = setInterval(() => {
+        setRetryAfter((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
           }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setError(err.response?.data?.message || "An error occurred");
+    }
+  };
+
+  // Check server connection
+  const checkServerConnection = async () => {
+    try {
+      await axios.get("http://127.0.0.1:4000/api/v1/health"); // You might need to create this endpoint
+      return true;
+    } catch (error) {
+      console.error("Server connection error:", error);
+      return false;
+    }
+  };
+
+  // Function to fetch order details
+  const fetchOrderDetails = async (orderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://127.0.0.1:4000/api/v1/orders/GetOrders/${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      if (response.data.status === "success") {
-        const ordersData = Array.isArray(response.data.data) 
-          ? response.data.data 
-          : [response.data.data];
-        
-        setOrders(ordersData);
-        setError("");
-      } else {
-        setOrders([]);
-        setError("No orders found for this mobile number");
+      // Ensure we have the correct data structure
+      const orderData = response.data.data || response.data;
+      if (!orderData) {
+        throw new Error("Invalid order data received");
       }
-    } catch (err) {
-      console.error("Error searching orders:", err);
-      setOrders([]);
-      setError(err.response?.data?.message || "Failed to find orders");
-    } finally {
-      setIsSearching(false);
+      return orderData;
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      throw new Error("Failed to fetch order details");
     }
   };
 
@@ -160,19 +214,8 @@ const ManageOrders = () => {
       });
 
       if (response.data.status === "success") {
-        setOrders(prevOrders =>
-          prevOrders.map(order =>
-            order._id === orderId
-              ? { ...order, orderStatus: formattedStatus }
-              : order
-          )
-        );
-
-        if (selectedOrder?._id === orderId) {
-          setSelectedOrder(prev => ({ ...prev, orderStatus: formattedStatus }));
-        }
-
         toast.success("Order status updated successfully");
+        await fetchOrders(); // Refresh orders
       }
     } catch (err) {
       console.error("Error updating status:", err);
@@ -183,22 +226,181 @@ const ManageOrders = () => {
   };
 
   const handleDelete = async (orderId) => {
+    if (!window.confirm("Are you sure you want to delete this order?")) return;
+
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://127.0.0.1:4000/api/v1/orders/${orderId}/admin`, {
+      const baseURL = "http://127.0.0.1:4000/api/v1";
+
+      await axios.delete(`${baseURL}/orders/${orderId}/admin`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setOrders(prevOrders => prevOrders.filter(order => order._id !== orderId));
-      setShowConfirmDelete(false);
-      setSelectedOrderId(null);
-      toast.success("Order deleted successfully");
+      await fetchOrders();
+      setError("");
     } catch (err) {
-      console.error("Error deleting order:", err);
-      toast.error(err.response?.data?.message || "Failed to delete order");
+      handleError(err);
     }
   };
 
+  const handleSearchByMobile = async () => {
+    if (!searchMobile) return;
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const baseURL = "http://127.0.0.1:4000/api/v1";
+
+      const response = await axios.get(
+        `${baseURL}/orders/user/${searchMobile}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Handle single order response
+      if (response.data.data?.order) {
+        setOrders([response.data.data.order]);
+      } else {
+        setOrders([]);
+      }
+      setError("");
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedOrders.length === 0) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const baseURL = "http://127.0.0.1:4000/api/v1";
+
+      await Promise.all(
+        selectedOrders.map(async (orderId) => {
+          return axios.patch(
+            `${baseURL}/orders/${orderId}/admin`,
+            {
+              status: bulkAction,
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        })
+      );
+
+      await fetchOrders();
+      setSelectedOrders([]);
+      setBulkAction("");
+      setError("");
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "pending":
+        return (
+          <MdPending className={`${styles.statusIcon} ${styles.pendingIcon}`} />
+        );
+      case "processing":
+        return (
+          <BsBoxSeam
+            className={`${styles.statusIcon} ${styles.processingIcon}`}
+          />
+        );
+      case "shipped":
+        return (
+          <MdOutlineLocalShipping
+            className={`${styles.statusIcon} ${styles.shippedIcon}`}
+          />
+        );
+      case "delivered":
+        return (
+          <MdDone className={`${styles.statusIcon} ${styles.deliveredIcon}`} />
+        );
+      case "cancelled":
+        return (
+          <MdCancel
+            className={`${styles.statusIcon} ${styles.cancelledIcon}`}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: "#FFCC80", // Warm Orange
+      processing: "#64B5F6", // Soft Blue
+      shipped: "#B39DDB", // Muted Purple
+      delivered: "#81C784", // Fresh Green
+      canceled: "#E57373", // Soft Red
+    };
+    return colors[status] ?? "#524949";
+  };
+
+  const handleDeleteClick = (orderId) => {
+    setSelectedOrderId(orderId);
+    setShowConfirmDelete(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const baseURL = "http://127.0.0.1:4000/api/v1";
+      await axios.delete(`${baseURL}/orders/${selectedOrderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order._id !== selectedOrderId)
+      );
+      setShowConfirmDelete(false);
+      setSelectedOrderId(null);
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      setError("Failed to delete order");
+    }
+  };
+
+  const handleViewDetails = (order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  };
+
+  // Filter and sort orders
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+
+    return orders
+      .filter((order) => {
+        // Only filter by status if it's not 'all'
+        return filterStatus === "all" || order.status === filterStatus;
+      })
+      .sort((a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+      });
+  }, [orders, filterStatus, sortOrder]);
+
+  // Debounce function
   const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {
@@ -211,7 +413,10 @@ const ManageOrders = () => {
     };
   };
 
+
+  // Debounced search with minimum length check
   const debouncedSearch = debounce((term) => {
+    // Only search if we have at least 11 digits
     const digitsOnly = term.replace(/\D/g, "");
     if (digitsOnly.length === 11) {
       searchByPhone(digitsOnly);
@@ -220,10 +425,14 @@ const ManageOrders = () => {
     }
   }, 500);
 
+  // Handle search input change with formatting
   const handleSearchChange = (e) => {
     let value = e.target.value;
+
+    // Only allow numbers and common separators
     value = value.replace(/[^\d-\s()]/g, "");
-    
+
+    // Format as phone number: 01234567890
     const digits = value.replace(/\D/g, "");
     if (digits.length <= 11) {
       setSearchTerm(value);
@@ -231,30 +440,108 @@ const ManageOrders = () => {
     }
   };
 
+  // Reset search
   const handleClearSearch = () => {
     setSearchTerm("");
-    setError("");
     fetchOrders();
   };
 
-  const handleViewDetails = (order) => {
-    setSelectedOrder(order);
-    setShowOrderDetails(true);
+  // Function to fetch AC details
+  const fetchAcDetails = async (acId) => {
+    try {
+      console.log("Fetching AC details for:", acId);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://127.0.0.1:4000/api/v1/products/${acId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("AC details response:", response.data);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Error fetching AC details:", error);
+      return {
+        brand: "N/A",
+        model: "N/A",
+      };
+    }
   };
 
-  const handleDeleteClick = (orderId) => {
-    setSelectedOrderId(orderId);
-    setShowConfirmDelete(true);
-  };
+  // Fetch AC details when order is selected
+  useEffect(() => {
+    const fetchAllAcDetails = async () => {
+      if (selectedOrder?.items && selectedOrder.items.length > 0) {
+        setIsLoadingAc(true);
+        console.log("Selected order items:", selectedOrder.items);
 
-  const startEditing = (orderId) => {
-    setEditingOrder(orderId);
-    setIsEditing(true);
-  };
+        try {
+          const acPromises = selectedOrder.items.map((item) =>
+            fetchAcDetails(item.ac)
+          );
 
-  const stopEditing = () => {
-    setEditingOrder(null);
-    setIsEditing(false);
+          const acResults = await Promise.all(
+            acPromises.map((p) =>
+              p.catch((e) => ({
+                brand: "N/A",
+                model: "N/A",
+              }))
+            )
+          );
+
+          const newAcDetails = {};
+          selectedOrder.items.forEach((item, index) => {
+            newAcDetails[item.ac] = acResults[index];
+          });
+
+          console.log("Fetched AC details:", newAcDetails);
+          setAcDetails(newAcDetails);
+        } catch (error) {
+          console.error("Error fetching AC details:", error);
+          setError("Failed to load AC details");
+        } finally {
+          setIsLoadingAc(false);
+        }
+      }
+    };
+
+    fetchAllAcDetails();
+  }, [selectedOrder]);
+
+  const renderOrderItems = (items) => {
+    return items.map((item, index) => {
+      const acDetail = acDetails[item.ac];
+
+      return (
+        <div key={index} className={styles.itemCard}>
+          <div className={styles.itemDetails}>
+            <div className={styles.itemInfo}>
+              <div className={styles.itemHeader}>
+                <div className={styles.productHeader}>
+                  <div className={styles.productInfo}>
+                    <h4 className={styles.itemTitle}>{acDetail?.brand}</h4>
+                    <span className={styles.modelBadge}>
+                      Model: {item.modelNumber}
+                    </span>
+                    <div className={styles.productMeta}>
+                      <span className={styles.productId}>ID: {item.ac}</span>
+                      <span className={styles.quantity}>
+                        Quantity: {item.quantity}
+                      </span>
+                      <span className={styles.price}>
+                        Price: ${item.priceAtPurchase}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    });
   };
 
   const Modal = ({ children, isOpen, onClose }) => {
@@ -262,7 +549,10 @@ const ManageOrders = () => {
 
     return createPortal(
       <div className={styles.modalOverlay} onClick={onClose}>
-        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.modalWrapper}
+          onClick={(e) => e.stopPropagation()}
+        >
           {children}
         </div>
       </div>,
@@ -270,25 +560,11 @@ const ManageOrders = () => {
     );
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: "#FFCC80",
-      processing: "#64B5F6",
-      shipped: "#B39DDB",
-      delivered: "#81C784",
-      canceled: "#E57373",
-    };
-    return colors[status] ?? "#524949";
-  };
-
   const renderOrderDetails = () => {
     return (
       <Modal
         isOpen={showOrderDetails}
-        onClose={() => {
-          setShowOrderDetails(false);
-          stopEditing();
-        }}
+        onClose={() => setShowOrderDetails(false)}
       >
         <div className={styles.orderDetailsModal}>
           <div className={styles.modalHeader}>
@@ -318,17 +594,16 @@ const ManageOrders = () => {
               <div className={styles.statusContainer}>
                 {isEditing ? (
                   <select
-                    value={selectedOrder?.orderStatus || "pending"}
-                    onChange={(e) => {
-                      handleStatusUpdate(selectedOrder?._id, e.target.value);
-                      stopEditing();
-                    }}
+                    value={selectedOrder?.orderStatus || "Pending"}
+                    onChange={(e) =>
+                      handleStatusUpdate(selectedOrder?._id, e.target.value)
+                    }
                     className={styles.statusSelect}
                     data-status={selectedOrder?.orderStatus?.toLowerCase()}
                   >
                     {orderStatuses.map((status) => (
                       <option key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        {status}
                       </option>
                     ))}
                   </select>
@@ -338,40 +613,103 @@ const ManageOrders = () => {
                       styles[selectedOrder?.orderStatus?.toLowerCase()]
                     }`}
                   >
-                    {selectedOrder?.orderStatus?.toUpperCase() || "PENDING"}
+                    {selectedOrder?.orderStatus}
                   </span>
                 )}
               </div>
             </div>
 
-            <div className={styles.customerSection}>
-              <h3>Customer Information</h3>
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaUser className={styles.sectionIcon} />
+                <h4>Customer Information</h4>
+              </div>
               <div className={styles.customerDetails}>
-                <p><FaUser /> {selectedOrder?.customerName}</p>
-                <p><FaPhone /> {selectedOrder?.mobileNumber}</p>
-                <p><FaMapMarkerAlt /> {selectedOrder?.shippingAddress}</p>
+                <p>
+                  <FaUser /> {selectedOrder?.customerName}
+                </p>
+                <p>
+                  <FaPhone /> {selectedOrder?.mobileNumber}
+                </p>
+                <p>
+                  <FaMapMarkerAlt /> {selectedOrder?.shippingAddress}
+                </p>
               </div>
             </div>
 
-            <div className={styles.itemsSection}>
-              <h3>Order Items</h3>
-              {selectedOrder?.items?.map((item, index) => (
-                <div key={index} className={styles.itemCard}>
-                  <div className={styles.itemDetails}>
-                    <h4>{item.brand || "Product"}</h4>
-                    <p>Model: {item.modelNumber}</p>
-                    <p>Quantity: {item.quantity}</p>
-                    <p>Price: ${item.priceAtPurchase}</p>
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaTruck className={styles.sectionIcon} />
+                <h4>Order Items</h4>
+              </div>
+              <div className={styles.itemsList}>
+                {selectedOrder?.items?.map((item, index) => (
+                  <div key={index} className={styles.itemCard}>
+                    <div className={styles.itemDetails}>
+                      <div className={styles.itemInfo}>
+                        <h5>{item.brand || "Product"}</h5>
+                        <p className={styles.modelNumber}>
+                          Model: {item.modelNumber}
+                        </p>
+                        <p className={styles.quantity}>
+                          Quantity: {item.quantity}
+                        </p>
+                      </div>
+                      <div className={styles.itemPrice}>
+                        <FaDollarSign />
+                        {item.priceAtPurchase}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            <div className={styles.paymentSection}>
-              <h3>Payment Details</h3>
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaDollarSign className={styles.sectionIcon} />
+                <h4>Payment Details</h4>
+              </div>
               <div className={styles.paymentDetails}>
-                <p>Total Amount: ${selectedOrder?.totalAmount}</p>
-                <p>Payment Status: {selectedOrder?.paymentStatus}</p>
+                <div className={styles.paymentRow}>
+                  <span>Total Amount:</span>
+                  <span className={styles.amount}>
+                    ${selectedOrder?.totalAmount}
+                  </span>
+                </div>
+                <div className={styles.paymentRow}>
+                  <span>Payment Status:</span>
+                  <span
+                    className={`${styles.paymentStatus} ${
+                      styles[selectedOrder?.paymentStatus]
+                    }`}
+                  >
+                    {selectedOrder?.paymentStatus}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.orderSection}>
+              <div className={styles.sectionHeader}>
+                <FaCalendarAlt className={styles.sectionIcon} />
+                <h4>Order Timeline</h4>
+              </div>
+              <div className={styles.timeline}>
+                <div className={styles.timelineItem}>
+                  <span className={styles.timelineDate}>
+                    {new Date(selectedOrder?.purchasedAt).toLocaleDateString()}
+                  </span>
+                  <span className={styles.timelineLabel}>Order Placed</span>
+                </div>
+                {selectedOrder?.updatedAt && (
+                  <div className={styles.timelineItem}>
+                    <span className={styles.timelineDate}>
+                      {new Date(selectedOrder?.updatedAt).toLocaleDateString()}
+                    </span>
+                    <span className={styles.timelineLabel}>Last Updated</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -380,20 +718,10 @@ const ManageOrders = () => {
     );
   };
 
-  const filteredOrders = useMemo(() => {
-    if (!orders) return [];
+  // Handle search by mobile number
+  
 
-    return orders
-      .filter((order) => {
-        return filterStatus === "all" || order.status === filterStatus;
-      })
-      .sort((a, b) => {
-        if (!a.createdAt || !b.createdAt) return 0;
-        const dateA = new Date(a.createdAt);
-        const dateB = new Date(b.createdAt);
-        return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
-      });
-  }, [orders, filterStatus, sortOrder]);
+    
 
   return (
     <div className={styles.container}>
@@ -404,63 +732,61 @@ const ManageOrders = () => {
         </h1>
       </div>
 
-      <div className={styles.searchContainer}>
-        <div className={styles.searchWrapper}>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search by mobile number (e.g., 01234567890)"
-            className={styles.searchInput}
-          />
-          {searchTerm && (
-            <button 
-              onClick={handleClearSearch}
-              className={styles.clearSearch}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        {isSearching && (
-          <div className={styles.searchStatus}>
-            <FaSpinner className={styles.spinner} />
-            <span>Searching...</span>
-          </div>
-        )}
-        {error && (
-          <div className={styles.searchError}>
-            {error}
-          </div>
-        )}
+      
+
+      <div className={styles.searchStats}>
+        <span className={styles.resultCount}>
+          {searchTerm
+            ? `Showing orders for: ${searchTerm}`
+            : `Showing ${filteredOrders.length} orders`}
+          {filterStatus !== "all" && ` • Status: ${filterStatus}`}
+        </span>
       </div>
 
       <div className={styles.ordersGrid}>
-        {isLoading ? (
+        {isLoading && !editingOrder ? (
           <div className={styles.loading}>
             <FaSpinner className={styles.spinner} />
             <p>Loading orders...</p>
+          </div>
+        ) : error ? (
+          <div className={styles.error}>
+            <p>{error}</p>
+            <button
+              onClick={() => {
+                if (!isLoading) {
+                  fetchOrders();
+                }
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? "Please wait..." : "Retry"}
+            </button>
           </div>
         ) : filteredOrders.length > 0 ? (
           filteredOrders.map((order) => (
             <div key={order._id} className={styles.orderCard}>
               <div className={styles.orderHeader}>
-                <span className={styles.orderId}>#{order._id.slice(-6)}</span>
+                <div className={styles.orderIdSection}>
+                  <span className={styles.orderIdLabel}>Order ID</span>
+                  <span className={styles.orderId}>#{order._id.slice(-6)}</span>
+                </div>
                 <div className={styles.orderActions}>
                   <button
                     onClick={() => handleViewDetails(order)}
-                    className={styles.viewButton}
+                    className={`${styles.actionButton} ${styles.viewButton}`}
                   >
                     <FaEye /> View
                   </button>
                   <button
                     onClick={() => handleDeleteClick(order._id)}
-                    className={styles.deleteButton}
+                    className={`${styles.actionButton} ${styles.deleteButton}`}
                   >
                     <FaTrash /> Delete
                   </button>
                 </div>
               </div>
+
               <div className={styles.orderContent}>
                 <div className={styles.customerSection}>
                   <h3>
@@ -483,16 +809,7 @@ const ManageOrders = () => {
                     <BsBoxSeam className={styles.icon} /> Order Items
                   </h3>
                   <div className={styles.itemsList}>
-                    {order.items?.map((item, index) => (
-                      <div key={index} className={styles.itemCard}>
-                        <div className={styles.itemDetails}>
-                          <h4>{item.brand || "Product"}</h4>
-                          <p>Model: {item.modelNumber}</p>
-                          <p>Quantity: {item.quantity}</p>
-                          <p>Price: ${item.priceAtPurchase}</p>
-                        </div>
-                      </div>
-                    ))}
+                    {renderOrderItems(order.items || [])}
                   </div>
                 </div>
 
@@ -520,15 +837,14 @@ const ManageOrders = () => {
                 <div className={styles.statusSection}>
                   <h3>Order Status</h3>
                   <div className={styles.statusSelectWrapper}>
-                    {editingOrder === order._id ? (
+                    {editingOrder === order._id.$oid ? (
                       <select
-                        value={order.orderStatus || "pending"}
-                        onChange={(e) => {
-                          handleStatusUpdate(order._id, e.target.value);
-                          stopEditing();
-                        }}
+                        value={selectedOrder?.orderStatus || "pending"}
+                        onChange={(e) =>
+                          handleStatusUpdate(selectedOrder?._id, e.target.value)
+                        }
                         className={styles.statusSelect}
-                        data-status={order.orderStatus || "pending"}
+                        data-status={selectedOrder?.orderStatus || "pending"}
                         disabled={isLoading}
                       >
                         {orderStatuses.map((status) => (
@@ -545,7 +861,6 @@ const ManageOrders = () => {
                             order.orderStatus || "pending"
                           ),
                         }}
-                        onClick={() => startEditing(order._id)}
                       >
                         {(order.orderStatus || "pending").toUpperCase()}
                       </span>
@@ -555,25 +870,12 @@ const ManageOrders = () => {
                     <div className={styles.error}>{updateError}</div>
                   )}
                 </div>
-
-                <div className={styles.orderDates}>
-                  <p>
-                    <FaCalendarAlt className={styles.icon} /> Created:{" "}
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </p>
-                  {order.updatedAt && (
-                    <p>
-                      <FaClock className={styles.icon} /> Last Updated:{" "}
-                      {new Date(order.updatedAt).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
               </div>
             </div>
           ))
         ) : (
           <div className={styles.noResults}>
-            <FaExclamationTriangle className={styles.noResultsIcon} />
+            <FaPhone className={styles.noResultsIcon} />
             <h3>No Orders Found</h3>
             <p>{error || "Try adjusting your search or filter criteria"}</p>
           </div>
@@ -581,32 +883,28 @@ const ManageOrders = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={showConfirmDelete}
-        onClose={() => setShowConfirmDelete(false)}
-      >
-        <div className={styles.confirmDeleteModal}>
-          <h2>Confirm Delete</h2>
-          <p>Are you sure you want to delete this order? This action cannot be undone.</p>
-          <div className={styles.modalActions}>
-            <button
-              onClick={() => {
-                handleDelete(selectedOrderId);
-                setShowConfirmDelete(false);
-              }}
-              className={styles.deleteButton}
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => setShowConfirmDelete(false)}
-              className={styles.cancelButton}
-            >
-              Cancel
-            </button>
+      {showConfirmDelete && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h2>Confirm Delete</h2>
+            <p>Are you sure you want to delete this order?</p>
+            <div className={styles.modalActions}>
+              <button
+                onClick={handleConfirmDelete}
+                className={styles.confirmDelete}
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setShowConfirmDelete(false)}
+                className={styles.cancelDelete}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
       {/* Order Details Modal */}
       {showOrderDetails && selectedOrder && renderOrderDetails()}
