@@ -142,19 +142,19 @@ need Admin or employee
 Body:(Items[ac,quantity,priceAtPurchase],shippingAddress,mobileNumber)
 
 Cart Routes:
-Get http://127.0.0.1:4000/api/v1/cart/ (Get Cart)
+Get http://127.0.0.1:4000/api/v1/cart/ (Get Cart)       (Done)
 Protected
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/cart/ (Add item to product)
+POST http://127.0.0.1:4000/api/v1/cart/ (Add item to product)         (Done)
 Protected
 Body:(productId,quantity)
 --------------------------------------------------------------------------
-PATCH http://127.0.0.1:4000/api/v1/cart/:productId (Update the item quantity in cart)
+PATCH http://127.0.0.1:4000/api/v1/cart/:productId (Update the item quantity in cart)       (Done)
 Protected
 Body:(quantity)
 --------------------------------------------------------------------------
-DELETE http://127.0.0.1:4000/api/v1/cart/:productId (Delete ceratin item from cart)
+DELETE http://127.0.0.1:4000/api/v1/cart/:productId (Delete ceratin item from cart)        (Done)
 Protected
 --------------------------------------------------------------------------
-DELETE http://127.0.0.1:4000/api/v1/cart/ (Clear the Cart)
+DELETE http://127.0.0.1:4000/api/v1/cart/ (Clear the Cart)   (Done)
 Protected
