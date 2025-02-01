@@ -3,7 +3,9 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  min-height: 80vh;
+  margin-top: 120px;
+  background: #ffffff;
+  min-height: calc(100vh - 120px);
 }
 
 /* Cart Header */
@@ -113,32 +115,46 @@
   gap: 0.5rem;
   background: #f8fafc;
   padding: 0.25rem;
-  border-radius: 6px;
+  border-radius: 0.5rem;
 }
 
-.quantityControls button {
+.quantityButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 2rem;
+  height: 2rem;
   border: none;
   background: white;
-  border-radius: 4px;
+  border-radius: 0.375rem;
   cursor: pointer;
-  color: #4f46e5;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: bold;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.quantityControls button:disabled {
+.quantityButton:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.quantityButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: #e2e8f0;
 }
 
-.quantityControls span {
-  min-width: 30px;
+.buttonText {
+  line-height: 1;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.quantity {
+  min-width: 2rem;
   text-align: center;
   font-weight: 500;
+  color: #1e293b;
 }
 
 .removeButton {
@@ -168,7 +184,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   height: fit-content;
   position: sticky;
-  top: 2rem;
+  top: 140px;
 }
 
 .cartSummaryBox h2 {
@@ -307,6 +323,11 @@
 }
 
 @media (max-width: 768px) {
+  .cartContainer {
+    margin-top: 100px;
+    padding: 1rem;
+  }
+
   .cartItem {
     grid-template-columns: 100px 1fr;
     grid-template-areas:
@@ -338,6 +359,20 @@
     padding-top: 1rem;
     margin-top: 1rem;
     border-top: 1px solid #e2e8f0;
+  }
+
+  .cartSummaryBox {
+    top: 120px;
+  }
+
+  .quantityButton {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 1rem;
+  }
+
+  .quantity {
+    min-width: 1.5rem;
   }
 }
 
@@ -385,18 +420,18 @@
 }
 
 .itemSpecs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .itemSpecs span {
-  background: #f8fafc;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
   font-size: 0.875rem;
-  color: #475569;
+  color: #64748b;
+  background: #f8fafc;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
 }
 
 .currentPrice {
@@ -417,14 +452,4 @@
     flex-direction: column;
     gap: 0.5rem;
   }
-}
-
-.inStock {
-  color: #16a34a;
-  font-weight: 500;
-}
-
-.outOfStock {
-  color: #dc2626;
-  font-weight: 500;
 }

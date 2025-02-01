@@ -222,26 +222,30 @@ const Cart = () => {
   // Clear cart with user ID
   const clearCart = async () => {
     try {
+      setUpdateLoading(true);
       const token = localStorage.getItem("token");
-      if (!token || !userId) {
+      if (!token) {
         navigate("/login");
         return;
       }
 
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://127.0.0.1:4000/api/v1";
-      await axios.delete(`${apiUrl}/cart`, {
+      await axios.delete(`${apiUrl}/cart/`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
-        params: { userId },
       });
 
+      // Clear local cart state
       setCartItems([]);
+      setError(null);
     } catch (err) {
       console.error("Clear cart error:", err);
       setError(err.response?.data?.message || "Failed to clear cart");
+    } finally {
+      setUpdateLoading(false);
     }
   };
 
@@ -277,149 +281,168 @@ const Cart = () => {
   }
 
   return (
-    <motion.div
-      className={styles.cartContainer}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className={styles.cartHeader}>
-        <button onClick={() => navigate("/")} className={styles.backButton}>
-          <FiArrowLeft /> Continue Shopping
-        </button>
-        <h1>Your Cart</h1>
-        <div className={styles.cartSummary}>
-          <FiShoppingBag /> {cartItems.length} items
-        </div>
-      </div>
-
-      {cartItems.length === 0 ? (
-        <div className={styles.emptyCart}>
-          <FiShoppingBag size={48} />
-          <h2>Your cart is empty</h2>
-          <p>Looks like you haven't added anything to your cart yet.</p>
-          <button
-            onClick={() => navigate("/")}
-            className={styles.shopNowButton}
-          >
-            Start Shopping
+    <div className={styles.pageContainer}>
+      <motion.div
+        className={styles.cartContainer}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className={styles.cartHeader}>
+          <button onClick={() => navigate("/")} className={styles.backButton}>
+            <FiArrowLeft /> Continue Shopping
           </button>
-        </div>
-      ) : (
-        <div className={styles.cartContent}>
-          <div className={styles.cartItems}>
-            {cartItems.map((item) => (
-              <motion.div
-                key={item.product._id}
-                className={styles.cartItem}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <div className={styles.itemImage}>
-                  <img
-                    src={item.product.image}
-                    alt={`${item.product.brand} ${item.product.modelNumber}`}
-                    onError={(e) => {
-                      e.target.src = "/placeholder-image.jpg";
-                    }}
-                  />
-                </div>
-                <div className={styles.itemDetails}>
-                  <h3>{`${item.product.brand} - ${item.product.modelNumber}`}</h3>
-                  <div className={styles.itemSpecs}>
-                    <span>Brand: {item.product.brand}</span>
-                    <span>Model: {item.product.modelNumber}</span>
-                    {item.product.powerConsumption && (
-                      <span>Power: {item.product.powerConsumption}W</span>
-                    )}
-                    {item.product.coolingCapacity && (
-                      <span>
-                        Cooling Capacity: {item.product.coolingCapacity} BTU
-                      </span>
-                    )}
-                    <span>Rating: {item.product.starRating} ★</span>
-                    {item.product.quantityInStock > 0 ? (
-                      <span className={styles.inStock}>
-                        In Stock: {item.product.quantityInStock}
-                      </span>
-                    ) : (
-                      <span className={styles.outOfStock}>Out of Stock</span>
-                    )}
-                  </div>
-                  <div className={styles.itemPrice}>
-                    <span className={styles.currentPrice}>
-                      ${(item.product.price || 0).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-                <div className={styles.itemActions}>
-                  <div className={styles.quantityControls}>
-                    <button
-                      onClick={() =>
-                        updateQuantity(item.product._id, item.quantity - 1)
-                      }
-                      disabled={updateLoading || item.quantity <= 1}
-                    >
-                      <FiMinus />
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      onClick={() =>
-                        updateQuantity(item.product._id, item.quantity + 1)
-                      }
-                      disabled={
-                        updateLoading ||
-                        item.quantity >= item.product.quantityInStock
-                      }
-                    >
-                      <FiPlus />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => removeItem(item.product._id)}
-                    className={styles.removeButton}
-                    disabled={updateLoading}
-                  >
-                    <FiTrash2 />
-                  </button>
-                </div>
-                <div className={styles.itemTotal}>
-                  <p>Total:</p>
-                  <span>
-                    ${(item.quantity * item.product.price).toFixed(2)}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
+          <div className={styles.cartTitle}>
+            <h2>Your Cart</h2>
+            <span>
+              {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
+            </span>
           </div>
-
-          <div className={styles.cartSummaryBox}>
-            <h2>Order Summary</h2>
-            <div className={styles.summaryDetails}>
-              <div className={styles.summaryRow}>
-                <span>Subtotal</span>
-                <span>${calculateTotal().toFixed(2)}</span>
-              </div>
-              <div className={styles.summaryRow}>
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <div className={`${styles.summaryRow} ${styles.total}`}>
-                <span>Total</span>
-                <span>${calculateTotal().toFixed(2)}</span>
-              </div>
-            </div>
+          {cartItems.length > 0 && (
             <button
-              onClick={() => navigate("/checkout")}
-              className={styles.checkoutButton}
+              onClick={clearCart}
+              className={styles.clearCartButton}
+              disabled={updateLoading}
             >
-              Proceed to Checkout
+              <FiTrash2 /> Clear Cart
+            </button>
+          )}
+        </div>
+
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
+        {cartItems.length === 0 ? (
+          <div className={styles.emptyCart}>
+            <FiShoppingBag size={48} />
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added anything to your cart yet.</p>
+            <button
+              onClick={() => navigate("/")}
+              className={styles.shopNowButton}
+            >
+              Start Shopping
             </button>
           </div>
-        </div>
-      )}
-    </motion.div>
+        ) : (
+          <div className={styles.cartContent}>
+            <div className={styles.cartItems}>
+              {cartItems.map((item) => (
+                <motion.div
+                  key={item.product._id}
+                  className={styles.cartItem}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <div className={styles.itemImage}>
+                    <img
+                      src={item.product.image}
+                      alt={`${item.product.brand} ${item.product.modelNumber}`}
+                      onError={(e) => {
+                        e.target.src = "/placeholder-image.jpg";
+                      }}
+                    />
+                  </div>
+                  <div className={styles.itemDetails}>
+                    <h3>{`${item.product.brand} - ${item.product.modelNumber}`}</h3>
+                    <div className={styles.itemSpecs}>
+                      <span>Brand: {item.product.brand}</span>
+                      <span>Model: {item.product.modelNumber}</span>
+                      {item.product.powerConsumption && (
+                        <span>Power: {item.product.powerConsumption}W</span>
+                      )}
+                      {item.product.coolingCapacity && (
+                        <span>
+                          Cooling Capacity: {item.product.coolingCapacity} BTU
+                        </span>
+                      )}
+                      <span>Rating: {item.product.starRating} ★</span>
+                      {item.product.quantityInStock > 0 ? (
+                        <span className={styles.inStock}>
+                          In Stock: {item.product.quantityInStock}
+                        </span>
+                      ) : (
+                        <span className={styles.outOfStock}>Out of Stock</span>
+                      )}
+                    </div>
+                    <div className={styles.itemPrice}>
+                      <span className={styles.currentPrice}>
+                        ${(item.product.price || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.itemActions}>
+                    <div className={styles.quantityControls}>
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.product._id, item.quantity - 1)
+                        }
+                        disabled={updateLoading || item.quantity <= 1}
+                        className={styles.quantityButton}
+                        aria-label="Decrease quantity"
+                      >
+                        <span className={styles.buttonText}>−</span>
+                      </button>
+                      <span className={styles.quantity}>{item.quantity}</span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.product._id, item.quantity + 1)
+                        }
+                        disabled={
+                          updateLoading ||
+                          item.quantity >= item.product.quantityInStock
+                        }
+                        className={styles.quantityButton}
+                        aria-label="Increase quantity"
+                      >
+                        <span className={styles.buttonText}>+</span>
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => removeItem(item.product._id)}
+                      className={styles.removeButton}
+                      disabled={updateLoading}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                  <div className={styles.itemTotal}>
+                    <p>Total:</p>
+                    <span>
+                      ${(item.quantity * item.product.price).toFixed(2)}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className={styles.cartSummaryBox}>
+              <h2>Order Summary</h2>
+              <div className={styles.summaryDetails}>
+                <div className={styles.summaryRow}>
+                  <span>Subtotal</span>
+                  <span>${calculateTotal().toFixed(2)}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Shipping</span>
+                  <span>Free</span>
+                </div>
+                <div className={`${styles.summaryRow} ${styles.total}`}>
+                  <span>Total</span>
+                  <span>${calculateTotal().toFixed(2)}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/checkout")}
+                className={styles.checkoutButton}
+              >
+                Proceed to Checkout
+              </button>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 };
 
