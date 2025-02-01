@@ -74,20 +74,20 @@ DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product
 Protected,need Admin or employee
 Body:(publicId,productId)
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/products/ac/:modelNumber (get product by model Number) 
+GET http://127.0.0.1:4000/api/v1/products/ac/:modelNumber (get product by model Number)    (Done)
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/products/ratings/:productId (add rating to product)
+POST http://127.0.0.1:4000/api/v1/products/ratings/:productId (add rating to product)             (Done)
 Protected
 Body:(rating)
 --------------------------------------------------------------------------
-PATCH http://127.0.0.1:4000/api/v1/products/ratings/:productId (Update a rating)
+PATCH http://127.0.0.1:4000/api/v1/products/ratings/:productId (Update a rating)             (Done)
 Protected,specific
 BODY(rating or comment)
 --------------------------------------------------------------------------
-PUT http://127.0.0.1:4000/api/v1/products/ratings/:reviewId/like (Like a product)
+PUT http://127.0.0.1:4000/api/v1/products/ratings/:reviewId/like (Like a product)             (Done)
 Protected
 --------------------------------------------------------------------------
-DELTE http://127.0.0.1:4000/api/v1/products/ratings/:productId (delete a rating)
+DELTE http://127.0.0.1:4000/api/v1/products/ratings/:productId (delete a rating)        (Done)
 Protected,specific
 --------------------------------------------------------------------------
 

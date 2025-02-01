@@ -818,3 +818,254 @@ svg {
 .product__card {
   animation: fadeIn 0.5s ease-out;
 }
+
+.likeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+.likeButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.likeButton svg {
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+}
+
+.likeButton:hover svg {
+  transform: scale(1.1);
+}
+
+/* Rating Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.ratingInput,
+.commentInput {
+  margin-bottom: 1rem;
+}
+
+.ratingInput label,
+.commentInput label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.ratingInput input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.commentInput textarea {
+  width: 100%;
+  height: 100px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modalActions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modalActions button[type="submit"] {
+  background: #4f46e5;
+  color: white;
+}
+
+.modalActions button[type="button"] {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.ratingActions {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rateButton,
+.deleteRatingButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.rateButton {
+  background: #4f46e5;
+  color: white;
+}
+
+.deleteRatingButton {
+  background: #ef4444;
+  color: white;
+}
+
+.currentRating {
+  position: absolute;
+  bottom: 4rem;
+  left: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+/* Product Modal Styles */
+.productModal {
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.modalContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.productImage {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.productImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modelNumber {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4f46e5;
+}
+
+.stock {
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: #f3f4f6;
+  display: inline-block;
+}
+
+.specifications {
+  margin-top: 1rem;
+}
+
+.specifications ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+.specifications li {
+  padding: 0.25rem 0;
+  color: #4b5563;
+}
+
+.description {
+  margin-top: 1rem;
+}
+
+.description p {
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .modalContent {
+    grid-template-columns: 1fr;
+  }
+}
+
+.noImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  color: #9ca3af;
+}

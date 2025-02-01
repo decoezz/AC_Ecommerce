@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./Home.module.css";
 import {
@@ -14,9 +14,11 @@ import {
   FaThermometerHalf,
   FaWind,
   FaPercent,
+  FaHeart,
+  FaRegHeart,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
-import AddToCart from './AddToCart';
+import AddToCart from "./AddToCart";
 
 const iconStyle = {
   color: "#000000", // Black color for icons
@@ -37,6 +39,17 @@ const Home = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
+  const [likedProducts, setLikedProducts] = useState(new Set());
+  const [productRatings, setProductRatings] = useState({});
+  const [ratingInput, setRatingInput] = useState({
+    productId: null,
+    rating: 0,
+    comment: "",
+  });
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
@@ -173,6 +186,250 @@ const Home = () => {
       y: 0,
       opacity: 1,
     },
+  };
+
+  // Update handleLike function with correct rating creation
+  const handleLike = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to like products");
+        return;
+      }
+
+      // Get the rating document for this product
+      let ratingDoc = productRatings[productId]?.[0];
+
+      // If no rating exists, create one first
+      if (!ratingDoc) {
+        try {
+          const createRatingResponse = await axios({
+            method: "POST",
+            url: `http://127.0.0.1:4000/api/v1/products/ratings/${productId}`,
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              rating: 3, // Changed to required rating value
+              comment: "Product rating", // Added default comment
+            },
+          });
+
+          if (createRatingResponse.data && createRatingResponse.data.data) {
+            ratingDoc = createRatingResponse.data.data;
+            // Update ratings data with new rating
+            setProductRatings((prev) => ({
+              ...prev,
+              [productId]: [ratingDoc],
+            }));
+          }
+        } catch (error) {
+          console.error("Error creating rating:", error);
+          console.log("Error details:", error.response?.data); // Added to see detailed error
+          alert(error.response?.data?.message || "Failed to create rating");
+          return;
+        }
+      }
+
+      // Now proceed with liking using the rating ID
+      const response = await axios({
+        method: "PUT",
+        url: `http://127.0.0.1:4000/api/v1/products/ratings/${ratingDoc._id}/like`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        // Toggle the like in local state
+        setLikedProducts((prev) => {
+          const newSet = new Set(prev);
+          if (newSet.has(productId)) {
+            newSet.delete(productId);
+          } else {
+            newSet.add(productId);
+          }
+          return newSet;
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      alert(error.response?.data?.message || "Failed to toggle like");
+    }
+  };
+
+  // Function to handle rating modal
+  const openRatingModal = (productId) => {
+    setRatingInput({
+      productId,
+      rating: productRatings[productId]?.[0]?.rating || 0,
+      comment: productRatings[productId]?.[0]?.comment || "",
+    });
+    setShowRatingModal(true);
+  };
+
+  // Function to add/update rating
+  const handleRating = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to rate products");
+        return;
+      }
+
+      const existingRating = productRatings[ratingInput.productId]?.[0];
+      const method = existingRating ? "PATCH" : "POST";
+      const url = `http://127.0.0.1:4000/api/v1/products/ratings/${ratingInput.productId}`;
+
+      const response = await axios({
+        method,
+        url,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          rating: ratingInput.rating,
+          comment: ratingInput.comment,
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        setShowRatingModal(false);
+        alert("Rating submitted successfully!");
+      }
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      alert(error.response?.data?.message || "Failed to submit rating");
+    }
+  };
+
+  // Function to delete rating
+  const handleDeleteRating = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to delete ratings");
+        return;
+      }
+
+      const response = await axios({
+        method: "DELETE",
+        url: `http://127.0.0.1:4000/api/v1/products/ratings/${productId}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        alert("Rating deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Error deleting rating:", error);
+      alert(error.response?.data?.message || "Failed to delete rating");
+    }
+  };
+
+  // Update the handleProductClick function
+  const handleProductClick = (product, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Store the product data in localStorage
+    localStorage.setItem("selectedProduct", JSON.stringify(product));
+    // Navigate to the product details page
+    navigate(`/product/${product._id}`);
+  };
+
+  // Update the ProductDetailsModal component to match the data structure
+  const ProductDetailsModal = () => {
+    if (!selectedProduct) return null;
+
+    return (
+      <div className={styles.modalOverlay}>
+        <div className={`${styles.modal} ${styles.productModal}`}>
+          <div className={styles.modalHeader}>
+            <h2>Product Details</h2>
+            <button
+              className={styles.closeButton}
+              onClick={() => setShowProductModal(false)}
+            >
+              ×
+            </button>
+          </div>
+          <div className={styles.modalContent}>
+            <div className={styles.productImage}>
+              {selectedProduct.photos && selectedProduct.photos.length > 0 ? (
+                <img
+                  src={selectedProduct.photos[0]}
+                  alt={`${selectedProduct.brand} ${selectedProduct.modelNumber}`}
+                />
+              ) : (
+                <div className={styles.noImage}>
+                  <FaImage />
+                  <p>No Image Available</p>
+                </div>
+              )}
+            </div>
+            <div className={styles.productDetails}>
+              <h3>{selectedProduct.brand}</h3>
+              <p className={styles.modelNumber}>
+                Model: {selectedProduct.modelNumber}
+              </p>
+              <p className={styles.price}>Price: ${selectedProduct.price}</p>
+              <p className={styles.stock}>
+                Status: {selectedProduct.inStock ? "In Stock" : "Out of Stock"}
+                {selectedProduct.inStock &&
+                  ` (${selectedProduct.quantityInStock} units)`}
+              </p>
+              <div className={styles.specifications}>
+                <h4>Specifications:</h4>
+                <ul>
+                  <li>
+                    Power Consumption: {selectedProduct.powerConsumption}W
+                  </li>
+                  <li>
+                    Cooling Capacity: {selectedProduct.coolingCapacitiy} Ton
+                  </li>
+                  <li>Star Rating: {selectedProduct.starRating} ⭐</li>
+                  {selectedProduct.features &&
+                    selectedProduct.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                </ul>
+              </div>
+              <div className={styles.ratings}>
+                <h4>Ratings & Reviews:</h4>
+                <p>Average Rating: {selectedProduct.averageRating} ⭐</p>
+                <p>Review Count: {selectedProduct.reviewCount}</p>
+                <p>Units Sold: {selectedProduct.unitSold}</p>
+              </div>
+              {selectedProduct.ratings &&
+                selectedProduct.ratings.length > 0 && (
+                  <div className={styles.userRatings}>
+                    <h4>Latest Rating:</h4>
+                    {selectedProduct.ratings.map((rating, index) => (
+                      <div key={index} className={styles.rating}>
+                        <p>Rating: {rating.rating} ⭐</p>
+                        <p>
+                          Date:{" "}
+                          {new Date(
+                            rating.createdAt.$date
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -336,78 +593,122 @@ const Home = () => {
         </motion.h2>
         <div className={styles.products__grid}>
           {!loading && !error && currentItems.length > 0
-            ? currentItems.map((product) => (
-                <motion.div
-                  key={product._id}
-                  className={styles.product__card}
-                  variants={itemVariants}
-                  whileHover={{
-                    scale: 1.02,
-                    transition: { duration: 0.2 },
-                  }}
-                >
-                  <div className={styles.product__imageContainer}>
-                    {product.photos && product.photos.length > 0 ? (
-                      <img
-                        src={getImageUrl(product.photos[0])}
-                        alt={`${product.brand} ${product.modelNumber}`}
-                        className={styles.product__image}
-                        onError={(e) => {
-                          e.target.src = "/placeholder-image.png";
-                          e.target.onerror = null;
+            ? currentItems.map((product) => {
+                console.log("Product in grid:", product._id); // Debug log
+                return (
+                  <motion.div
+                    key={product._id}
+                    className={styles.product__card}
+                    variants={itemVariants}
+                    whileHover={{
+                      scale: 1.02,
+                      transition: { duration: 0.2 },
+                    }}
+                    onClick={(e) => handleProductClick(product, e)}
+                  >
+                    <div className={styles.product__imageContainer}>
+                      {/* Add the heart icon here */}
+                      <button
+                        className={styles.likeButton}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleLike(product._id);
                         }}
-                      />
-                    ) : (
-                      <div className={styles.noImage}>
-                        <FaImage />
-                        <p>Image Coming Soon</p>
-                      </div>
-                    )}
-                    {product.inStock && (
-                      <div className={styles.product__badge}>
-                        Quick Installation Available
-                      </div>
-                    )}
-                  </div>
-                  <div className={styles.product__info}>
-                    <div className={styles.product__brand}>{product.brand}</div>
-                    <h3 className={styles.product__title}>
-                      {product.modelNumber}
-                    </h3>
-                    <div className={styles.product__features}>
-                      {product.powerConsumption && (
-                        <span className={styles.feature}>
-                          <FaBolt style={iconStyle} />{" "}
-                          {product.powerConsumption}W
-                        </span>
+                      >
+                        {likedProducts.has(product._id) ? (
+                          <FaHeart style={{ color: "#e53e3e" }} />
+                        ) : (
+                          <FaRegHeart />
+                        )}
+                      </button>
+                      {product.photos && product.photos.length > 0 ? (
+                        <img
+                          src={getImageUrl(product.photos[0])}
+                          alt={`${product.brand} ${product.modelNumber}`}
+                          className={styles.product__image}
+                          onError={(e) => {
+                            e.target.src = "/placeholder-image.png";
+                            e.target.onerror = null;
+                          }}
+                        />
+                      ) : (
+                        <div className={styles.noImage}>
+                          <FaImage />
+                          <p>Image Coming Soon</p>
+                        </div>
                       )}
-                      <span className={styles.feature}>
-                        <FaSnowflake style={iconStyle} />{" "}
-                        {product.coolingCapacity || "1.5"} Ton
-                      </span>
-                    </div>
-                    <div className={styles.product__footer}>
-                      <div className={styles.priceSection}>
-                        <div className={styles.product__price}>
-                          ${product.price.toLocaleString()}
+                      {product.inStock && (
+                        <div className={styles.product__badge}>
+                          Quick Installation Available
                         </div>
-                        <div className={styles.installment}>
-                          or ${Math.round(product.price / 12)}/mo with EMI
+                      )}
+                    </div>
+                    <div className={styles.product__info}>
+                      <div className={styles.product__brand}>
+                        {product.brand}
+                      </div>
+                      <h3 className={styles.product__title}>
+                        {product.modelNumber}
+                      </h3>
+                      <div className={styles.product__features}>
+                        {product.powerConsumption && (
+                          <span className={styles.feature}>
+                            <FaBolt style={iconStyle} />{" "}
+                            {product.powerConsumption}W
+                          </span>
+                        )}
+                        <span className={styles.feature}>
+                          <FaSnowflake style={iconStyle} />{" "}
+                          {product.coolingCapacity || "1.5"} Ton
+                        </span>
+                      </div>
+                      <div className={styles.product__footer}>
+                        <div className={styles.priceSection}>
+                          <div className={styles.product__price}>
+                            ${product.price.toLocaleString()}
+                          </div>
+                          <div className={styles.installment}>
+                            or ${Math.round(product.price / 12)}/mo with EMI
+                          </div>
+                        </div>
+                        <div className={styles.product__actions}>
+                          <button
+                            className={styles.viewDetails__button}
+                            onClick={(e) => handleProductClick(product, e)}
+                          >
+                            View Details
+                          </button>
+                          <AddToCart productId={product._id} />
                         </div>
                       </div>
-                      <div className={styles.product__actions}>
-                        <Link
-                          to={`/product/${product._id}`}
-                          className={styles.viewDetails__button}
+                    </div>
+                    <div className={styles.ratingActions}>
+                      <button
+                        className={styles.rateButton}
+                        onClick={() => openRatingModal(product._id)}
+                      >
+                        Rate Product
+                      </button>
+                      {productRatings[product._id]?.[0] && (
+                        <button
+                          className={styles.deleteRatingButton}
+                          onClick={() => handleDeleteRating(product._id)}
                         >
-                          View Details
-                        </Link>
-                        <AddToCart productId={product._id} />
-                      </div>
+                          Delete Rating
+                        </button>
+                      )}
                     </div>
-                  </div>
-                </motion.div>
-              ))
+                    {productRatings[product._id]?.[0] && (
+                      <div className={styles.currentRating}>
+                        <span>
+                          Rating: {productRatings[product._id][0].rating}/5
+                        </span>
+                        <p>{productRatings[product._id][0].comment}</p>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })
             : !loading &&
               !error && (
                 <div className={styles.noResults}>
@@ -471,6 +772,55 @@ const Home = () => {
           </button>
         </div>
       )}
+
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h2>Rate Product</h2>
+            <form onSubmit={handleRating}>
+              <div className={styles.ratingInput}>
+                <label>Rating (1-5):</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="5"
+                  value={ratingInput.rating}
+                  onChange={(e) =>
+                    setRatingInput((prev) => ({
+                      ...prev,
+                      rating: parseInt(e.target.value),
+                    }))
+                  }
+                  required
+                />
+              </div>
+              <div className={styles.commentInput}>
+                <label>Comment:</label>
+                <textarea
+                  value={ratingInput.comment}
+                  onChange={(e) =>
+                    setRatingInput((prev) => ({
+                      ...prev,
+                      comment: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+              <div className={styles.modalActions}>
+                <button type="submit">Submit</button>
+                <button type="button" onClick={() => setShowRatingModal(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add the modal to your JSX */}
+      {showProductModal && <ProductDetailsModal />}
     </motion.div>
   );
 };

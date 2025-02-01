@@ -26,6 +26,7 @@ import CreateOrder from "./CreateOrder.jsx";
 import UserManagement from "./UserManagement.jsx";
 import StoreOrders from "./StoreOrders.jsx";
 import Orders from "./Orders.jsx";
+import ProductDetails from "./ProductDetails.jsx";
 import "../styles/global.css";
 
 export default function Main() {
@@ -45,6 +46,7 @@ export default function Main() {
               <Route path="/" element={<Home />} /> 
               <Route path="/store-orders" element={<StoreOrders />} />
               <Route path="/user-management" element={<UserManagement />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/orders/create" element={<CreateOrder />} />
               <Route path="/orders/search" element={<SearchOrders />} />
               <Route path="/orders" element={<Orders />} />
