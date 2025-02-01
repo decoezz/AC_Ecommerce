@@ -134,10 +134,10 @@ Protected,need Admin or employee
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/orders/user/:mobileNumber (get orders by mobile number)     (Done)
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/SoldInShop (Get Orders Sold In Shop)
+GET http://127.0.0.1:4000/api/v1/orders/SoldInShop (Get Orders Sold In Shop)     (Done)
 need Admin or employee
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/orders/sellEmployee (Sell Product in Shop)
+POST http://127.0.0.1:4000/api/v1/orders/sellEmployee (Sell Product in Shop)         (Done)
 need Admin or employee
 Body:(Items[ac,quantity,priceAtPurchase],shippingAddress,mobileNumber)
 
