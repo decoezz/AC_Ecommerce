@@ -6,6 +6,7 @@
   color: #333;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding-bottom: 5rem;
 }
 
 .header {
@@ -516,5 +517,192 @@
   .ordersTable th,
   .ordersTable td {
     border: 1px solid #000;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.pageNumbers {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.paginationButton,
+.pageNumber {
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  color: #007bff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.paginationButton:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.paginationButton:hover:not(:disabled),
+.pageNumber:hover:not(.activePage) {
+  background-color: #e9ecef;
+  color: #0056b3;
+}
+
+.activePage {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .paginationButton,
+  .pageNumber {
+    background-color: #2d2d2d;
+    border-color: #404040;
+    color: #007bff;
+  }
+
+  .paginationButton:disabled {
+    background-color: #333333;
+    color: #6c757d;
+  }
+
+  .paginationButton:hover:not(:disabled),
+  .pageNumber:hover:not(.activePage) {
+    background-color: #333333;
+  }
+
+  .activePage {
+    background-color: #007bff;
+    color: white;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pageNumbers {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .paginationButton,
+  .pageNumber {
+    padding: 0.5rem;
+    min-width: 40px;
+  }
+}
+
+.bottomNavigation {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+}
+
+.createOrderButton {
+  background-color: #28a745;
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 2rem;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.createOrderButton:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.createOrderButton:active {
+  transform: translateY(0);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .createOrderButton {
+    background-color: #28a745;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .createOrderButton:hover {
+    background-color: #218838;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .bottomNavigation {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .createOrderButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.orderType {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+  font-size: 0.875rem;
+}
+
+.inShop {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.online {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .inShop {
+    background-color: #7c3aed;
+  }
+
+  .online {
+    background-color: #2563eb;
+  }
+}
+
+/* Make sure table is responsive */
+@media (max-width: 768px) {
+  .ordersTable td {
+    white-space: nowrap;
+  }
+
+  .orderType {
+    white-space: nowrap;
   }
 }

@@ -20,6 +20,22 @@ const ViewOrders = () => {
     orderStatus: "",
     items: [],
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage] = useState(10); // Number of orders per page
+
+  // Get current orders
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+  // Change page
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Scroll to top of orders table
+    document.querySelector(`.${styles.ordersContainer}`)?.scrollIntoView({
+      behavior: "smooth",
+    });
+  };
 
   const formatDate = (date) => {
     try {
@@ -229,12 +245,6 @@ const ViewOrders = () => {
     <div className={styles.viewOrders}>
       <div className={styles.header}>
         <h2 className={styles.title}>Orders</h2>
-        <button
-          onClick={() => navigate("/orders/create")}
-          className={styles.createButton}
-        >
-          Create New Order
-        </button>
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
@@ -278,49 +288,102 @@ const ViewOrders = () => {
       ) : (
         <div className={styles.ordersContainer}>
           {orders.length > 0 ? (
-            <table className={styles.ordersTable}>
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                  
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order._id}>
-                    <td>{order._id}</td>
-                    <td>{formatDate(order.purchasedAt)}</td>
-                    <td>
-                      <span
-                        className={
-                          styles[order.orderStatus?.toLowerCase() || "pending"]
-                        }
-                      >
-                        {order.orderStatus || "Pending"}
-                      </span>
-                    </td>
-                    <td>${order.totalAmount?.toFixed(2) || "0.00"}</td>
-                    
+            <>
+              <table className={styles.ordersTable}>
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Order Type</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {currentOrders.map((order) => (
+                    <tr key={order._id}>
+                      <td>{order._id.slice(-6)}</td>
+                      <td>
+                        {formatDate(order.purchasedAt || order.createdAt)}
+                      </td>
+                      <td>{order.mobileNumber}</td>
+                      <td>
+                        <span
+                          className={`${styles.status} ${
+                            styles[order.orderStatus.toLowerCase()]
+                          }`}
+                        >
+                          {order.orderStatus}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`${styles.orderType} ${
+                            order.soldInShop ? styles.inShop : styles.online
+                          }`}
+                        >
+                          {order.soldInShop ? "In Shop" : "Online"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Pagination */}
+              <div className={styles.pagination}>
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={styles.paginationButton}
+                >
+                  Previous
+                </button>
+
+                <div className={styles.pageNumbers}>
+                  {Array.from({
+                    length: Math.ceil(orders.length / ordersPerPage),
+                  }).map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => paginate(index + 1)}
+                      className={`${styles.pageNumber} ${
+                        currentPage === index + 1 ? styles.activePage : ""
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={
+                    currentPage === Math.ceil(orders.length / ordersPerPage)
+                  }
+                  className={styles.paginationButton}
+                >
+                  Next
+                </button>
+              </div>
+            </>
           ) : (
             <div className={styles.noOrders}>
               <p>No orders found.</p>
-              <button
-                onClick={() => navigate("/orders/create")}
-                className={styles.createButton}
-              >
-                Create Your First Order
-              </button>
             </div>
           )}
         </div>
       )}
+
+      {/* Fixed Create Order Button */}
+      <div className={styles.bottomNavigation}>
+        <button
+          onClick={() => navigate("/orders/create")}
+          className={styles.createOrderButton}
+        >
+          Create New Order
+        </button>
+      </div>
 
       {editMode && selectedOrder && (
         <div className={styles.editModal}>

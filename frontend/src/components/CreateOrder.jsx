@@ -501,7 +501,7 @@ const CreateOrder = () => {
                     <div className={styles.formGroup}>
                       <label>Quantity *</label>
                       <div className={styles.quantityControl}>
-                        <button 
+                        <button
                           type="button"
                           className={`${styles.quantityButton} ${styles.minusButton}`}
                           onClick={() => handleQuantityChange(index, -1)}
@@ -509,8 +509,10 @@ const CreateOrder = () => {
                         >
                           −
                         </button>
-                        <span className={styles.quantityDisplay}>{item.quantity}</span>
-                        <button 
+                        <span className={styles.quantityDisplay}>
+                          {item.quantity}
+                        </span>
+                        <button
                           type="button"
                           className={`${styles.quantityButton} ${styles.plusButton}`}
                           onClick={() => handleQuantityChange(index, 1)}
