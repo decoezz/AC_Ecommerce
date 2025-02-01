@@ -1,6 +1,6 @@
 .createOrder {
   padding: 2rem;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -14,10 +14,10 @@
 }
 
 .orderForm {
-  background: #fff;
+  background: white;
+  border-radius: 1rem;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .formGroup {
@@ -27,16 +27,27 @@
 .formGroup label {
   display: block;
   margin-bottom: 0.5rem;
+  color: #475569;
   font-weight: 500;
 }
 
 .input,
+.select,
 .textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
   font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .textarea {
@@ -51,71 +62,94 @@
 }
 
 .itemRow {
-  display: grid;
-  grid-template-columns: 3fr 1fr 1fr auto;
+  display: flex;
   gap: 1rem;
-  align-items: start;
+  align-items: flex-start;
   padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 4px;
+  background: white;
+  border-radius: 0.5rem;
   margin-bottom: 1rem;
 }
 
-.addButton,
-.removeButton,
-.submitButton {
-  padding: 0.75rem 1.5rem;
+.itemDetails {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  flex: 1;
+}
+
+.removeItemButton {
+  padding: 0.5rem;
+  background: #fee2e2;
+  color: #dc2626;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
-.addButton {
-  background-color: #28a745;
+.removeItemButton:hover {
+  background: #fecaca;
+}
+
+.addItemButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
   color: white;
-  margin-top: 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.addButton:hover {
-  background-color: #218838;
+.addItemButton:hover {
+  background: #2563eb;
 }
 
-.removeButton {
-  background-color: #dc3545;
-  color: white;
-}
-
-.removeButton:hover {
-  background-color: #c82333;
-}
-
-.removeButton:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.submitButton {
-  background-color: #007bff;
-  color: white;
-  width: 100%;
+.orderTotal {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
   margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid #e2e8f0;
+  font-weight: 600;
 }
 
-.submitButton:hover {
-  background-color: #0056b3;
-}
-
-.submitButton:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
+.totalPrice {
+  font-size: 1.25rem;
+  color: #3b82f6;
 }
 
 .formActions {
   margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submitButton:hover {
+  background: #2563eb;
+}
+
+.submitButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
 .readOnly {
@@ -153,17 +187,27 @@ datalist {
 }
 
 @media (max-width: 768px) {
-  .itemRow {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-
   .createOrder {
     padding: 1rem;
   }
 
-  .orderForm {
-    padding: 1rem;
+  .orderTypeButtons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .orderTypeButton {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .itemDetails {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .quantityControl {
+    margin: 0.5rem 0;
   }
 }
 
@@ -184,8 +228,8 @@ datalist {
   background-color: #f8f9fa;
 }
 
-.addButton:disabled,
-.removeButton:disabled,
+.addItemButton:disabled,
+.removeItemButton:disabled,
 .submitButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -214,4 +258,251 @@ datalist {
 
 .formGroup select option {
   padding: 0.5rem;
+}
+
+.orderTypeSelection {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 2rem 0;
+}
+
+.orderTypeButtons {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.orderTypeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 250px;
+}
+
+.orderTypeButton:hover {
+  border-color: #3b82f6;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.orderTypeIcon {
+  font-size: 2.5rem;
+  color: #3b82f6;
+}
+
+.orderTypeButton span {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.orderTypeButton p {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.orderTypeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.orderTypeInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.changeTypeButton {
+  padding: 0.5rem 1rem;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 0.5rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.changeTypeButton:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.formSection {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 0.75rem;
+}
+
+.formSection h4 {
+  margin-bottom: 1.5rem;
+  color: #1e293b;
+  font-size: 1.125rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .orderTypeButtons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .orderTypeButton {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+.unauthorizedMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #f8fafc;
+  min-width: 250px;
+  opacity: 0.7;
+}
+
+.unauthorizedMessage .orderTypeIcon {
+  font-size: 2.5rem;
+  color: #94a3b8;
+}
+
+.unauthorizedMessage span {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.unauthorizedMessage p {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+  text-align: center;
+}
+
+/* Toast Notification Styles */
+:global(.Toastify__toast) {
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+:global(.Toastify__toast--success) {
+  background: #10b981;
+}
+
+:global(.Toastify__toast--error) {
+  background: #ef4444;
+}
+
+:global(.Toastify__progress-bar) {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Loading State Styles */
+.submitButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.submitButton:disabled:hover {
+  background: #9ca3af;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  margin-right: 8px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.quantityButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 0;
+  line-height: 1;
+}
+
+.minusButton {
+  padding-bottom: 4px;
+}
+
+.plusButton {
+  padding-top: 1px;
+}
+
+.quantityButton:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.quantityButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantityDisplay {
+  width: 40px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  background: white;
+  padding: 0.5rem 0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  user-select: none;
 }

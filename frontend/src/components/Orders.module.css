@@ -1,0 +1,151 @@
+.orders {
+  padding: 2rem;
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.search,
+.filter {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search input,
+.filter select {
+  margin-left: 0.5rem;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+}
+
+.ordersList {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.orderCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.orderHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.orderIcon {
+  background: #f1f5f9;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: #3b82f6;
+}
+
+.orderInfo {
+  flex: 1;
+}
+
+.orderInfo h3 {
+  margin: 0;
+  color: #1e293b;
+}
+
+.date {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  color: white;
+}
+
+.customerInfo {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.customerInfo p {
+  margin: 0.5rem 0;
+  color: #475569;
+}
+
+.items {
+  margin-bottom: 1.5rem;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  color: #475569;
+}
+
+.orderFooter {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.125rem;
+  color: #1e293b;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.error {
+  text-align: center;
+  padding: 2rem;
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .orders {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .controls {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .ordersList {
+    grid-template-columns: 1fr;
+  }
+}

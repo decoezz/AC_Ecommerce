@@ -33,10 +33,10 @@ GET http://127.0.0.1:4000/api/v1/users/reviews (get all reviews of user)
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/users/user/:mobileNumber (get User by mobile number)   (Done)
 --------------------------------------------------------------------------
-GET  http://127.0.0.1:4000/api/v1/users/user/likedProducts (Get liked Products/wishlist)
+GET  http://127.0.0.1:4000/api/v1/users/user/likedProducts (Get liked Products/wishlist)       (Done)
 Protected,specific
 --------------------------------------------------------------------------
-PATCH http://127.0.0.1:4000/api/v1/users/ (Update User) 
+PATCH http://127.0.0.1:4000/api/v1/users/ (Update User)    (Done)
 Protected,specific
 Body:(currentPassword(needed to change anything),password,passwordConfirm,name,email,mobileNumber)
 

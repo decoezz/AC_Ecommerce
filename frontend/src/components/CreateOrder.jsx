@@ -2,12 +2,23 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import styles from "./CreateOrder.module.css";
+import {
+  FaStore,
+  FaShoppingCart,
+  FaPlus,
+  FaTrash,
+  FaMinus,
+} from "react-icons/fa";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 
 const CreateOrder = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [products, setProducts] = useState([]);
+  const [orderType, setOrderType] = useState(""); // "online" or "store"
   const [retryAfter, setRetryAfter] = useState(0);
   const [orderData, setOrderData] = useState({
     shippingAddress: "",
@@ -18,12 +29,67 @@ const CreateOrder = () => {
     ],
   });
 
-  // Fetch products with rate limit handling
+  // Check if user is employee or admin
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const checkAuthorization = () => {
+      try {
+        // Get user data from localStorage
+        const userStr = localStorage.getItem("user");
+        const tokenStr = localStorage.getItem("token");
+
+        console.log("Raw user data:", userStr);
+
+        if (!userStr || !tokenStr) {
+          console.log("Missing user data or token");
+          setIsAuthorized(false);
+          return;
+        }
+
+        // Parse user data
+        let userData;
+        try {
+          userData = JSON.parse(userStr);
+        } catch (e) {
+          console.error("Failed to parse user data:", e);
+          setIsAuthorized(false);
+          return;
+        }
+
+        // Get user role, handling different data structures
+        const user = userData.data?.user || userData.user || userData;
+        const role = user?.role?.toLowerCase(); // Convert role to lowercase
+
+        console.log("Parsed user role:", role);
+
+        // Check if user is authorized (case-insensitive)
+        const isAuth =
+          role === "admin" ||
+          role === "employee" ||
+          role === "Admin" ||
+          role === "Employee";
+        console.log("Authorization result:", isAuth);
+
+        setIsAuthorized(isAuth);
+      } catch (error) {
+        console.error("Authorization check failed:", error);
+        setIsAuthorized(false);
+      }
+    };
+
+    checkAuthorization();
+  }, []);
+
+  // Add this useEffect to log when authorization state changes
+  useEffect(() => {
+    console.log("Authorization state updated:", isAuthorized);
+  }, [isAuthorized]);
+
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        if (retryAfter > 0) return;
-
         const token = localStorage.getItem("token");
         const baseURL = import.meta.env.VITE_API_URL;
 
@@ -31,40 +97,130 @@ const CreateOrder = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("Products response:", response.data);
-
-        // Extract products array from the nested structure
-        const productData = response.data?.data?.products || [];
-        console.log("Product data:", productData);
-
-        // Less strict validation - only check if product exists
-        const validProducts = productData.filter((product) => product);
-
-        console.log("Valid products:", validProducts); // Debug log to see what products are considered valid
-
-        setProducts(validProducts);
-
-        if (validProducts.length === 0) {
-          setError("No products available. Please try again later.");
-        } else {
-          setError(""); // Clear any existing error if products are found
-        }
+        setProducts(response.data.data.products || []);
       } catch (err) {
         console.error("Error fetching products:", err);
-        setProducts([]);
-        if (err.response?.status === 429) {
-          const retrySeconds =
-            parseInt(err.response.headers["retry-after"]) || 60;
-          setRetryAfter(retrySeconds);
-          setError(`Rate limit exceeded. Please wait ${retrySeconds} seconds.`);
-        } else {
-          setError("Failed to load products. Please refresh the page.");
-        }
+        setError("Failed to load products");
       }
     };
 
     fetchProducts();
-  }, [retryAfter]);
+  }, []);
+
+  // Handle order type selection
+  const handleOrderTypeSelect = (type) => {
+    console.log("Selected order type:", type); // Debug log
+    setOrderType(type);
+    setOrderData({
+      shippingAddress: "",
+      mobileNumber: "",
+      orderStatus: type === "store" ? "completed" : "on hold",
+      items: [
+        { productId: "", modelNumber: "", quantity: 1, priceAtPurchase: 0 },
+      ],
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Please login to create an order");
+
+      const baseURL = import.meta.env.VITE_API_URL;
+
+      // Format items for API
+      const formattedItems = orderData.items.map((item) => ({
+        ac: item.productId,
+        quantity: parseInt(item.quantity),
+        priceAtPurchase: parseFloat(item.priceAtPurchase),
+      }));
+
+      const payload = {
+        shippingAddress: orderData.shippingAddress.trim(),
+        mobileNumber: orderData.mobileNumber.trim(),
+        items: formattedItems,
+      };
+
+      // Choose endpoint based on order type
+      const endpoint =
+        orderType === "store"
+          ? `${baseURL}/orders/sellEmployee`
+          : `${baseURL}/orders`;
+
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.data.status === "success") {
+        // Show success message
+        toast.success(
+          orderType === "store"
+            ? "Store sale completed successfully!"
+            : "Online order created successfully!",
+          {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+
+        // Reset form and order type
+        setOrderType("");
+        setOrderData({
+          shippingAddress: "",
+          mobileNumber: "",
+          orderStatus: "on hold",
+          items: [
+            { productId: "", modelNumber: "", quantity: 1, priceAtPurchase: 0 },
+          ],
+        });
+      }
+    } catch (err) {
+      console.error("Order creation error:", err);
+      const errorMessage =
+        err.response?.data?.message || err.message || "Failed to create order";
+
+      // Show error message
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch store orders
+  const fetchStoreOrders = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const baseURL = import.meta.env.VITE_API_URL;
+      const response = await axios.get(`${baseURL}/orders/SoldInShop`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Handle store orders if needed
+      console.log("Store orders:", response.data);
+    } catch (err) {
+      console.error("Error fetching store orders:", err);
+    }
+  };
 
   // Display countdown timer
   useEffect(() => {
@@ -87,9 +243,8 @@ const CreateOrder = () => {
     const newItems = [...orderData.items];
 
     if (field === "modelNumber") {
-      // Find product by model number
-      const product = products.find((p) => p._id === value); // Changed to find by _id
-      console.log("Selected product:", product); // Debug log
+      // Find product by ID
+      const product = products.find((p) => p._id === value);
 
       if (product) {
         newItems[index] = {
@@ -98,7 +253,6 @@ const CreateOrder = () => {
           productId: product._id,
           priceAtPurchase: product.price || 0,
         };
-        console.log("Updated item:", newItems[index]); // Debug log
       } else {
         newItems[index] = {
           ...newItems[index],
@@ -108,10 +262,14 @@ const CreateOrder = () => {
         };
       }
     } else if (field === "quantity") {
-      newItems[index] = {
-        ...newItems[index],
-        quantity: Math.max(1, parseInt(value) || 1),
-      };
+      // Convert input to number and ensure it's positive
+      const quantity = parseInt(value);
+      if (!isNaN(quantity) && quantity > 0) {
+        newItems[index] = {
+          ...newItems[index],
+          quantity: quantity,
+        };
+      }
     }
 
     setOrderData({ ...orderData, items: newItems });
@@ -164,217 +322,243 @@ const CreateOrder = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  // Calculate total price
+  const calculateTotal = () => {
+    return orderData.items.reduce((total, item) => {
+      return total + item.quantity * item.priceAtPurchase;
+    }, 0);
+  };
 
-    try {
-      // Validate the order
-      if (!orderData.shippingAddress.trim()) {
-        throw new Error("Please enter a shipping address");
-      }
-      if (!orderData.mobileNumber.trim()) {
-        throw new Error("Please enter a mobile number");
-      }
+  const handleQuantityChange = (index, change) => {
+    const newItems = [...orderData.items];
+    const newQuantity = newItems[index].quantity + change;
 
-      // Validate items
-      const invalidItems = orderData.items.some(
-        (item) => !item.productId || item.quantity < 1
-      );
-
-      if (invalidItems) {
-        throw new Error("Please select products and quantities for all items");
-      }
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Please login to create an order");
-      }
-
-      const baseURL = import.meta.env.VITE_API_URL;
-
-      // Format the items array correctly
-      const formattedItems = orderData.items.map((item) => ({
-        ac: item.productId,
-        quantity: parseInt(item.quantity),
-        priceAtPurchase: parseFloat(item.priceAtPurchase),
-      }));
-
-      // Prepare the payload with correct order status
-      const payload = {
-        shippingAddress: orderData.shippingAddress.trim(),
-        mobileNumber: orderData.mobileNumber.trim(),
-        items: formattedItems,
-        orderStatus: "on hold",
+    // Ensure quantity doesn't go below 1
+    if (newQuantity >= 1) {
+      newItems[index] = {
+        ...newItems[index],
+        quantity: newQuantity,
       };
-
-      console.log("Sending payload:", payload); // Debug log
-
-      const response = await axios.post(`${baseURL}/orders`, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("Order creation response:", response.data); // Debug log
-
-      if (response.data && response.data.data) {
-        navigate("/orders");
-      } else {
-        throw new Error("Failed to create order. Please try again.");
-      }
-    } catch (err) {
-      console.error("Order creation error:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to create order. Please try again."
-      );
-    } finally {
-      setLoading(false);
+      setOrderData({ ...orderData, items: newItems });
     }
   };
 
   return (
     <div className={styles.createOrder}>
+      <ToastContainer />
       <h2>Create New Order</h2>
 
-      {error && <div className={styles.error}>{error}</div>}
-      {retryAfter > 0 && (
-        <div className={styles.retryTimer}>
-          Please wait {retryAfter} seconds before trying again
+      {/* Debug information */}
+      <div className={styles.debug}>
+        <p>
+          Authorization Status: {isAuthorized ? "Authorized" : "Not Authorized"}
+        </p>
+        <p>
+          User Role:{" "}
+          {(() => {
+            try {
+              const userData = JSON.parse(localStorage.getItem("user"));
+              const user = userData.data?.user || userData.user || userData;
+              return user?.role || "No role found";
+            } catch (e) {
+              return "Error getting role";
+            }
+          })()}
+        </p>
+      </div>
+
+      {/* Order Type Selection */}
+      {!orderType && (
+        <div className={styles.orderTypeSelection}>
+          <h3>Select Order Type</h3>
+          <div className={styles.orderTypeButtons}>
+            <button
+              className={styles.orderTypeButton}
+              onClick={() => handleOrderTypeSelect("online")}
+            >
+              <FaShoppingCart className={styles.orderTypeIcon} />
+              <span>Online Order</span>
+              <p>Create a new online order for delivery</p>
+            </button>
+
+            {isAuthorized ? (
+              <button
+                className={styles.orderTypeButton}
+                onClick={() => handleOrderTypeSelect("store")}
+              >
+                <FaStore className={styles.orderTypeIcon} />
+                <span>Store Sale</span>
+                <p>Record an in-store purchase</p>
+              </button>
+            ) : (
+              <div className={styles.unauthorizedMessage}>
+                <FaStore className={styles.orderTypeIcon} />
+                <span>Store Sale</span>
+                <p>Only available to store employees and administrators</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className={styles.orderForm}>
-        <div className={styles.formGroup}>
-          <label htmlFor="shippingAddress">Shipping Address *</label>
-          <textarea
-            id="shippingAddress"
-            value={orderData.shippingAddress}
-            onChange={(e) =>
-              setOrderData({ ...orderData, shippingAddress: e.target.value })
-            }
-            required
-            className={styles.textarea}
-            placeholder="Enter shipping address"
-          />
-        </div>
+      {orderType && (
+        <div className={styles.orderForm}>
+          <div className={styles.orderTypeHeader}>
+            <div className={styles.orderTypeInfo}>
+              <span className={styles.orderTypeIcon}>
+                {orderType === "store" ? <FaStore /> : <FaShoppingCart />}
+              </span>
+              <h3>{orderType === "store" ? "Store Sale" : "Online Order"}</h3>
+            </div>
+            <button
+              className={styles.changeTypeButton}
+              onClick={() => setOrderType("")}
+            >
+              Change Order Type
+            </button>
+          </div>
 
-        <div className={styles.formGroup}>
-          <label htmlFor="mobileNumber">Mobile Number *</label>
-          <input
-            type="tel"
-            id="mobileNumber"
-            value={orderData.mobileNumber}
-            onChange={(e) =>
-              setOrderData({ ...orderData, mobileNumber: e.target.value })
-            }
-            required
-            className={styles.input}
-            placeholder="Enter mobile number"
-          />
-        </div>
+          {error && <div className={styles.error}>{error}</div>}
 
-        <div className={styles.itemsSection}>
-          <h3>
-            Order Items{" "}
-            {products.length > 0
-              ? `(${products.length} products available)`
-              : ""}
-          </h3>
-          {orderData.items.map((item, index) => (
-            <div key={index} className={styles.itemRow}>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.formSection}>
+              <h4>Customer Information</h4>
               <div className={styles.formGroup}>
-                <label>
-                  Product * {products.length === 0 && "(Loading products...)"}
+                <label htmlFor="mobileNumber">Mobile Number *</label>
+                <input
+                  type="tel"
+                  id="mobileNumber"
+                  value={orderData.mobileNumber}
+                  onChange={(e) =>
+                    setOrderData({ ...orderData, mobileNumber: e.target.value })
+                  }
+                  required
+                  className={styles.input}
+                  placeholder="Enter customer's mobile number"
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="shippingAddress">
+                  {orderType === "store"
+                    ? "Customer Address"
+                    : "Shipping Address"}{" "}
+                  *
                 </label>
-                <select
-                  value={item.productId} // Changed to use productId as value
+                <textarea
+                  id="shippingAddress"
+                  value={orderData.shippingAddress}
                   onChange={(e) =>
-                    handleItemChange(index, "modelNumber", e.target.value)
+                    setOrderData({
+                      ...orderData,
+                      shippingAddress: e.target.value,
+                    })
                   }
                   required
-                  className={styles.input}
-                  disabled={retryAfter > 0 || products.length === 0}
+                  className={styles.textarea}
+                  placeholder={`Enter ${
+                    orderType === "store" ? "customer's" : "shipping"
+                  } address`}
+                />
+              </div>
+            </div>
+
+            <div className={styles.formSection}>
+              <div className={styles.sectionHeader}>
+                <h4>Order Items</h4>
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className={styles.addItemButton}
                 >
-                  <option value="">Select a product</option>
-                  {products.map((product) => (
-                    <option
-                      key={product._id}
-                      value={product._id} // Use _id as value
-                    >
-                      {product.name || "Unnamed Product"} -{" "}
-                      {product.modelNumber || "No Model"} ($
-                      {product.price?.toFixed(2) || "0.00"})
-                    </option>
-                  ))}
-                </select>
-                {products.length === 0 && !error && (
-                  <div className={styles.loadingText}>
-                    Loading available products...
+                  <FaPlus /> Add Item
+                </button>
+              </div>
+
+              {orderData.items.map((item, index) => (
+                <div key={index} className={styles.itemRow}>
+                  <div className={styles.itemDetails}>
+                    <div className={styles.formGroup}>
+                      <label>Product *</label>
+                      <select
+                        value={item.productId}
+                        onChange={(e) =>
+                          handleItemChange(index, "modelNumber", e.target.value)
+                        }
+                        required
+                        className={styles.select}
+                      >
+                        <option value="">Select a product</option>
+                        {products.map((product) => (
+                          <option key={product._id} value={product._id}>
+                            {product.name} - {product.modelNumber} ($
+                            {product.price})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>Quantity *</label>
+                      <div className={styles.quantityControl}>
+                        <button 
+                          type="button"
+                          className={`${styles.quantityButton} ${styles.minusButton}`}
+                          onClick={() => handleQuantityChange(index, -1)}
+                          disabled={item.quantity <= 1}
+                        >
+                          −
+                        </button>
+                        <span className={styles.quantityDisplay}>{item.quantity}</span>
+                        <button 
+                          type="button"
+                          className={`${styles.quantityButton} ${styles.plusButton}`}
+                          onClick={() => handleQuantityChange(index, 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className={styles.itemPrice}>
+                      ${(item.quantity * item.priceAtPurchase).toFixed(2)}
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className={styles.formGroup}>
-                <label>Quantity *</label>
-                <input
-                  type="number"
-                  value={item.quantity}
-                  onChange={(e) =>
-                    handleItemChange(index, "quantity", e.target.value)
-                  }
-                  min="1"
-                  required
-                  className={styles.input}
-                  disabled={retryAfter > 0}
-                />
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    className={styles.removeItemButton}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              ))}
 
-              <div className={styles.formGroup}>
-                <label>Price</label>
-                <input
-                  type="number"
-                  value={item.priceAtPurchase}
-                  readOnly
-                  className={`${styles.input} ${styles.readOnly}`}
-                />
+              <div className={styles.orderTotal}>
+                <span>Total Amount:</span>
+                <span className={styles.totalPrice}>
+                  ${calculateTotal().toFixed(2)}
+                </span>
               </div>
+            </div>
 
+            <div className={styles.formActions}>
               <button
-                type="button"
-                onClick={() => removeItem(index)}
-                className={styles.removeButton}
-                disabled={orderData.items.length === 1 || retryAfter > 0}
+                type="submit"
+                className={styles.submitButton}
+                disabled={loading}
               >
-                Remove
+                {loading
+                  ? "Processing..."
+                  : orderType === "store"
+                  ? "Complete Sale"
+                  : "Create Order"}
               </button>
             </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={addItem}
-            className={styles.addButton}
-            disabled={retryAfter > 0}
-          >
-            Add Item
-          </button>
+          </form>
         </div>
-
-        <div className={styles.formActions}>
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={loading || retryAfter > 0}
-          >
-            {loading ? "Creating Order..." : "Create Order"}
-          </button>
-        </div>
-      </form>
+      )}
     </div>
   );
 };
