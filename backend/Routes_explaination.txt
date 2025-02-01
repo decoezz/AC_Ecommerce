@@ -1,33 +1,33 @@
 User/Admin routes:
 
-POST http://127.0.0.1:4000/api/v1/users/signup (Sign up for nomral users)
-Body:name,mobileNumber,email,password,passwordConfirm   (Done)
+POST http://127.0.0.1:4000/api/v1/users/signup (Sign up for nomral users)            (Done)
+Body:name,mobileNumber,email,password,passwordConfirm   
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/users/admin/signup (Sign up for employees users)
+POST http://127.0.0.1:4000/api/v1/users/admin/signup (Sign up for employees users)         (Done)
 Protected,need admin
-Body:name,mobileNumber,email,password,passwordConfirm       (Done)
+Body:name,mobileNumber,email,password,passwordConfirm       
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/users/login (login for All)
-Body:email,password          (Done)
+POST http://127.0.0.1:4000/api/v1/users/login (login for All)         (Done)
+Body:email,password          
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/users/logout (Log out)
-Protected               (Done)
+GET http://127.0.0.1:4000/api/v1/users/logout (Log out)         (Done)
+Protected               
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/users/me (get current user data)
-Protected            (Done)
+GET http://127.0.0.1:4000/api/v1/users/me (get current user data)            (Done)
+Protected            
 --------------------------------------------------------------- -----------
-GET http://127.0.0.1:4000/api/v1/users (Get All Users)
+GET http://127.0.0.1:4000/api/v1/users (Get All Users)           (Done)
 Protected,need admin
-has query:(sort,filter,limitfields,pagination)        (Done)
+has query:(sort,filter,limitfields,pagination)        
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/users/:id (Get Ceratin user)    (Done)
+GET http://127.0.0.1:4000/api/v1/users/:id (Get Ceratin user)            (Done)
 --------------------------------------------------------------------------
-DELETE http://127.0.0.1:4000/api/v1/users/:id (Delete Ceratin User)
-Protected,need Admin           (Done)
+DELETE http://127.0.0.1:4000/api/v1/users/:id (Delete Ceratin User)         (Done)
+Protected,need Admin           
 --------------------------------------------------------------------------
-PUT http://127.0.0.1:4000/api/v1/users/upload-photo (Add Profile Picture)
+PUT http://127.0.0.1:4000/api/v1/users/upload-photo (Add Profile Picture)         (Done)
 Protected
-Send picture in from-data in the name of (profilePicture)        (Done)
+Send picture in from-data in the name of (profilePicture)        
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/users/reviews (get all reviews of user)
 --------------------------------------------------------------------------
@@ -41,19 +41,19 @@ Protected,specific
 Body:(currentPassword(needed to change anything),password,passwordConfirm,name,email,mobileNumber)
 
 Products Routes:
-GET http://127.0.0.1:4000/api/v1/products/?brand=Samsung (Get All product)
-has query:(sort,filter,limitfields,pagination)        (Done)
+GET http://127.0.0.1:4000/api/v1/products/?brand=Samsung (Get All product)       (Done)
+has query:(sort,filter,limitfields,pagination)        
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/products/:id (Get certain product)     (Done)
 --------------------------------------------------------------------------
-POST http://127.0.0.1:4000/api/v1/products/ (Create Product)
+POST http://127.0.0.1:4000/api/v1/products/ (Create Product)        (Done)
 Protected,need Admin or employee
 Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy)
-can add photos through form-data(send all data in the form-data) in the name of (photos) up to 5 photos       (Done)
+can add photos through form-data(send all data in the form-data) in the name of (photos) up to 5 photos  
 --------------------------------------------------------------------------
-PATCH http://127.0.0.1:4000/api/v1/products/:id (Update Ceratin Product)
+PATCH http://127.0.0.1:4000/api/v1/products/:id (Update Ceratin Product)         (Done)
 Protected,need Admin or employee
-Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy) one field or all fields doesn't matter         (Done)
+Body:(brand,modelNumber,powerConsumption,price,inStock,quantityInStock,coolingCapacitiy) one field or all fields doesn't matter         
 --------------------------------------------------------------------------
 PUT http://127.0.0.1:4000/api/v1/products/update-product-images/:productId (Removing old photos (if exists) and add new photos)
 Protected,need Admin or employee
@@ -63,8 +63,8 @@ PUT http://127.0.0.1:4000/api/v1/products/update-product-images/:productId (Remo
 Protected,need Admin or employee
 Add photos through form-data in the name of (photos) up to 5 photos
 --------------------------------------------------------------------------
-DELTE http://127.0.0.1:4000/api/v1/products/:id (Delete Ceratin Product)
-Protected,need Admin or employee         (Done)
+DELTE http://127.0.0.1:4000/api/v1/products/:id (Delete Ceratin Product)       (Done)
+Protected,need Admin or employee         
 --------------------------------------------------------------------------
 DELTE http://127.0.0.1:4000/api/v1/products/delete-product-image (Delete Product's photos)
 Protected,need Admin or employee
@@ -110,13 +110,13 @@ Protected,specific
 GET http://127.0.0.1:4000/api/v1/orders/GetOrders (Get All Orders)      (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/last-month (Get All Orders in the month)
+GET http://127.0.0.1:4000/api/v1/orders/last-month (Get All Orders in the month)     (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/last-week (Get All Orders in the month)
+GET http://127.0.0.1:4000/api/v1/orders/last-week (Get All Orders in the month)     (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
-GET http://127.0.0.1:4000/api/v1/orders/today (Get All Orders in the day)
+GET http://127.0.0.1:4000/api/v1/orders/today (Get All Orders in the day)       (Done)
 Protected,need Admin or employee
 --------------------------------------------------------------------------
 GET http://127.0.0.1:4000/api/v1/orders/GetOrders/:id (Getting a certain Order using ID)     (Done)

@@ -16,6 +16,7 @@ import {
   FaPercent,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
+import AddToCart from './AddToCart';
 
 const iconStyle = {
   color: "#000000", // Black color for icons
@@ -401,14 +402,7 @@ const Home = () => {
                         >
                           View Details
                         </Link>
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className={styles.addToCart__button}
-                          disabled={!product.inStock}
-                        >
-                          <FaShoppingCart style={iconStyle} />
-                          {product.inStock ? "Add to Cart" : "Out of Stock"}
-                        </button>
+                        <AddToCart productId={product._id} />
                       </div>
                     </div>
                   </div>
