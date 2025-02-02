@@ -29,6 +29,7 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const iconStyle = {
   color: "#4338ca",
@@ -61,7 +62,8 @@ const ManageProducts = () => {
   const [itemsPerPage] = useState(8);
   const [showAddForm, setShowAddForm] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   const checkServerConnection = async () => {
     try {
@@ -90,9 +92,14 @@ const ManageProducts = () => {
 
   const fetchProducts = async (brand = "") => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      setError("No token found. Please log in.");
-      setLoading(false);
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (
+      !token ||
+      !user ||
+      (user.role !== "Admin" && user.role !== "Employee")
+    ) {
+      navigate("/not-found");
       return;
     }
 
@@ -124,7 +131,7 @@ const ManageProducts = () => {
     // Set up periodic server connection check
     const intervalId = setInterval(checkServerConnection, 30000); // Check every 30 seconds
     return () => clearInterval(intervalId);
-  }, [refreshTrigger]);
+  }, [refreshTrigger, navigate]);
 
   // Combine filtering and sorting in one operation
   const displayedProducts = useMemo(() => {

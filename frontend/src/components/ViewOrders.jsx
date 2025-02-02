@@ -238,8 +238,23 @@ const ViewOrders = () => {
   };
 
   useEffect(() => {
+    // Check authentication and roles
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // Allow only Admin and Employee roles
+    if (
+      !token ||
+      !user ||
+      (user.role !== "Admin" && user.role !== "Employee")
+    ) {
+      navigate("/not-found");
+      return;
+    }
+
+    // Fetch orders and other initialization logic
     checkUserRole();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className={styles.viewOrders}>

@@ -24,8 +24,10 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import styles from "./UserManagement.module.css";
+import { useNavigate } from "react-router-dom";
 
 const UserManagement = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,8 +114,19 @@ const UserManagement = () => {
   );
 
   useEffect(() => {
+    // Check authentication and roles
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // Allow only Admin role for user management
+    if (!token || !user || user.role !== "Admin") {
+      navigate("/not-found");
+      return;
+    }
+
+    // Fetch users and other initialization logic
     fetchUsers();
-  }, [fetchUsers]);
+  }, [navigate]);
 
   const handleSort = (field) => {
     if (sortField === field) {
