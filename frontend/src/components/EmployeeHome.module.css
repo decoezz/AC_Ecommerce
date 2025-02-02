@@ -1,7 +1,8 @@
 .employeeHome {
   padding: 2rem;
   background-color: #f8fafc;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 80px);
+  margin-top: 80px;
 }
 
 .employeeHome__header {
@@ -14,6 +15,8 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .headerLeft h2 {
@@ -45,6 +48,7 @@
 .employeeHome__content {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .actionCards {
@@ -57,14 +61,14 @@
 .actionCard {
   background: white;
   border-radius: 12px;
-  padding: 1.75rem;
+  padding: 1.5rem;
   text-decoration: none;
   color: inherit;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   border: 1px solid #e2e8f0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1.25rem;
   position: relative;
   overflow: hidden;
@@ -99,11 +103,12 @@
 
 .cardIcon {
   color: #3b82f6;
-  font-size: 1.75rem;
-  padding: 1rem;
+  font-size: 1.5rem;
+  padding: 0.75rem;
   background: #f1f5f9;
   border-radius: 10px;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .actionCard:hover .cardIcon {
@@ -116,18 +121,17 @@
 }
 
 .cardContent h3 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: #1e293b;
   margin: 0 0 0.5rem 0;
   font-weight: 600;
-  transition: color 0.3s ease;
 }
 
 .cardContent p {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #64748b;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .actionCard:hover .cardContent h3 {
@@ -185,45 +189,102 @@
   margin: 0.25rem 0 0 0;
 }
 
-@media (max-width: 1024px) {
-  .employeeHome {
-    padding: 1.5rem;
-  }
-
-  .actionCards {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-  }
-}
-
+/* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .employeeHome {
     padding: 1rem;
+    margin-top: 64px;
+    min-height: calc(100vh - 64px);
   }
 
   .employeeHome__header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
     padding: 1rem;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
   }
 
   .headerLeft h2 {
     font-size: 1.5rem;
   }
 
+  .headerRight {
+    width: 100%;
+  }
+
+  .headerRight .dateTime {
+    width: 100%;
+    justify-content: center;
+  }
+
   .actionCards {
     grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0;
   }
 
   .actionCard {
     padding: 1.25rem;
   }
+
+  .cardIcon {
+    font-size: 1.25rem;
+    padding: 0.6rem;
+  }
+
+  .cardContent h3 {
+    font-size: 1rem;
+  }
+
+  .cardContent p {
+    font-size: 0.85rem;
+  }
 }
 
+/* Small mobile devices */
+@media (max-width: 375px) {
+  .employeeHome {
+    padding: 0.75rem;
+  }
+
+  .employeeHome__header {
+    padding: 0.75rem;
+  }
+
+  .headerLeft h2 {
+    font-size: 1.25rem;
+  }
+
+  .actionCard {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .cardIcon {
+    font-size: 1.1rem;
+    padding: 0.5rem;
+  }
+}
+
+/* Touch device optimizations */
 @media (hover: none) {
-  .actionCard:hover {
-    transform: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  .actionCard:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Ensure content is readable on very small screens */
+@media (max-width: 320px) {
+  .headerLeft h2 {
+    font-size: 1.2rem;
+  }
+
+  .cardContent h3 {
+    font-size: 0.95rem;
+  }
+
+  .cardContent p {
+    font-size: 0.8rem;
   }
 }
