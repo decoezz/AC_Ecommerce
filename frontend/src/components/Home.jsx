@@ -506,33 +506,37 @@ const Home = () => {
         </div>
       </div>
 
-      <div className={styles.filters}>
+      <div className={styles.searchAndFilters}>
         <div className={styles.searchBar}>
           <FaSearch className={styles.searchIcon} />
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search for products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        <div className={styles.filterControls}>
-          <select
-            value={filterInStock}
-            onChange={(e) => setFilterInStock(e.target.value)}
-            className={styles.filterSelect}
-          >
-            <option value="all">All Items</option>
-            <option value="inStock">In Stock</option>
-            <option value="outOfStock">Out of Stock</option>
-          </select>
+        
+        <div className={styles.filterGroup}>
+          <div className={styles.filterButton}>
+            <FaFilter className={styles.filterIcon} />
+            <select
+              className={styles.filterSelect}
+              value={filterInStock}
+              onChange={(e) => setFilterInStock(e.target.value)}
+            >
+              <option value="all">All Items</option>
+              <option value="inStock">In Stock</option>
+              <option value="outOfStock">Out of Stock</option>
+            </select>
+          </div>
 
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             className={styles.sortButton}
           >
-            <FaSortAmountDown /> {sortOrder === "asc" ? "Price ↑" : "Price ↓"}
+            <FaSortAmountDown />
+            {sortOrder === "asc" ? "Price ↑" : "Price ↓"}
           </button>
         </div>
       </div>
