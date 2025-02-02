@@ -47,60 +47,160 @@ html {
   flex-wrap: wrap;
 }
 
+/* Container for both search and filters */
+.searchContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem auto;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+/* Search Bar */
 .searchBar {
-  flex: 1;
-  min-width: 300px;
+  width: 40%; /* Reduced width for a more compact look */
   position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0 auto; /* Center the search bar */
+}
+
+.searchBar input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8fafc;
 }
 
 .searchIcon {
   position: absolute;
   left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
+  color: #64748b;
+  font-size: 1.25rem;
 }
 
-.searchBar input {
-  width: 100%;
-  padding: 0.875rem 1rem 0.875rem 2.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1rem;
-  background: white;
-  transition: all 0.3s ease;
-}
-
-.searchBar input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
+/* Filter Controls */
 .filterControls {
   display: flex;
+  justify-content: center;
   gap: 1rem;
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
-.filterSelect,
-.sortButton {
-  padding: 0.875rem 1.5rem;
-  border: 1px solid #e2e8f0;
+.filterSelect {
+  width: 100%;
+  max-width: 200px; /* Limit width for better appearance */
+}
+
+.filterSelect select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
-  background: white;
-  color: #1e293b;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 1rem;
+  background: #f8fafc;
+}
+
+.sortButton {
+  width: 100%;
+  max-width: 200px; /* Match filter select width */
+  padding: 0.875rem 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.filterSelect:hover,
+/* Hover states */
+.searchBar input:focus,
+.filterSelect select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
 .sortButton:hover {
   border-color: #3b82f6;
-  background: #f8fafc;
+  color: #3b82f6;
+}
+
+.searchBar.loading input {
+  background-image: linear-gradient(
+    90deg,
+    #f1f5f9 0px,
+    #e2e8f0 40px,
+    #f1f5f9 80px
+  );
+  background-size: 600px;
+  animation: shine 1.6s infinite linear;
+}
+
+@keyframes shine {
+  0% {
+    background-position: -100px;
+  }
+  100% {
+    background-position: 140px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .searchBar {
+    width: 60%;
+  }
+}
+
+@media (max-width: 768px) {
+  .searchBar {
+    width: 80%;
+  }
+
+  .filterControls {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .filterSelect,
+  .sortButton {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchBar {
+    width: 100%;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .searchContainer {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .searchBar input,
+  .filterSelect select,
+  .sortButton {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .searchIcon,
+  .filterSelect::after {
+    color: rgba(255, 255, 255, 0.6);
+  }
 }
 
 .productGrid {
@@ -300,35 +400,6 @@ html {
 
 .retryButton:hover {
   background: #2563eb;
-}
-
-@media (max-width: 768px) {
-  .container {
-    margin-top: 60px;
-    padding: 1rem;
-  }
-
-  .header h1 {
-    font-size: 2rem;
-  }
-
-  .filters {
-    flex-direction: column;
-  }
-
-  .filterControls {
-    width: 100%;
-  }
-
-  .filterSelect,
-  .sortButton {
-    flex: 1;
-  }
-
-  .productGrid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-  }
 }
 
 /* Hero Section - More Compact */
