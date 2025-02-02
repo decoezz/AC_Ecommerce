@@ -29,10 +29,10 @@ const Login = () => {
             navigate("/employee-home");
             break;
           case "user":
-            navigate("/user-home");
+            navigate("/shop");
             break;
           default:
-            navigate("/");
+            navigate("/shop");
             break;
         }
       } catch (error) {
@@ -139,11 +139,11 @@ const Login = () => {
           navigate("/employee-home");
           break;
         case "user":
-          navigate("/user-home");
+          navigate("/shop");
           break;
         default:
           console.warn("Unknown user role:", userData.role);
-          navigate("/");
+          navigate("/shop");
           break;
       }
     } catch (err) {
