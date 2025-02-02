@@ -33,6 +33,23 @@ const largeIconStyle = {
   fontSize: "2.5rem",
 };
 
+const Notification = ({ message, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000); // 3 seconds
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={styles.notification} role="alert">
+      <FaCheckCircle className={styles.notification__icon} aria-hidden="true" />
+      <span className={styles.notification__message}>{message}</span>
+    </div>
+  );
+};
+
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +70,7 @@ const Home = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showNotification, setShowNotification] = useState(false);
   const navigate = useNavigate();
 
   const categories = [
@@ -171,7 +189,7 @@ const Home = () => {
       );
 
       if (response.status === 200 || response.status === 201) {
-        alert("Product added to cart successfully!");
+        setShowNotification(true);
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -197,70 +215,16 @@ const Home = () => {
     },
   };
 
-  const handleLike = async (productId) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to like products");
-        return;
+  const toggleLike = (productId) => {
+    setLikedProducts((prev) => {
+      const newLiked = new Set(prev);
+      if (newLiked.has(productId)) {
+        newLiked.delete(productId);
+      } else {
+        newLiked.add(productId);
       }
-
-      let ratingDoc = productRatings[productId]?.[0];
-
-      if (!ratingDoc) {
-        try {
-          const createRatingResponse = await axios({
-            method: "POST",
-            url: `http://127.0.0.1:4000/api/v1/products/ratings/${productId}`,
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            data: {
-              rating: 3,
-              comment: "Product rating",
-            },
-          });
-
-          if (createRatingResponse.data && createRatingResponse.data.data) {
-            ratingDoc = createRatingResponse.data.data;
-            setProductRatings((prev) => ({
-              ...prev,
-              [productId]: [ratingDoc],
-            }));
-          }
-        } catch (error) {
-          console.error("Error creating rating:", error);
-          console.log("Error details:", error.response?.data);
-          alert(error.response?.data?.message || "Failed to create rating");
-          return;
-        }
-      }
-
-      const response = await axios({
-        method: "PUT",
-        url: `http://127.0.0.1:4000/api/v1/products/ratings/${ratingDoc._id}/like`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status === 200) {
-        setLikedProducts((prev) => {
-          const newSet = new Set(prev);
-          if (newSet.has(productId)) {
-            newSet.delete(productId);
-          } else {
-            newSet.add(productId);
-          }
-          return newSet;
-        });
-      }
-    } catch (error) {
-      console.error("Error toggling like:", error);
-      alert(error.response?.data?.message || "Failed to toggle like");
-    }
+      return newLiked;
+    });
   };
 
   const openRatingModal = (productId) => {
@@ -449,15 +413,20 @@ const Home = () => {
               className={styles.productImage}
             />
             <motion.button
-              className={styles.likeButton}
+              className={`${styles.likeButton} ${isLiked ? styles.active : ""}`}
               onClick={(e) => {
                 e.preventDefault();
-                handleLike(product._id);
+                toggleLike(product._id);
               }}
+              aria-label={isLiked ? "Unlike" : "Like"}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
-              {isLiked ? <FaHeart color="#ef4444" /> : <FaRegHeart />}
+              {isLiked ? (
+                <FaHeart className={styles.heartIcon} />
+              ) : (
+                <FaRegHeart className={styles.heartIcon} />
+              )}
             </motion.button>
             {product.discount > 0 && (
               <div className={styles.discountBadge}>
@@ -767,6 +736,13 @@ const Home = () => {
       )}
 
       {showProductModal && <ProductDetailsModal />}
+
+      {showNotification && (
+        <Notification
+          message="Product added to cart successfully! 🛍️"
+          onClose={() => setShowNotification(false)}
+        />
+      )}
     </motion.div>
   );
 };
