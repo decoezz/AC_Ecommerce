@@ -17,6 +17,8 @@ import {
   FaHeart,
   FaRegHeart,
   FaStar,
+  FaTools,
+  FaCheckCircle,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import AddToCart from "./AddToCart";
@@ -145,7 +147,7 @@ const Home = () => {
   };
 
   const handleAddToCart = async (e, productId) => {
-    e.preventDefault(); // Prevent navigation to product details
+    e.preventDefault(); // Prevent navigation
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -154,19 +156,26 @@ const Home = () => {
     }
 
     try {
-      await axios.post(
-        `http://127.0.0.1:4000/api/v1/cart/add/${productId}`,
-        { quantity: 1 },
+      const response = await axios.post(
+        "http://127.0.0.1:4000/api/v1/cart/",
+        {
+          productId: productId,
+          quantity: 1,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
-      alert("Product added to cart successfully!");
+
+      if (response.status === 200 || response.status === 201) {
+        alert("Product added to cart successfully!");
+      }
     } catch (error) {
-      alert("Error adding product to cart");
-      console.error("Error:", error);
+      console.error("Error adding to cart:", error);
+      alert(error.response?.data?.message || "Error adding product to cart");
     }
   };
 
@@ -424,6 +433,7 @@ const Home = () => {
 
     return (
       <motion.div
+        key={`product-${product._id}`}
         layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -555,24 +565,8 @@ const Home = () => {
         </div>
       </motion.div>
 
-      <motion.div className={styles.promoBanner} variants={containerVariants}>
-        <div className={styles.promoItem}>
-          <FaPercent />
-          <span>Special Summer Discount</span>
-        </div>
-        <div className={styles.promoItem}>
-          <FaShoppingCart />
-          <span>Free Installation</span>
-        </div>
-        <div className={styles.promoItem}>
-          <FaSnowflake />
-          <span>2 Year Warranty</span>
-        </div>
-      </motion.div>
-
       <div className={styles.filters}>
         <div className={styles.searchBar}>
-          <FaSearch className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search products..."
@@ -639,32 +633,97 @@ const Home = () => {
         </div>
       </motion.div>
 
-      <div className={styles.whyChooseUs}>
-        <h2 className={styles.sectionTitle}>Why Choose Us</h2>
-        <div className={styles.features}>
-          <div className={styles.feature}>
-            <FaShoppingCart />
+      <section className={styles.whyChooseUs}>
+        <motion.h2
+          className={styles.whyTitle}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          Why Choose Us
+        </motion.h2>
+        <div className={styles.featureGrid}>
+          <motion.div
+            className={styles.featureCard}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className={styles.iconWrapper}>
+              <FaTools className={styles.featureIcon} />
+            </div>
             <h3>Expert Installation</h3>
             <p>Professional installation by certified technicians</p>
-          </div>
-          <div className={styles.feature}>
-            <FaBolt />
+            <ul className={styles.featureList}>
+              <li>
+                <FaCheckCircle /> Certified Experts
+              </li>
+              <li>
+                <FaCheckCircle /> Quick Service
+              </li>
+              <li>
+                <FaCheckCircle /> Quality Assurance
+              </li>
+            </ul>
+          </motion.div>
+
+          <motion.div
+            className={styles.featureCard}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className={styles.iconWrapper}>
+              <FaBolt className={styles.featureIcon} />
+            </div>
             <h3>Energy Efficient</h3>
             <p>Save on electricity bills with our energy-rated ACs</p>
-          </div>
-          <div className={styles.feature}>
-            <FaLeaf />
+            <ul className={styles.featureList}>
+              <li>
+                <FaCheckCircle /> Lower Bills
+              </li>
+              <li>
+                <FaCheckCircle /> Smart Technology
+              </li>
+              <li>
+                <FaCheckCircle /> Power Saving
+              </li>
+            </ul>
+          </motion.div>
+
+          <motion.div
+            className={styles.featureCard}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className={styles.iconWrapper}>
+              <FaLeaf className={styles.featureIcon} />
+            </div>
             <h3>Eco-Friendly</h3>
             <p>Environmental-friendly cooling solutions</p>
-          </div>
+            <ul className={styles.featureList}>
+              <li>
+                <FaCheckCircle /> Green Technology
+              </li>
+              <li>
+                <FaCheckCircle /> Sustainable
+              </li>
+              <li>
+                <FaCheckCircle /> Clean Air
+              </li>
+            </ul>
+          </motion.div>
         </div>
-      </div>
+      </section>
 
       {!loading && !error && totalPages > 1 && (
         <div className={styles.pagination}>
-          {[...Array(totalPages)].map((_, index) => (
+          {Array.from({ length: totalPages }).map((_, index) => (
             <motion.button
-              key={index + 1}
+              key={`page-${index + 1}`}
               className={`${styles.pageButton} ${
                 currentPage === index + 1 ? styles.activePage : ""
               }`}
