@@ -18,8 +18,22 @@ const OrderDetails = () => {
   });
 
   useEffect(() => {
+    // Check authentication and roles
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // Allow only Admin and Employee roles
+    if (
+      !token ||
+      !user ||
+      (user.role !== "Admin" && user.role !== "employee")
+    ) {
+      navigate("/not-found");
+      return;
+    }
+
     fetchOrderDetails();
-  }, [orderId]);
+  }, [navigate, orderId]);
 
   const fetchOrderDetails = async () => {
     const token = localStorage.getItem("token");
