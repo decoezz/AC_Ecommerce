@@ -1,8 +1,25 @@
 :root {
+  /* Blue & White Color Palette */
+  --primary-blue: #2563eb;
+  --primary-blue-dark: #1d4ed8;
+  --primary-blue-light: #3b82f6;
+  --secondary-blue: #60a5fa;
+  --accent-blue: #93c5fd;
+
+  /* Whites */
+  --pure-white: #ffffff;
+  --off-white: #f8fafc;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+
+  /* Text Colors */
+  --text-dark: #1e293b;
+  --text-medium: #475569;
+  --text-light: #64748b;
+
   /* Modern Professional Color Palette */
   --primary-purple: #7c3aed; /* Main brand color - Vibrant Purple */
   --primary-light: #8b5cf6;
-  --secondary-blue: #3b82f6; /* Bright Blue */
   --success-green: #10b981; /* Emerald */
   --danger-red: #ef4444; /* Bright Red */
   --warning-yellow: #f59e0b; /* Amber */
@@ -16,7 +33,6 @@
   --text-black: #000000;
   --text-gray-dark: #1f2937;
   --text-gray: #6b7280;
-  --text-light: #9ca3af;
 
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #7c3aed, #8b5cf6);
@@ -29,27 +45,33 @@
 
 .manageProducts {
   padding: 2rem;
-  background-color: var(--bg-pure-white);
+  background-color: var(--off-white);
   min-height: 100vh;
 }
 
 .dashboardHeader {
-  background: var(--gradient-primary);
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--primary-blue-dark)
+  );
   padding: 2rem;
   border-radius: 1rem;
   margin-bottom: 2rem;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1);
 }
 
 .pageTitle {
-  color: var(--bg-pure-white);
-  font-size: 1.8rem;
+  color: var(--pure-white);
+  font-size: 2rem;
   font-weight: 600;
+  margin-bottom: 1rem;
 }
 
 .headerStats {
   display: flex;
   gap: 2rem;
+  flex-wrap: wrap;
 }
 
 .statCard {
@@ -60,12 +82,13 @@
   border-radius: 1rem;
   color: white;
   flex: 1;
-  transition: transform 0.3s ease;
+  min-width: 200px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .statCard:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.15);
 }
 
 .addButton {
@@ -87,11 +110,12 @@
 }
 
 .toolBar {
-  background: var(--bg-off-white);
+  background: var(--pure-white);
   border-radius: 1rem;
-  padding: 1.25rem;
+  padding: 1.5rem;
   margin-bottom: 2rem;
-  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
+  border: 1px solid var(--accent-blue);
 }
 
 .searchBar {
@@ -111,18 +135,17 @@
 .searchBar input {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 1px solid var(--border-light);
+  border: 2px solid var(--accent-blue);
   border-radius: 0.75rem;
   font-size: 1rem;
   transition: all 0.2s ease;
-  color: var(--text-black);
-  background: var(--bg-pure-white);
-  font-weight: 500;
+  color: var(--text-dark);
+  background: var(--pure-white);
 }
 
 .searchBar input:focus {
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .searchBar input::placeholder {
@@ -180,22 +203,23 @@
 
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
 }
 
 .productCard {
-  background: var(--bg-pure-white);
+  background: var(--pure-white);
   border-radius: 1rem;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
+  border: 1px solid var(--accent-blue);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .productCard:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
 }
 
 .cardHeader {
@@ -312,27 +336,21 @@
 }
 
 .editButton {
-  background: var(--secondary-blue);
-  color: var(--bg-pure-white);
+  background: var(--primary-blue);
+  color: var(--pure-white);
 }
 
 .editButton:hover {
-  filter: brightness(110%);
-  transform: translateY(-2px);
+  background: var(--primary-blue-dark);
 }
 
 .deleteButton {
-  background: var(--bg-pure-white);
-  color: var(--danger-red);
-  border: 1px solid var(--danger-red);
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  transition: all 0.2s ease;
+  background: #ef4444;
+  color: var(--pure-white);
 }
 
 .deleteButton:hover {
-  background: var(--danger-red);
-  color: var(--bg-pure-white);
+  background: #dc2626;
 }
 
 .pagination {
@@ -372,23 +390,23 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .modalContent {
-  background: var(--bg-pure-white);
-  border-radius: 20px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  background: var(--pure-white);
+  padding: 2rem;
+  border-radius: 1rem;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  margin: 20px;
+  box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.1);
 }
 
 .modalHeader {
@@ -428,34 +446,68 @@
   padding: 30px;
 }
 
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .formGroup {
-  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .formGroup label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--text-black);
   font-weight: 600;
-  font-size: 0.95rem;
+  color: var(--text-dark);
 }
 
-.formGroup input {
-  width: 100%;
-  height: 45px;
-  padding: 0 16px;
-  border: 2px solid var(--border-light);
-  border-radius: 10px;
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  padding: 0.75rem;
+  border: 2px solid var(--accent-blue);
+  border-radius: 0.5rem;
   font-size: 1rem;
-  color: var(--text-black);
-  transition: all 0.2s;
-  background: var(--bg-pure-white);
+  transition: all 0.2s ease;
 }
 
-.formGroup input:focus {
-  outline: none;
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+.formGroup input:focus,
+.formGroup textarea:focus,
+.formGroup select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.submitButton,
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.submitButton {
+  background: var(--primary-purple);
+  color: white;
+}
+
+.cancelButton {
+  background: var(--danger-red);
+  color: white;
+}
+
+.submitButton:hover,
+.cancelButton:hover {
+  opacity: 0.9;
 }
 
 /* Form Grid Layout */
@@ -568,7 +620,7 @@ input[type="number"]::-webkit-inner-spin-button {
 @media (max-width: 768px) {
   .modalContent {
     width: 95%;
-    margin: 10px;
+    padding: 1.5rem;
   }
 
   .formGrid {
@@ -1130,4 +1182,434 @@ svg {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Add these new styles to your existing CSS file */
+
+.addNewButton {
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--primary-blue-dark)
+  );
+  color: var(--pure-white);
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+  margin-left: auto;
+}
+
+.addNewButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue-dark),
+    var(--primary-blue)
+  );
+}
+
+.addNewButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.addProductForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.formTitle {
+  grid-column: 1 / -1;
+  color: var(--text-dark);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  color: var(--text-medium);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--gray-100);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--pure-white);
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus,
+.formGroup select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+.imageUpload {
+  grid-column: 1 / -1;
+  padding: 2rem;
+  border: 2px dashed var(--primary-blue-light);
+  border-radius: 1rem;
+  text-align: center;
+  background: var(--gray-50);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.imageUpload:hover {
+  background: var(--gray-100);
+  border-color: var(--primary-blue);
+}
+
+.imagePreview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.previewImage {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.formActions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.submitButton {
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--primary-blue-dark)
+  );
+  color: var(--pure-white);
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.cancelButton {
+  background: var(--gray-100);
+  color: var(--text-medium);
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover {
+  background: var(--gray-200);
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .addProductForm {
+    grid-template-columns: 1fr;
+    padding: 0.5rem;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .submitButton,
+  .cancelButton {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .addNewButton {
+    width: 100%;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+}
+
+/* Loading state for form submission */
+.submitButton.loading {
+  position: relative;
+  color: transparent;
+}
+
+.submitButton.loading::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--pure-white);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Required field indicator */
+.required::after {
+  content: "*";
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+/* Form validation styles */
+.formGroup.error input,
+.formGroup.error textarea,
+.formGroup.error select {
+  border-color: #ef4444;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Add these new styles for the Add Product modal */
+.addProductModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.addProductContent {
+  background: var(--pure-white);
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.addProductHeader {
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--primary-blue-dark)
+  );
+  padding: 1.5rem 2rem;
+  border-radius: 1.5rem 1.5rem 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addProductHeader h2 {
+  color: var(--pure-white);
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.closeButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: var(--pure-white);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.addProductForm {
+  padding: 2rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  color: var(--text-medium);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--gray-100);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--pure-white);
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+.photoUpload {
+  grid-column: span 2;
+  padding: 2rem;
+  border: 2px dashed var(--primary-blue-light);
+  border-radius: 1rem;
+  text-align: center;
+  background: var(--gray-50);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.photoUpload:hover {
+  background: var(--gray-100);
+  border-color: var(--primary-blue);
+}
+
+.photoUpload input[type="file"] {
+  display: none;
+}
+
+.uploadLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.uploadIcon {
+  font-size: 2rem;
+  color: var(--primary-blue);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-100);
+}
+
+.cancelBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--text-medium);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.addProductBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--primary-blue-dark)
+  );
+  color: var(--pure-white);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.addProductBtn:hover,
+.cancelBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.required::after {
+  content: "*";
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .photoUpload {
+    grid-column: span 1;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .cancelBtn,
+  .addProductBtn {
+    width: 100%;
+  }
 }

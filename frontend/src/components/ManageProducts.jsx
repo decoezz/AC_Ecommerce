@@ -28,6 +28,7 @@ import {
   FaTrash,
   FaPlus,
 } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 
 const iconStyle = {
   color: "#4338ca",
@@ -60,6 +61,7 @@ const ManageProducts = () => {
   const [itemsPerPage] = useState(8);
   const [showAddForm, setShowAddForm] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const checkServerConnection = async () => {
     try {
@@ -266,114 +268,139 @@ const ManageProducts = () => {
     }
   };
 
-  const handleEdit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token || !editingProduct) {
-      setError("No token found or no product selected for editing");
-      return;
-    }
-
+  const handleEditProduct = async (productId, updatedData) => {
     try {
-      // Validate inputs before sending
-      const updates = {
-        brand: editingProduct.brand?.trim(),
-        modelNumber: editingProduct.modelNumber?.trim(),
-        powerConsumption: editingProduct.powerConsumption
-          ? parseInt(editingProduct.powerConsumption)
-          : undefined,
-        price: editingProduct.price
-          ? parseFloat(editingProduct.price)
-          : undefined,
-        quantityInStock: editingProduct.quantityInStock
-          ? parseInt(editingProduct.quantityInStock)
-          : undefined,
-        inStock: Boolean(editingProduct.inStock),
+      setIsLoading(true);
+      // Show processing message
+      toast.loading("Processing your request...", {
+        position: "top-center",
+        style: {
+          background: "#3B82F6",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+        },
+      });
+
+      const token = localStorage.getItem("token");
+
+      const productUpdateData = {
+        brand: updatedData.brand,
+        modelNumber: updatedData.modelNumber,
+        coolingCapacitiy: updatedData.coolingCapacitiy,
+        powerConsumption: Number(updatedData.powerConsumption),
+        price: Number(updatedData.price),
+        quantityInStock: Number(updatedData.quantityInStock),
+        inStock: updatedData.quantityInStock > 0,
+        features: updatedData.features || [],
       };
 
-      // Validation checks
-      if (updates.price && updates.price < 0) {
-        setError("Price cannot be negative");
-        return;
-      }
+      // Update product data
+      const productResponse = await axios({
+        method: "PATCH",
+        url: `http://127.0.0.1:4000/api/v1/products/${productId}`,
+        data: productUpdateData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (updates.quantityInStock !== undefined) {
-        if (updates.quantityInStock < 0) {
-          setError("Quantity cannot be negative");
-          return;
-        }
-        if (updates.quantityInStock > 500) {
-          setError("Quantity cannot exceed 500 units");
-          return;
-        }
-        // Automatically set inStock based on quantity
-        updates.inStock = updates.quantityInStock > 0;
-      }
+      // Handle photo updates if needed
+      if (updatedData.photos && updatedData.photos.length > 0) {
+        // Show photo upload message
+        toast.loading("Uploading photos...", {
+          position: "top-center",
+          style: {
+            background: "#3B82F6",
+            color: "#FFFFFF",
+            padding: "16px",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "500",
+          },
+        });
 
-      if (updates.powerConsumption && updates.powerConsumption < 0) {
-        setError("Power consumption cannot be negative");
-        return;
-      }
+        const formData = new FormData();
+        updatedData.photos.forEach((photo) => {
+          formData.append("photos", photo);
+        });
 
-      // Remove undefined values
-      Object.keys(updates).forEach(
-        (key) => updates[key] === undefined && delete updates[key]
-      );
-
-      // Only proceed if there are actual changes
-      const hasChanges = Object.keys(updates).some(
-        (key) => updates[key] !== editingProduct[key]
-      );
-
-      if (!hasChanges) {
-        setError("No changes detected");
-        return;
-      }
-
-      console.log("Sending update:", updates);
-
-      const response = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/products/${editingProduct._id}`,
-        updates,
-        {
+        await axios({
+          method: "PUT",
+          url: `http://127.0.0.1:4000/api/v1/products/update-product-images/${productId}`,
+          data: formData,
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
-        }
-      );
-
-      if (response.data) {
-        setEditingProduct(null);
-        // Trigger refresh
-        setRefreshTrigger((prev) => prev + 1);
-        // Show success message
-        alert("Product updated successfully!");
-        setError("");
+        });
       }
-    } catch (err) {
-      console.error("Update error:", err.response?.data || err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to update product. Please check your inputs."
-      );
+
+      if (productResponse.data.status === "success") {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === productId
+              ? {
+                  ...product,
+                  ...productUpdateData,
+                  photos: productResponse.data.data.photos || product.photos,
+                  averageRating: product.averageRating,
+                  likes: product.likes,
+                  ratings: product.ratings,
+                  reviewCount: product.reviewCount,
+                }
+              : product
+          )
+        );
+
+        // Clear any existing toasts
+        toast.dismiss();
+
+        // Show final success message
+        toast.success("✨ Process Completed Successfully! ✨", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#10B981",
+            color: "#FFFFFF",
+            padding: "16px",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "600",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #064E3B",
+          },
+          icon: "🎉",
+        });
+
+        setEditingProduct(null);
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+      // Clear any existing toasts
+      toast.dismiss();
+
+      // Show error message
+      toast.error("❌ Process Failed! Please try again.", {
+        duration: 4000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          border: "1px solid #991B1B",
+        },
+      });
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleEditInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    let finalValue = value;
-    if (type === "checkbox") {
-      finalValue = checked;
-    } else if (type === "number") {
-      finalValue = value === "" ? "" : value;
-    }
-
-    setEditingProduct((prev) => ({
-      ...prev,
-      [name]: finalValue,
-    }));
   };
 
   const handleDelete = async (productId) => {
@@ -517,6 +544,421 @@ const ManageProducts = () => {
     return `${import.meta.env.VITE_API_URL}/${photo.replace(/\\/g, "/")}`;
   };
 
+  const handleStockUpdate = async (productId, inStock) => {
+    try {
+      toast.loading("Updating stock status...", {
+        position: "top-center",
+        style: {
+          background: "#3B82F6",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+        },
+      });
+
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `http://127.0.0.1:4000/api/v1/products/${productId}`,
+        {
+          inStock: inStock,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.status === "success") {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === productId
+              ? { ...product, inStock: inStock }
+              : product
+          )
+        );
+
+        // Clear loading toast
+        toast.dismiss();
+
+        // Show success message
+        toast.success(
+          `✨ Product ${inStock ? "In Stock" : "Out of Stock"} ✨`,
+          {
+            duration: 3000,
+            position: "top-center",
+            style: {
+              background: "#10B981",
+              color: "#FFFFFF",
+              padding: "16px",
+              borderRadius: "8px",
+              fontSize: "16px",
+              fontWeight: "600",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              border: "1px solid #064E3B",
+            },
+            icon: "🔄",
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Error updating stock status:", error);
+      toast.dismiss();
+      toast.error("Failed to update stock status", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+        },
+      });
+    }
+  };
+
+  // Update quantity change handler
+  const handleQuantityChange = async (productId, newQuantity) => {
+    try {
+      toast.loading("Updating quantity...", {
+        position: "top-center",
+        style: {
+          background: "#3B82F6",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+        },
+      });
+
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `http://127.0.0.1:4000/api/v1/products/${productId}`,
+        {
+          quantityInStock: Number(newQuantity),
+          inStock: Number(newQuantity) > 0,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.status === "success") {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === productId
+              ? {
+                  ...product,
+                  quantityInStock: Number(newQuantity),
+                  inStock: Number(newQuantity) > 0,
+                }
+              : product
+          )
+        );
+
+        toast.dismiss();
+        toast.success("✨ Quantity Updated Successfully ✨", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#10B981",
+            color: "#FFFFFF",
+            padding: "16px",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "600",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #064E3B",
+          },
+          icon: "📦",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      toast.dismiss();
+      toast.error("Failed to update quantity", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+        },
+      });
+    }
+  };
+
+  // Update price change handler
+  const handlePriceChange = async (productId, newPrice) => {
+    try {
+      toast.loading("Updating price...", {
+        position: "top-center",
+        style: {
+          background: "#3B82F6",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+        },
+      });
+
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `http://127.0.0.1:4000/api/v1/products/${productId}`,
+        {
+          price: Number(newPrice),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.status === "success") {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === productId
+              ? { ...product, price: Number(newPrice) }
+              : product
+          )
+        );
+
+        toast.dismiss();
+        toast.success("✨ Price Updated Successfully ✨", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#10B981",
+            color: "#FFFFFF",
+            padding: "16px",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "600",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #064E3B",
+          },
+          icon: "💰",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating price:", error);
+      toast.dismiss();
+      toast.error("Failed to update price", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "#FFFFFF",
+          padding: "16px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "500",
+        },
+      });
+    }
+  };
+
+  // Edit Product Form Component
+  const EditProductForm = ({ product, onSubmit, onCancel }) => {
+    const [formData, setFormData] = useState({
+      brand: product.brand || "",
+      modelNumber: product.modelNumber || "",
+      coolingCapacitiy: product.coolingCapacitiy || "",
+      powerConsumption: product.powerConsumption || "",
+      starRating: product.starRating || 1,
+      price: product.price || 0,
+      features: product.features || [],
+      quantityInStock: product.quantityInStock || 0,
+      photos: [],
+    });
+
+    const handleChange = (e) => {
+      const { name, value, type } = e.target;
+
+      if (type === "file") {
+        setFormData((prev) => ({
+          ...prev,
+          photos: Array.from(e.target.files),
+        }));
+      } else if (name === "features") {
+        // Handle features as an array
+        const featuresArray = value
+          .split(",")
+          .map((feature) => feature.trim())
+          .filter((feature) => feature !== "");
+
+        setFormData((prev) => ({
+          ...prev,
+          features: featuresArray,
+        }));
+      } else if (type === "number") {
+        // Ensure number fields are properly converted
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value === "" ? "" : Number(value),
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      onSubmit(product._id, formData);
+    };
+
+    const handleFileChange = (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 5) {
+        toast.error("Maximum 5 photos allowed");
+        e.target.value = ""; // Clear the input
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        photos: files,
+      }));
+    };
+
+    return (
+      <div className={styles.editForm}>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label>Brand:</label>
+            <input
+              type="text"
+              name="brand"
+              value={formData.brand}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Model Number:</label>
+            <input
+              type="text"
+              name="modelNumber"
+              value={formData.modelNumber}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Cooling Capacity:</label>
+            <input
+              type="text"
+              name="coolingCapacitiy"
+              value={formData.coolingCapacitiy}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Power Consumption:</label>
+            <input
+              type="number"
+              name="powerConsumption"
+              value={formData.powerConsumption}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Star Rating:</label>
+            <input
+              type="number"
+              name="starRating"
+              value={formData.starRating}
+              onChange={handleChange}
+              min="1"
+              max="5"
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Price:</label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Quantity in Stock:</label>
+            <input
+              type="number"
+              name="quantityInStock"
+              value={formData.quantityInStock}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Features (comma-separated):</label>
+            <textarea
+              name="features"
+              value={formData.features.join(", ")}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Photos (Max 5):</label>
+            <input
+              type="file"
+              name="photos"
+              onChange={handleFileChange}
+              multiple
+              accept="image/*"
+              max="5"
+            />
+            <small>Current photos: {product.photos?.length || 0}</small>
+          </div>
+
+          <div className={styles.formActions}>
+            <button type="submit" className={styles.submitButton}>
+              Update Product
+            </button>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
   }
@@ -555,10 +997,23 @@ const ManageProducts = () => {
             className={styles.searchInput}
           />
           <button
-            className={styles.addButton}
+            className={styles.addNewButton}
             onClick={() => setShowAddForm(true)}
           >
-            <FaPlus /> Add Product
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            Add New Product
           </button>
         </div>
       </div>
@@ -636,7 +1091,18 @@ const ManageProducts = () => {
                 </h3>
                 <p>Price: ${product.price}</p>
                 <p>Stock: {product.quantityInStock}</p>
-                <p>Status: {product.inStock ? "In Stock" : "Out of Stock"}</p>
+                <div className={styles.stockToggle}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={product.inStock}
+                      onChange={(e) =>
+                        handleStockUpdate(product._id, e.target.checked)
+                      }
+                    />
+                    In Stock
+                  </label>
+                </div>
                 {product.powerConsumption && (
                   <p>Power: {product.powerConsumption}W</p>
                 )}
@@ -827,116 +1293,12 @@ const ManageProducts = () => {
       {editingProduct && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h3>
-                <FaRegEdit style={iconStyle} /> Edit Product
-              </h3>
-              <button
-                className={styles.closeButton}
-                onClick={() => {
-                  setEditingProduct(null);
-                  setError("");
-                }}
-              >
-                <FaTimes />
-              </button>
-            </div>
-
-            {error && (
-              <div className={styles.errorMessage}>
-                <FaExclamationCircle /> {error}
-              </div>
-            )}
-
-            <form onSubmit={handleEdit} className={styles.form}>
-              <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label>Brand *</label>
-                  <input
-                    type="text"
-                    name="brand"
-                    value={editingProduct.brand || ""}
-                    onChange={handleEditInputChange}
-                    required
-                    minLength="1"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Model Number *</label>
-                  <input
-                    type="text"
-                    name="modelNumber"
-                    value={editingProduct.modelNumber || ""}
-                    onChange={handleEditInputChange}
-                    required
-                    minLength="1"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Power Consumption (W)</label>
-                  <input
-                    type="number"
-                    name="powerConsumption"
-                    value={editingProduct.powerConsumption || ""}
-                    onChange={handleEditInputChange}
-                    min="0"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Price *</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={editingProduct.price || ""}
-                    onChange={handleEditInputChange}
-                    required
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label>Quantity in Stock</label>
-                  <input
-                    type="number"
-                    name="quantityInStock"
-                    value={editingProduct.quantityInStock || ""}
-                    onChange={handleEditInputChange}
-                    min="0"
-                    max="500"
-                  />
-                </div>
-
-                <div className={styles.checkboxGroup}>
-                  <input
-                    type="checkbox"
-                    name="inStock"
-                    checked={editingProduct.inStock || false}
-                    onChange={handleEditInputChange}
-                  />
-                  <label>In Stock</label>
-                </div>
-              </div>
-
-              <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={() => {
-                    setEditingProduct(null);
-                    setError("");
-                  }}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className={styles.saveButton}>
-                  <FaRegSave style={iconStyle} /> Save Changes
-                </button>
-              </div>
-            </form>
+            <h2>Edit Product</h2>
+            <EditProductForm
+              product={editingProduct}
+              onSubmit={handleEditProduct}
+              onCancel={() => setEditingProduct(null)}
+            />
           </div>
         </div>
       )}
