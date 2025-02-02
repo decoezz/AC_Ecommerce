@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./CreateAccount.module.css";
 import { FaCamera } from "react-icons/fa";
 
 const CreateAccount = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
@@ -13,7 +14,29 @@ const CreateAccount = () => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (token && user) {
+      // Redirect based on user role
+      switch (user.role) {
+        case "Admin":
+          navigate("/admin-home");
+          break;
+        case "Employee":
+          navigate("/employee-home");
+          break;
+        case "Customer":
+          navigate("/customer-home");
+          break;
+        default:
+          navigate("/");
+      }
+    }
+  }, [navigate]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -56,7 +79,7 @@ const CreateAccount = () => {
         formData.append("profilePicture", profilePicture);
 
         await axios.put(
-          "http://127.0.0.1:4000/api/v1/users/upload-photo",
+          `${import.meta.env.VITE_API_URL}/users/upload-photo`,
           formData,
           {
             headers: {
@@ -67,8 +90,21 @@ const CreateAccount = () => {
         );
       }
 
-      // Navigate to home after successful signup and photo upload
-      navigate("/home");
+      // Navigate based on user role
+      const user = response.data.data;
+      switch (user.role) {
+        case "Admin":
+          navigate("/admin-home");
+          break;
+        case "Employee":
+          navigate("/employee-home");
+          break;
+        case "Customer":
+          navigate("/customer-home");
+          break;
+        default:
+          navigate("/");
+      }
     } catch (err) {
       console.error("Error:", err);
       setError(
