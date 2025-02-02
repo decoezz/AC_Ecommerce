@@ -30,18 +30,32 @@ const ProductDetails = () => {
 
   // Load product data
   useEffect(() => {
-    const loadProduct = () => {
-      const productData = localStorage.getItem("selectedProduct");
-      if (productData) {
-        try {
-          const parsedProduct = JSON.parse(productData);
-          setProduct(parsedProduct);
-          // Initialize ratings array if it doesn't exist
-          if (!parsedProduct.ratings) {
-            parsedProduct.ratings = [];
+    const loadProduct = async () => {
+      try {
+        // Try to get fresh data from the API first
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `http://127.0.0.1:4000/api/v1/products/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        } catch (error) {
-          console.error("Error parsing product data:", error);
+        );
+        
+        if (response.data.data) {
+          console.log("Fresh product data:", response.data.data);
+          setProduct(response.data.data);
+          localStorage.setItem("selectedProduct", JSON.stringify(response.data.data));
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        // Fallback to localStorage if API fails
+        const productData = localStorage.getItem("selectedProduct");
+        if (productData) {
+          const parsedProduct = JSON.parse(productData);
+          console.log("Fallback product data:", parsedProduct);
+          setProduct(parsedProduct);
         }
       }
       setLoading(false);
@@ -503,7 +517,14 @@ const ProductDetails = () => {
               }`}
               onClick={() => setUserRating(star)}
             >
-              ⭐
+              <svg
+                viewBox="0 0 576 512"
+                className={styles.starIcon}
+                width="1em"
+                height="1em"
+              >
+                <path d="M259.3 17.8L194 150.2 47.9 171.5c-26.2 3.8-36.7 36.1-17.7 54.6l105.7 103-25 145.5c-4.5 26.3 23.2 46 46.4 33.7L288 439.6l130.7 68.7c23.2 12.2 50.9-7.4 46.4-33.7l-25-145.5 105.7-103c19-18.5 8.5-50.8-17.7-54.6L382 150.2 316.7 17.8c-11.7-23.6-45.6-23.9-57.4 0z" />
+              </svg>
             </button>
           ))}
         </div>
@@ -604,6 +625,8 @@ const ProductDetails = () => {
     );
   }
 
+  console.log("Current product state:", product); // Debug log
+
   return (
     <motion.div
       className={styles.productDetails}
@@ -665,14 +688,15 @@ const ProductDetails = () => {
           <div className={styles.ratingSection}>
             <div className={styles.stars}>
               {[...Array(5)].map((_, index) => (
-                <FaStar
+                <svg
                   key={index}
-                  className={
-                    index < Math.round(product.averageRating)
-                      ? styles.starFilled
-                      : styles.starEmpty
-                  }
-                />
+                  viewBox="0 0 576 512"
+                  className={styles.starIcon}
+                  width="1em"
+                  height="1em"
+                >
+                  <path d="M259.3 17.8L194 150.2 47.9 171.5c-26.2 3.8-36.7 36.1-17.7 54.6l105.7 103-25 145.5c-4.5 26.3 23.2 46 46.4 33.7L288 439.6l130.7 68.7c23.2 12.2 50.9-7.4 46.4-33.7l-25-145.5 105.7-103c19-18.5 8.5-50.8-17.7-54.6L382 150.2 316.7 17.8c-11.7-23.6-45.6-23.9-57.4 0z" />
+                </svg>
               ))}
             </div>
             <span className={styles.ratingCount}>
@@ -689,12 +713,12 @@ const ProductDetails = () => {
 
           <div className={styles.stockInfo}>
             <span
-              className={product.inStock ? styles.inStock : styles.outOfStock}
+              className={product?.inStock ? styles.inStock : styles.outOfStock}
             >
-              {product.inStock ? (
+              {product?.inStock ? (
                 <>
                   <span className={styles.dot}></span>
-                  In Stock ({product.quantityInStock} units)
+                  In Stock ({product?.quantityInStock || 0} {product?.quantityInStock === 1 ? 'unit' : 'units'})
                 </>
               ) : (
                 <>
