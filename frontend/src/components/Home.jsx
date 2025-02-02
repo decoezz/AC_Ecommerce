@@ -16,8 +16,9 @@ import {
   FaPercent,
   FaHeart,
   FaRegHeart,
+  FaStar,
 } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import AddToCart from "./AddToCart";
 
 const iconStyle = {
@@ -49,7 +50,17 @@ const Home = () => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const navigate = useNavigate();
+
+  const categories = [
+    { id: "all", name: "All Products", icon: FaShoppingCart },
+    { id: "energy", name: "Energy Efficient", icon: FaBolt },
+    { id: "cooling", name: "Cooling", icon: FaSnowflake },
+    { id: "eco", name: "Eco Friendly", icon: FaLeaf },
+    { id: "temperature", name: "Temperature Control", icon: FaThermometerHalf },
+    { id: "airflow", name: "Air Flow", icon: FaWind },
+  ];
 
   useEffect(() => {
     fetchProducts();
@@ -84,11 +95,15 @@ const Home = () => {
     }
   };
 
-  // Filter and sort products
   const filteredProducts = React.useMemo(() => {
     let result = [...products];
 
-    // Apply search filter
+    if (selectedCategory !== "all") {
+      result = result.filter(
+        (product) => product.category === selectedCategory
+      );
+    }
+
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       result = result.filter(
@@ -99,25 +114,19 @@ const Home = () => {
       );
     }
 
-    // Apply in-stock filter
     if (filterInStock !== "all") {
       result = result.filter((product) =>
         filterInStock === "inStock" ? product.inStock : !product.inStock
       );
     }
 
-    // Apply sorting
     result.sort((a, b) => {
-      if (sortOrder === "asc") {
-        return a.price - b.price;
-      }
-      return b.price - a.price;
+      return sortOrder === "asc" ? a.price - b.price : b.price - a.price;
     });
 
     return result;
-  }, [products, searchTerm, filterInStock, sortOrder]);
+  }, [products, searchTerm, filterInStock, sortOrder, selectedCategory]);
 
-  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredProducts.slice(
@@ -128,7 +137,6 @@ const Home = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Image URL helper
   const getImageUrl = (photo) => {
     if (!photo) return null;
     return photo.startsWith("http")
@@ -136,40 +144,32 @@ const Home = () => {
       : `${import.meta.env.VITE_API_URL}/${photo.replace(/\\/g, "/")}`;
   };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (e, productId) => {
+    e.preventDefault(); // Prevent navigation to product details
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login to add items to cart");
+      return;
+    }
+
     try {
-      // Get existing cart from localStorage
-      const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-
-      // Check if product already exists in cart
-      const existingProduct = existingCart.find(
-        (item) => item._id === product._id
+      await axios.post(
+        `http://127.0.0.1:4000/api/v1/cart/add/${productId}`,
+        { quantity: 1 },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-
-      if (existingProduct) {
-        // Update quantity if product exists
-        existingProduct.quantity += 1;
-        alert(
-          `Increased ${product.brand} ${product.modelNumber} quantity in cart`
-        );
-      } else {
-        // Add new product to cart
-        existingCart.push({
-          ...product,
-          quantity: 1,
-        });
-        alert(`Added ${product.brand} ${product.modelNumber} to cart`);
-      }
-
-      // Save updated cart to localStorage
-      localStorage.setItem("cart", JSON.stringify(existingCart));
+      alert("Product added to cart successfully!");
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Failed to add item to cart");
+      alert("Error adding product to cart");
+      console.error("Error:", error);
     }
   };
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -188,7 +188,6 @@ const Home = () => {
     },
   };
 
-  // Update handleLike function with correct rating creation
   const handleLike = async (productId) => {
     try {
       const token = localStorage.getItem("token");
@@ -197,10 +196,8 @@ const Home = () => {
         return;
       }
 
-      // Get the rating document for this product
       let ratingDoc = productRatings[productId]?.[0];
 
-      // If no rating exists, create one first
       if (!ratingDoc) {
         try {
           const createRatingResponse = await axios({
@@ -211,14 +208,13 @@ const Home = () => {
               "Content-Type": "application/json",
             },
             data: {
-              rating: 3, // Changed to required rating value
-              comment: "Product rating", // Added default comment
+              rating: 3,
+              comment: "Product rating",
             },
           });
 
           if (createRatingResponse.data && createRatingResponse.data.data) {
             ratingDoc = createRatingResponse.data.data;
-            // Update ratings data with new rating
             setProductRatings((prev) => ({
               ...prev,
               [productId]: [ratingDoc],
@@ -226,13 +222,12 @@ const Home = () => {
           }
         } catch (error) {
           console.error("Error creating rating:", error);
-          console.log("Error details:", error.response?.data); // Added to see detailed error
+          console.log("Error details:", error.response?.data);
           alert(error.response?.data?.message || "Failed to create rating");
           return;
         }
       }
 
-      // Now proceed with liking using the rating ID
       const response = await axios({
         method: "PUT",
         url: `http://127.0.0.1:4000/api/v1/products/ratings/${ratingDoc._id}/like`,
@@ -243,7 +238,6 @@ const Home = () => {
       });
 
       if (response.status === 200) {
-        // Toggle the like in local state
         setLikedProducts((prev) => {
           const newSet = new Set(prev);
           if (newSet.has(productId)) {
@@ -260,7 +254,6 @@ const Home = () => {
     }
   };
 
-  // Function to handle rating modal
   const openRatingModal = (productId) => {
     setRatingInput({
       productId,
@@ -270,7 +263,6 @@ const Home = () => {
     setShowRatingModal(true);
   };
 
-  // Function to add/update rating
   const handleRating = async (e) => {
     e.preventDefault();
     try {
@@ -307,7 +299,6 @@ const Home = () => {
     }
   };
 
-  // Function to delete rating
   const handleDeleteRating = async (productId) => {
     try {
       const token = localStorage.getItem("token");
@@ -334,18 +325,14 @@ const Home = () => {
     }
   };
 
-  // Update the handleProductClick function
   const handleProductClick = (product, e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Store the product data in localStorage
     localStorage.setItem("selectedProduct", JSON.stringify(product));
-    // Navigate to the product details page
     navigate(`/product/${product._id}`);
   };
 
-  // Update the ProductDetailsModal component to match the data structure
   const ProductDetailsModal = () => {
     if (!selectedProduct) return null;
 
@@ -432,6 +419,81 @@ const Home = () => {
     );
   };
 
+  const renderProductCard = (product) => {
+    const isLiked = likedProducts.has(product._id);
+
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className={styles.productCard}
+        whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      >
+        <Link to={`/product/${product._id}`} className={styles.productLink}>
+          <div className={styles.imageContainer}>
+            <img
+              src={product.photos?.[0] || "/placeholder.jpg"}
+              alt={product.brand}
+              className={styles.productImage}
+            />
+            <motion.button
+              className={styles.likeButton}
+              onClick={(e) => {
+                e.preventDefault();
+                handleLike(product._id);
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              {isLiked ? <FaHeart color="#ef4444" /> : <FaRegHeart />}
+            </motion.button>
+            {product.discount > 0 && (
+              <div className={styles.discountBadge}>
+                <FaPercent /> {product.discount}% OFF
+              </div>
+            )}
+          </div>
+
+          <div className={styles.productInfo}>
+            <h3 className={styles.productTitle}>
+              {product.brand} {product.modelNumber}
+            </h3>
+            <div className={styles.productMeta}>
+              <div className={styles.rating}>
+                <FaStar className={styles.starIcon} />
+                <span>{product.averageRating?.toFixed(1) || "N/A"}</span>
+              </div>
+              <span className={styles.price}>
+                ${product.price.toLocaleString()}
+              </span>
+            </div>
+            <p className={styles.productDescription}>{product.description}</p>
+            <div className={styles.cardFooter}>
+              <span
+                className={`${styles.status} ${
+                  product.inStock ? styles.inStock : styles.outOfStock
+                }`}
+              >
+                {product.inStock ? "In Stock" : "Out of Stock"}
+              </span>
+              <motion.button
+                className={styles.addToCartButton}
+                onClick={(e) => handleAddToCart(e, product._id)}
+                disabled={!product.inStock}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaShoppingCart /> Add to Cart
+              </motion.button>
+            </div>
+          </div>
+        </Link>
+      </motion.div>
+    );
+  };
+
   if (loading) {
     return (
       <div className={styles.loadingScreen}>
@@ -449,6 +511,18 @@ const Home = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <h2>Error loading products</h2>
+        <p>{error}</p>
+        <button onClick={fetchProducts} className={styles.retryButton}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       className={styles.home}
@@ -456,7 +530,6 @@ const Home = () => {
       animate="visible"
       variants={containerVariants}
     >
-      {/* Hero Section with Animation */}
       <motion.div
         className={styles.hero}
         initial={{ opacity: 0, y: -50 }}
@@ -482,7 +555,6 @@ const Home = () => {
         </div>
       </motion.div>
 
-      {/* Promotional Banner with Animation */}
       <motion.div className={styles.promoBanner} variants={containerVariants}>
         <div className={styles.promoItem}>
           <FaPercent />
@@ -498,74 +570,37 @@ const Home = () => {
         </div>
       </motion.div>
 
-      {/* Categories with Animation */}
-      <motion.div className={styles.categories} variants={containerVariants}>
-        <motion.h2 className={styles.sectionTitle} variants={itemVariants}>
-          Shop by Category
-        </motion.h2>
-        <div className={styles.categoryGrid}>
-          <div className={styles.categoryCard}>
-            <FaSnowflake style={iconStyle} />
-            <h3>Split ACs</h3>
-            <p>Perfect for single rooms</p>
-          </div>
-          <div className={styles.categoryCard}>
-            <FaWind style={iconStyle} />
-            <h3>Window ACs</h3>
-            <p>Compact and efficient</p>
-          </div>
-          <div className={styles.categoryCard}>
-            <FaBolt style={iconStyle} />
-            <h3>Inverter ACs</h3>
-            <p>Energy saving technology</p>
-          </div>
-          <div className={styles.categoryCard}>
-            <FaThermometerHalf style={iconStyle} />
-            <h3>Smart ACs</h3>
-            <p>WiFi enabled control</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Enhanced Filters */}
       <div className={styles.filters}>
-        <div className={styles.filterGroup}>
-          <div className={styles.searchWrapper}>
-            <input
-              type="text"
-              placeholder="Search by brand, model, or features..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
+        <div className={styles.searchBar}>
+          <FaSearch className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-          <div className={styles.filterControls}>
-            <div className={styles.filterSelect}>
-              <select
-                value={filterInStock}
-                onChange={(e) => setFilterInStock(e.target.value)}
-              >
-                <option value="all">Availability</option>
-                <option value="inStock">Ready to Install</option>
-                <option value="outOfStock">Pre-Order</option>
-              </select>
-            </div>
+        <div className={styles.filterControls}>
+          <select
+            value={filterInStock}
+            onChange={(e) => setFilterInStock(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="all">All Items</option>
+            <option value="inStock">In Stock</option>
+            <option value="outOfStock">Out of Stock</option>
+          </select>
 
-            <button
-              className={styles.sortButton}
-              onClick={() =>
-                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
-              }
-            >
-              <FaSortAmountDown />
-              Price {sortOrder === "asc" ? "Low to High" : "High to Low"}
-            </button>
-          </div>
+          <button
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            className={styles.sortButton}
+          >
+            <FaSortAmountDown /> {sortOrder === "asc" ? "Price ↑" : "Price ↓"}
+          </button>
         </div>
       </div>
 
-      {/* Active Filters Display */}
       {(searchTerm || filterInStock !== "all") && (
         <div className={styles.activeFilters}>
           {searchTerm && (
@@ -583,7 +618,6 @@ const Home = () => {
         </div>
       )}
 
-      {/* Products Grid with Animation */}
       <motion.div
         className={styles.productsSection}
         variants={containerVariants}
@@ -593,122 +627,7 @@ const Home = () => {
         </motion.h2>
         <div className={styles.products__grid}>
           {!loading && !error && currentItems.length > 0
-            ? currentItems.map((product) => {
-                console.log("Product in grid:", product._id); // Debug log
-                return (
-                  <motion.div
-                    key={product._id}
-                    className={styles.product__card}
-                    variants={itemVariants}
-                    whileHover={{
-                      scale: 1.02,
-                      transition: { duration: 0.2 },
-                    }}
-                    onClick={(e) => handleProductClick(product, e)}
-                  >
-                    <div className={styles.product__imageContainer}>
-                      {/* Add the heart icon here */}
-                      <button
-                        className={styles.likeButton}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleLike(product._id);
-                        }}
-                      >
-                        {likedProducts.has(product._id) ? (
-                          <FaHeart style={{ color: "#e53e3e" }} />
-                        ) : (
-                          <FaRegHeart />
-                        )}
-                      </button>
-                      {product.photos && product.photos.length > 0 ? (
-                        <img
-                          src={getImageUrl(product.photos[0])}
-                          alt={`${product.brand} ${product.modelNumber}`}
-                          className={styles.product__image}
-                          onError={(e) => {
-                            e.target.src = "/placeholder-image.png";
-                            e.target.onerror = null;
-                          }}
-                        />
-                      ) : (
-                        <div className={styles.noImage}>
-                          <FaImage />
-                          <p>Image Coming Soon</p>
-                        </div>
-                      )}
-                      {product.inStock && (
-                        <div className={styles.product__badge}>
-                          Quick Installation Available
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.product__info}>
-                      <div className={styles.product__brand}>
-                        {product.brand}
-                      </div>
-                      <h3 className={styles.product__title}>
-                        {product.modelNumber}
-                      </h3>
-                      <div className={styles.product__features}>
-                        {product.powerConsumption && (
-                          <span className={styles.feature}>
-                            <FaBolt style={iconStyle} />{" "}
-                            {product.powerConsumption}W
-                          </span>
-                        )}
-                        <span className={styles.feature}>
-                          <FaSnowflake style={iconStyle} />{" "}
-                          {product.coolingCapacity || "1.5"} Ton
-                        </span>
-                      </div>
-                      <div className={styles.product__footer}>
-                        <div className={styles.priceSection}>
-                          <div className={styles.product__price}>
-                            ${product.price.toLocaleString()}
-                          </div>
-                          <div className={styles.installment}>
-                            or ${Math.round(product.price / 12)}/mo with EMI
-                          </div>
-                        </div>
-                        <div className={styles.product__actions}>
-                          <button
-                            className={styles.viewDetails__button}
-                            onClick={(e) => handleProductClick(product, e)}
-                          >
-                            View Details
-                          </button>
-                          <AddToCart productId={product._id} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className={styles.ratingActions}>
-                      <button
-                        className={styles.rateButton}
-                        onClick={() => openRatingModal(product._id)}
-                      >
-                        Rate Product
-                      </button>
-                      {productRatings[product._id]?.[0] && (
-                        <button
-                          className={styles.deleteRatingButton}
-                          onClick={() => handleDeleteRating(product._id)}
-                        >
-                          Delete Rating
-                        </button>
-                      )}
-                    </div>
-                    {productRatings[product._id]?.[0] && (
-                      <div className={styles.currentRating}>
-                        <span>
-                          Rating: {productRatings[product._id][0].rating}/5
-                        </span>
-                        <p>{productRatings[product._id][0].comment}</p>
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })
+            ? currentItems.map((product) => renderProductCard(product))
             : !loading &&
               !error && (
                 <div className={styles.noResults}>
@@ -720,7 +639,6 @@ const Home = () => {
         </div>
       </motion.div>
 
-      {/* Why Choose Us Section */}
       <div className={styles.whyChooseUs}>
         <h2 className={styles.sectionTitle}>Why Choose Us</h2>
         <div className={styles.features}>
@@ -742,38 +660,24 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Enhanced Pagination */}
       {!loading && !error && totalPages > 1 && (
         <div className={styles.pagination}>
-          <button
-            onClick={() => paginate(1)}
-            disabled={currentPage === 1}
-            className={styles.pageButton}
-          >
-            First
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => paginate(i + 1)}
+          {[...Array(totalPages)].map((_, index) => (
+            <motion.button
+              key={index + 1}
               className={`${styles.pageButton} ${
-                currentPage === i + 1 ? styles.activePage : ""
+                currentPage === index + 1 ? styles.activePage : ""
               }`}
+              onClick={() => paginate(index + 1)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
-              {i + 1}
-            </button>
+              {index + 1}
+            </motion.button>
           ))}
-          <button
-            onClick={() => paginate(totalPages)}
-            disabled={currentPage === totalPages}
-            className={styles.pageButton}
-          >
-            Last
-          </button>
         </div>
       )}
 
-      {/* Rating Modal */}
       {showRatingModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
@@ -819,7 +723,6 @@ const Home = () => {
         </div>
       )}
 
-      {/* Add the modal to your JSX */}
       {showProductModal && <ProductDetailsModal />}
     </motion.div>
   );
