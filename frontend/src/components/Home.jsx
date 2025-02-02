@@ -567,6 +567,7 @@ const Home = () => {
 
       <div className={styles.filters}>
         <div className={styles.searchBar}>
+          <FaSearch className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search products..."
@@ -594,23 +595,6 @@ const Home = () => {
           </button>
         </div>
       </div>
-
-      {(searchTerm || filterInStock !== "all") && (
-        <div className={styles.activeFilters}>
-          {searchTerm && (
-            <span className={styles.filterTag}>
-              Search: {searchTerm}
-              <button onClick={() => setSearchTerm("")}>×</button>
-            </span>
-          )}
-          {filterInStock !== "all" && (
-            <span className={styles.filterTag}>
-              {filterInStock === "inStock" ? "In Stock" : "Out of Stock"}
-              <button onClick={() => setFilterInStock("all")}>×</button>
-            </span>
-          )}
-        </div>
-      )}
 
       <motion.div
         className={styles.productsSection}
