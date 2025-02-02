@@ -377,56 +377,88 @@ const UserManagement = () => {
             <button onClick={() => fetchUsers(true)}>Retry</button>
           </div>
         ) : (
-          <div className={styles.tableContainer}>
+          <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th onClick={() => handleSort("name")}>
+                  <th className={styles.imageColumn}>Image</th>
+                  <th
+                    onClick={() => handleSort("name")}
+                    className={sortField === "name" ? styles.activeSort : ""}
+                  >
                     Name {getSortIcon("name")}
                   </th>
-                  <th onClick={() => handleSort("email")}>
+                  <th
+                    onClick={() => handleSort("email")}
+                    className={sortField === "email" ? styles.activeSort : ""}
+                  >
                     Email {getSortIcon("email")}
                   </th>
-                  <th onClick={() => handleSort("mobileNumber")}>
+                  <th
+                    onClick={() => handleSort("mobileNumber")}
+                    className={
+                      sortField === "mobileNumber" ? styles.activeSort : ""
+                    }
+                  >
                     Mobile Number {getSortIcon("mobileNumber")}
                   </th>
-                  <th onClick={() => handleSort("role")}>
+                  <th
+                    onClick={() => handleSort("role")}
+                    className={sortField === "role" ? styles.activeSort : ""}
+                  >
                     Role {getSortIcon("role")}
                   </th>
-                  <th onClick={() => handleSort("createdAt")}>
+                  <th
+                    onClick={() => handleSort("createdAt")}
+                    className={
+                      sortField === "createdAt" ? styles.activeSort : ""
+                    }
+                  >
                     Created At {getSortIcon("createdAt")}
                   </th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {getPaginatedUsers().map((user) => renderUserRow(user))}
+                {filteredUsers
+                  .sort((a, b) => {
+                    if (sortOrder === "asc") {
+                      return a[sortField] > b[sortField] ? 1 : -1;
+                    } else {
+                      return a[sortField] < b[sortField] ? 1 : -1;
+                    }
+                  })
+                  .slice((page - 1) * limit, page * limit)
+                  .map((user) => (
+                    <tr key={user._id}>
+                      <td className={styles.imageColumn}>
+                        <div className={styles.avatarContainer}>
+                          <img
+                            src={user.profilePicture || defaultAvatar}
+                            alt={`${user.name}'s avatar`}
+                            className={styles.userAvatar}
+                            onError={(e) => {
+                              e.target.src = defaultAvatar;
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td>{user.name}</td>
+                      <td>{user.email}</td>
+                      <td>{user.mobileNumber}</td>
+                      <td>
+                        <span
+                          className={`${styles.roleBadge} ${
+                            styles[user.role.toLowerCase()]
+                          }`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                      <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
-
-            {filteredUsers.length === 0 ? (
-              <div className={styles.noResults}>
-                <p>No users found matching your search.</p>
-              </div>
-            ) : (
-              <div className={styles.pagination}>
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  <FaChevronLeft />
-                </button>
-                <span>
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  <FaChevronRight />
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>
