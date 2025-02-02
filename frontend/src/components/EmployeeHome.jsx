@@ -1,20 +1,62 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaShoppingBag,
   FaBoxOpen,
   FaChartLine,
   FaClipboardList,
   FaRegClock,
+  FaSpinner,
 } from "react-icons/fa";
 import styles from "./EmployeeHome.module.css";
 
 const EmployeeHome = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Check authentication and role
+    const token = localStorage.getItem("token");
+    const userData = JSON.parse(localStorage.getItem("user"));
+
+    // If no token or user, or if user is not an admin or employee, redirect to not found
+    if (
+      !token ||
+      !userData ||
+      (userData.role !== "Admin" && userData.role !== "Employee")
+    ) {
+      navigate("/not-found");
+      return;
+    }
+
+    setUser(userData);
+
+    // Simulate loading time
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingScreen}>
+        <div className={styles.loadingContent}>
+          <FaSpinner className={styles.loadingSpinner} />
+          <h2>Loading Dashboard</h2>
+          <div className={styles.loadingBar}>
+            <div className={styles.loadingBarFill}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.employeeHome}>
       <div className={styles.employeeHome__header}>
         <div className={styles.headerLeft}>
-          <h2>Employee Dashboard</h2>
+          <h2>Welcome, {user?.name || "User"}</h2>
         </div>
         <div className={styles.headerRight}>
           <div className={styles.dateTime}>

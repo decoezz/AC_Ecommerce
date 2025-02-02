@@ -22,11 +22,21 @@ const AdminHome = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // Check authentication and admin role
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // If no token or user, or if user is not an admin, redirect to not found
+    if (!token || !user || user.role !== "Admin") {
+      navigate("/not-found");
+      return;
+    }
+
     // Simulate loading time
     setTimeout(() => {
       setIsLoading(false);
     }, 1500);
-  }, []);
+  }, [navigate]);
 
   const adminCards = [
     {
