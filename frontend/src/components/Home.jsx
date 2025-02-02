@@ -33,6 +33,11 @@ const largeIconStyle = {
   fontSize: "2.5rem",
 };
 
+const starIconStyle = {
+  color: "#FFD700", // This is a golden yellow color
+  marginRight: "4px",
+};
+
 const Notification = ({ message, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -59,7 +64,6 @@ const Home = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
-  const [likedProducts, setLikedProducts] = useState(new Set());
   const [productRatings, setProductRatings] = useState({});
   const [ratingInput, setRatingInput] = useState({
     productId: null,
@@ -213,18 +217,6 @@ const Home = () => {
       y: 0,
       opacity: 1,
     },
-  };
-
-  const toggleLike = (productId) => {
-    setLikedProducts((prev) => {
-      const newLiked = new Set(prev);
-      if (newLiked.has(productId)) {
-        newLiked.delete(productId);
-      } else {
-        newLiked.add(productId);
-      }
-      return newLiked;
-    });
   };
 
   const openRatingModal = (productId) => {
@@ -393,8 +385,6 @@ const Home = () => {
   };
 
   const renderProductCard = (product) => {
-    const isLiked = likedProducts.has(product._id);
-
     return (
       <motion.div
         key={`product-${product._id}`}
@@ -412,22 +402,6 @@ const Home = () => {
               alt={product.brand}
               className={styles.productImage}
             />
-            <motion.button
-              className={`${styles.likeButton} ${isLiked ? styles.active : ""}`}
-              onClick={(e) => {
-                e.preventDefault();
-                toggleLike(product._id);
-              }}
-              aria-label={isLiked ? "Unlike" : "Like"}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              {isLiked ? (
-                <FaHeart className={styles.heartIcon} />
-              ) : (
-                <FaRegHeart className={styles.heartIcon} />
-              )}
-            </motion.button>
             {product.discount > 0 && (
               <div className={styles.discountBadge}>
                 <FaPercent /> {product.discount}% OFF
@@ -441,7 +415,7 @@ const Home = () => {
             </h3>
             <div className={styles.productMeta}>
               <div className={styles.rating}>
-                <FaStar className={styles.starIcon} />
+                <FaStar className={styles.starIcon} aria-hidden="true" />
                 <span>{product.averageRating?.toFixed(1) || "N/A"}</span>
               </div>
               <span className={styles.price}>

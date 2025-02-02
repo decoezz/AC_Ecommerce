@@ -274,14 +274,17 @@ html {
 .rating {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #ffd700; /* Classic gold color */
-  font-weight: 500;
+  gap: 4px;
+}
+
+.rating svg {
+  color: #ffd700 !important;
 }
 
 .starIcon {
-  color: #ffd700; /* Gold color for stars */
-  font-size: 1.1rem;
+  color: #ffd700 !important;
+  margin-right: 4px;
+  font-size: 1.2em;
 }
 
 .emptyStarIcon {
@@ -1690,4 +1693,8 @@ svg {
     max-width: none;
     padding: 1rem 1.5rem;
   }
+}
+
+.starPath {
+  fill: #ffd700;
 }
