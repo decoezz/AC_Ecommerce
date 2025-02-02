@@ -483,30 +483,28 @@ const Home = () => {
       animate="visible"
       variants={containerVariants}
     >
-      <motion.div
-        className={styles.hero}
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className={styles.hero__content}>
-          <h1 className={styles.hero__title}>Stay Cool & Comfortable</h1>
-          <p className={styles.hero__subtitle}>
+      <div className={styles.heroSection}>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>Stay Cool & Comfortable</h1>
+          <p className={styles.heroSubtitle}>
             Premium Air Conditioners from Top Brands
           </p>
-          <div className={styles.hero__features}>
-            <span>
-              <FaBolt style={iconStyle} /> Energy Efficient
-            </span>
-            <span>
-              <FaLeaf style={iconStyle} /> Eco-Friendly
-            </span>
-            <span>
-              <FaWind style={iconStyle} /> Smart Cooling
-            </span>
+          <div className={styles.heroFeatures}>
+            <div className={styles.featureItem}>
+              <FaBolt />
+              <span>Energy Efficient</span>
+            </div>
+            <div className={styles.featureItem}>
+              <FaLeaf />
+              <span>Eco-Friendly</span>
+            </div>
+            <div className={styles.featureItem}>
+              <FaSnowflake />
+              <span>Smart Cooling</span>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       <div className={styles.filters}>
         <div className={styles.searchBar}>
