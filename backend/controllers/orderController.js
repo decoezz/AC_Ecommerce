@@ -143,14 +143,16 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     for (const item of cart.Items) {
       const product = item.product;
       if (!product.inStock || product.quantityInStock < item.quantity) {
-        throw new AppError(
-          `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
-          400
+        return next(
+          new AppError(
+            `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
+            400
+          )
         );
       }
     }
     // Calculate total amount
-    const totalAmount = cart.totalPrice;
+    const totalAmount = cart.totalPrice * 100;
     // Reduce stock for each item
     for (const item of cart.Items) {
       const product = item.product;
@@ -160,6 +162,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         { session }
       );
     }
+
     // Create new order inside the transaction
     const order = await Order.create(
       [
@@ -173,11 +176,12 @@ exports.createOrder = catchAsync(async (req, res, next) => {
           shippingAddress,
           mobileNumber,
           orderStatus,
-          totalAmount,
+          totalAmount: totalAmount / 100,
         },
       ],
       { session }
     );
+
     // Update user's orders and purchased ACs
     const user = await User.findById(userId).session(session);
     if (!user) {

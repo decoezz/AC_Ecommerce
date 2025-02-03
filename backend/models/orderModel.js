@@ -10,6 +10,7 @@ const orderSchema = mongoose.Schema({
     type: Boolean,
     default: false, // Default to false (not sold in the shop)
   },
+  merchantOrderId: { type: String }, //paymob order id
   items: [
     {
       ac: {
@@ -50,7 +51,7 @@ const orderSchema = mongoose.Schema({
   orderStatus: {
     type: String,
     required: true,
-    enum: ['on hold', 'processing', 'shipped', 'delivered', 'canceled'],
+    enum: ['on hold', 'processing', 'Paid', 'shipped', 'delivered', 'canceled'],
     default: 'on hold',
   },
   totalAmount: {

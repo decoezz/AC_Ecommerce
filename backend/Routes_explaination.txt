@@ -158,3 +158,12 @@ Protected
 --------------------------------------------------------------------------
 DELETE http://127.0.0.1:4000/api/v1/cart/ (Clear the Cart)   (Done)
 Protected
+
+Payment Routes:
+POST http://127.0.0.1:4000/api/v1/payments/initiate-payment (Get the payment Link)
+Protected
+Body:(orderId)
+--------------------------------------------------------------------------
+POST http://127.0.0.1:4000/api/v1/payments/payment-callback (A Url for wether the paymob succeeded or failed)
+Protected
+Body:(orderId,success,payment_reference)
