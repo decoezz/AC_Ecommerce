@@ -10,7 +10,9 @@ const orderSchema = mongoose.Schema({
     type: Boolean,
     default: false, // Default to false (not sold in the shop)
   },
-  merchantOrderId: { type: String }, //paymob order id
+  merchantOrderId: {
+    type: String,
+  },
   items: [
     {
       ac: {
@@ -61,6 +63,11 @@ const orderSchema = mongoose.Schema({
   purchasedAt: {
     type: Date,
     default: Date.now,
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'pending',
   },
 });
 

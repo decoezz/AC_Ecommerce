@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import styles from "./ManageOrders.module.css";
@@ -43,7 +43,6 @@ const ManageOrders = () => {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedOrders, setSelectedOrders] = useState([]);
-  const [bulkAction, setBulkAction] = useState("");
   const [retryAfter, setRetryAfter] = useState(0);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [searchMobile, setSearchMobile] = useState("");
@@ -76,7 +75,6 @@ const ManageOrders = () => {
   ];
 
   const fetchOrders = async () => {
-    // Add loading check to prevent multiple requests
     if (isLoading) return;
 
     try {
@@ -85,7 +83,7 @@ const ManageOrders = () => {
 
       const response = await axios({
         method: "GET",
-        url: "http://127.0.0.1:4000/api/v1/orders/GetOrders",
+        url: `http://127.0.0.1:4000/api/v1/orders/GetOrders?limit=1000`,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -94,10 +92,7 @@ const ManageOrders = () => {
 
       console.log("Fetched orders:", response.data);
 
-      if (
-        response.data.status === "success" &&
-        Array.isArray(response.data.data)
-      ) {
+      if (response.data.status === "success") {
         setOrders(response.data.data);
         setAllOrders(response.data.data);
         setError("");
@@ -106,24 +101,13 @@ const ManageOrders = () => {
       }
     } catch (err) {
       console.error("Error fetching orders:", err);
-      if (err.response?.status === 429) {
-        setError(
-          "Too many requests. Please wait a moment before trying again."
-        );
-        // Add a delay before retrying
-        setTimeout(() => {
-          setError("");
-          setIsLoading(false);
-        }, 5000); // Wait 5 seconds before allowing retry
-        return;
-      }
-      setError(err.response?.data?.message || "Failed to fetch orders");
+      handleError(err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Update useEffect to handle cleanup
+  // Update useEffect to fetch orders once
   useEffect(() => {
     let mounted = true;
 
@@ -137,7 +121,7 @@ const ManageOrders = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, []); // Remove page dependency
 
   const handleError = (err) => {
     console.error("Error:", err);
@@ -800,8 +784,6 @@ const ManageOrders = () => {
               ))}
             </select>
           </div>
-
-          
         </div>
 
         {/* Clear filters button */}

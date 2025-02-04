@@ -45,9 +45,6 @@ const UserManagement = () => {
     passwordConfirm: "",
     role: "Employee",
   });
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterRole] = useState("Employee");
@@ -82,8 +79,9 @@ const UserManagement = () => {
           throw new Error("Authentication required");
         }
 
+        // Add limit parameter to get all users
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/users`,
+          `${import.meta.env.VITE_API_URL}/users?limit=1000`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -93,7 +91,6 @@ const UserManagement = () => {
           const fetchedUsers = response.data.data.users;
           setAllUsers(fetchedUsers);
           setFilteredUsers(fetchedUsers);
-          setTotalPages(Math.ceil(fetchedUsers.length / limit));
           setError("");
         } else {
           setAllUsers([]);
@@ -110,7 +107,7 @@ const UserManagement = () => {
         setIsRefreshing(false);
       }
     },
-    [limit, isRefreshing]
+    [isRefreshing]
   );
 
   useEffect(() => {
@@ -152,7 +149,6 @@ const UserManagement = () => {
 
     if (!searchValue.trim()) {
       setFilteredUsers(allUsers);
-      setTotalPages(Math.ceil(allUsers.length / limit));
       return;
     }
 
@@ -165,8 +161,6 @@ const UserManagement = () => {
     );
 
     setFilteredUsers(filtered);
-    setTotalPages(Math.ceil(filtered.length / limit));
-    setPage(1);
   };
 
   const handleFileChange = (e) => {
@@ -337,12 +331,6 @@ const UserManagement = () => {
     </tr>
   );
 
-  const getPaginatedUsers = () => {
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    return filteredUsers.slice(startIndex, endIndex);
-  };
-
   return (
     <div className={styles.userManagement}>
       <div className={styles.header}>
@@ -429,6 +417,7 @@ const UserManagement = () => {
                   >
                     Created At {getSortIcon("createdAt")}
                   </th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -440,7 +429,6 @@ const UserManagement = () => {
                       return a[sortField] < b[sortField] ? 1 : -1;
                     }
                   })
-                  .slice((page - 1) * limit, page * limit)
                   .map((user) => (
                     <tr key={user._id}>
                       <td className={styles.imageColumn}>
@@ -468,6 +456,14 @@ const UserManagement = () => {
                         </span>
                       </td>
                       <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => handleDeleteClick(user)}
+                        >
+                          <FaTrash />
+                        </button>
+                      </td>
                     </tr>
                   ))}
               </tbody>

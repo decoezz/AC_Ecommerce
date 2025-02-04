@@ -7,5 +7,7 @@ const { protect } = require('../middleware/authMiddleware');
 router.post('/initiate-payment', protect, paymentController.initiatePayment);
 // Route for handling payment callback from Paymob
 router.post('/payment-callback', protect, paymentController.paymentCallBack);
+// Add the new paymob route
+router.post('/paymob', protect, paymentController.handlePaymobPayment);
 
 module.exports = router;

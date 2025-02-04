@@ -11,6 +11,7 @@ import {
   FiMinus,
 } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { PaymentService } from "../services/PaymentService";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -344,18 +345,25 @@ const Cart = () => {
         response.data.status === "success" &&
         response.data.data?.order?._id
       ) {
-        // Clear cart after successful order
-        try {
-          await axios.delete(`${baseURL}/cart`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        } catch (error) {
-          console.error("Error clearing cart:", error);
-        }
+        const orderId = response.data.data.order._id;
 
-        toast.success("Order placed successfully!");
-        // Navigate to orders page instead of checkout
-        navigate("/orders");
+        try {
+          // Get payment URL using PaymentService
+          const paymentUrl = await PaymentService.initiatePaymobPayment(
+            orderId,
+            totalAmount,
+            formData
+          );
+
+          // Store order reference
+          localStorage.setItem("currentOrderId", orderId);
+
+          // Redirect to payment page
+          window.location.href = paymentUrl;
+        } catch (paymentError) {
+          console.error("Payment initiation error:", paymentError);
+          toast.error("Failed to initiate payment. Please try again.");
+        }
       }
     } catch (error) {
       console.error("Checkout error:", error);

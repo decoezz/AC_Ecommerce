@@ -4,6 +4,7 @@
   margin: 0 auto;
   background-color: #f8f9fa;
   min-height: 100vh;
+  padding-bottom: 4rem;
 }
 
 .dashboardHeader {
@@ -185,6 +186,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 2rem;
+  margin-bottom: 2rem;
 }
 
 .orderCard {
@@ -1768,4 +1770,40 @@ h3 {
   color: #374151;
   font-weight: 500;
   white-space: nowrap;
+}
+
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.loadMoreButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.loadMoreButton:hover {
+  background-color: #333;
+}
+
+.loadMoreButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.orderCount {
+  text-align: center;
+  color: #666;
+  margin-top: 1rem;
+  font-size: 0.9rem;
 }

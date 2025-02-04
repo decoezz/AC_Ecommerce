@@ -133,25 +133,37 @@ const ManageProducts = () => {
     return () => clearInterval(intervalId);
   }, [refreshTrigger, navigate]);
 
-  // Combine filtering and sorting in one operation
+  // Update the displayedProducts useMemo to safely handle undefined values
   const displayedProducts = useMemo(() => {
     let result = [...products];
 
     // Apply search filter
-    if (searchTerm) {
-      result = result.filter(
-        (product) =>
-          product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.modelNumber.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      result = result.filter((product) => {
+        // Safely convert values to string and handle undefined/null
+        const brand = (product.brand || "").toLowerCase();
+        const modelNumber = (product.modelNumber || "").toLowerCase();
+        const powerConsumption = String(product.powerConsumption || "");
+        const price = String(product.price || "");
+        const coolingCapacity = String(product.coolingCapacity || "");
+
+        return (
+          brand.includes(searchLower) ||
+          modelNumber.includes(searchLower) ||
+          powerConsumption.includes(searchLower) ||
+          price.includes(searchLower) ||
+          coolingCapacity.includes(searchLower)
+        );
+      });
     }
 
     // Apply sorting
     result.sort((a, b) => {
       if (sortOrder === "asc") {
-        return a.price - b.price;
+        return (a.price || 0) - (b.price || 0);
       }
-      return b.price - a.price;
+      return (b.price || 0) - (a.price || 0);
     });
 
     return result;
@@ -996,13 +1008,15 @@ const ManageProducts = () => {
           </div>
         </div>
         <div className={styles.header}>
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
+          <div className={styles.searchBar}>
+            <input
+              type="text"
+              placeholder="Search by brand, model, price..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
           <button
             className={styles.addNewButton}
             onClick={() => setShowAddForm(true)}
@@ -1057,11 +1071,15 @@ const ManageProducts = () => {
           <FaSync className={styles.spinIcon} />
           <p>Loading products...</p>
         </div>
-      ) : products.length === 0 ? (
+      ) : displayedProducts.length === 0 ? (
         <div className={styles.emptyState}>
           <FaBox style={{ ...iconStyle, fontSize: "3rem" }} />
           <h3>No Products Found</h3>
-          <p>Start by adding your first product</p>
+          <p>
+            {searchTerm
+              ? "No products match your search"
+              : "Start by adding your first product"}
+          </p>
           <button
             className={styles.addButton}
             onClick={() => setShowAddForm(true)}
@@ -1072,7 +1090,7 @@ const ManageProducts = () => {
         </div>
       ) : (
         <div className={styles.productGrid}>
-          {currentItems.map((product) => (
+          {displayedProducts.map((product) => (
             <div key={product._id} className={styles.productCard}>
               <div className={styles.productImage}>
                 {product.photos && product.photos.length > 0 ? (
