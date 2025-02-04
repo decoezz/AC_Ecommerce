@@ -133,7 +133,24 @@ const CreateOrder = () => {
 
       const baseURL = import.meta.env.VITE_API_URL;
 
-      // Format items for API
+      // Validate mobile number format
+      if (!orderData.mobileNumber.trim().match(/^(\+201|01)\d{9}$/)) {
+        throw new Error(
+          "Invalid mobile number format. Must be Egyptian number starting with 01 or +201"
+        );
+      }
+
+      // Validate shipping address
+      if (!orderData.shippingAddress.trim()) {
+        throw new Error("Shipping address is required");
+      }
+
+      // Validate items
+      if (!orderData.items.length) {
+        throw new Error("Order must contain at least one item");
+      }
+
+      // Format items for API - remove modelNumber from payload
       const formattedItems = orderData.items.map((item) => ({
         ac: item.productId,
         quantity: parseInt(item.quantity),
@@ -146,11 +163,16 @@ const CreateOrder = () => {
         items: formattedItems,
       };
 
+      // Debug log: Check final payload
+      console.log("Sending payload to server:", payload);
+
       // Choose endpoint based on order type
       const endpoint =
         orderType === "store"
           ? `${baseURL}/orders/sellEmployee`
           : `${baseURL}/orders`;
+
+      console.log("Using endpoint:", endpoint);
 
       const response = await axios.post(endpoint, payload, {
         headers: {
@@ -158,6 +180,9 @@ const CreateOrder = () => {
           "Content-Type": "application/json",
         },
       });
+
+      // Debug log: Check response
+      console.log("Server response:", response.data);
 
       if (response.data.status === "success") {
         // Show success message
@@ -185,9 +210,22 @@ const CreateOrder = () => {
             { productId: "", modelNumber: "", quantity: 1, priceAtPurchase: 0 },
           ],
         });
+
+        // Clear cart after successful order
+        try {
+          await axios.delete(`${baseURL}/cart`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (clearCartError) {
+          console.error("Error clearing cart:", clearCartError);
+        }
       }
     } catch (err) {
+      // Enhanced error logging
       console.error("Order creation error:", err);
+      console.error("Error response data:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+
       const errorMessage =
         err.response?.data?.message || err.message || "Failed to create order";
 

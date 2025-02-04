@@ -128,84 +128,79 @@ exports.getOrder = catchAsync(async (req, res, next) => {
 //Create an Order
 exports.createOrder = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
-  const { shippingAddress, mobileNumber, orderStatus } = req.body;
+  const { shippingAddress, mobileNumber, items } = req.body;
+
   const session = await Order.startSession();
   session.startTransaction();
+
   try {
-    // Get the user's cart
-    const cart = await Cart.findOne({ user: userId })
-      .populate('Items.product')
-      .session(session);
-    if (!cart || cart.Items.length === 0) {
-      throw new AppError('Cart is empty', 400);
-    }
-    // Check if all items are in stock
-    for (const item of cart.Items) {
-      const product = item.product;
+    // Validate and process each item
+    const orderItems = [];
+    let totalAmount = 0;
+
+    for (const item of items) {
+      const product = await AC.findById(item.ac).session(session);
+      if (!product) {
+        throw new AppError(`Product with ID ${item.ac} not found`, 404);
+      }
+
       if (!product.inStock || product.quantityInStock < item.quantity) {
-        return next(
-          new AppError(
-            `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
-            400
-          )
+        throw new AppError(
+          `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
+          400
         );
       }
-    }
-    // Calculate total amount
-    const totalAmount = cart.totalPrice * 100;
-    // Reduce stock for each item
-    for (const item of cart.Items) {
-      const product = item.product;
-      await AC.updateOne(
-        { _id: product._id },
-        { $inc: { quantityInStock: -item.quantity, unitSold: item.quantity } },
+
+      orderItems.push({
+        ac: product._id,
+        modelNumber: product.modelNumber,
+        quantity: item.quantity,
+        priceAtPurchase: item.priceAtPurchase,
+      });
+
+      totalAmount += item.quantity * item.priceAtPurchase;
+
+      // Update product stock
+      await AC.findByIdAndUpdate(
+        product._id,
+        { $inc: { quantityInStock: -item.quantity } },
         { session }
       );
     }
 
-    // Create new order inside the transaction
+    // Create the order
     const order = await Order.create(
       [
         {
           user: userId,
-          items: cart.Items.map((item) => ({
-            ac: item.product._id,
-            quantity: item.quantity,
-            priceAtPurchase: item.priceAtTimeOfAddition,
-          })),
+          items: orderItems,
+          totalAmount,
           shippingAddress,
           mobileNumber,
-          orderStatus,
-          totalAmount: totalAmount / 100,
+          orderStatus: 'on hold',
+          soldInShop: false,
         },
       ],
       { session }
     );
 
-    // Update user's orders and purchased ACs
+    // Update user's orders
     const user = await User.findById(userId).session(session);
     if (!user) {
       throw new AppError('User not found', 404);
     }
     user.orders.push({ orderId: order[0]._id, orderedAt: Date.now() });
-    user.purchasedAC.push({ items: cart.Items });
     await user.save({ session });
-    // Clear the cart
-    await Cart.findOneAndUpdate(
-      { user: userId },
-      { Items: [], totalPrice: 0 },
-      { session }
-    );
-    // Commit the transaction
+
     await session.commitTransaction();
     session.endSession();
+
     res.status(201).json({
       status: 'success',
-      message: 'Order Placed Successfully',
-      data: { order },
+      message: 'Order Created Successfully',
+      data: { order: order[0] },
     });
   } catch (error) {
-    // If any error occurs, rollback transaction
     await session.abortTransaction();
     session.endSession();
     next(error);
@@ -379,79 +374,88 @@ exports.ChangeOrderStatus = catchAsync(async (req, res, next) => {
 //Employee sell in Shop
 exports.SellInShop = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
-  validateOrderData(req.body);
   const { items, shippingAddress, mobileNumber } = req.body;
-  const orderStatus = 'on hold';
+
   const session = await Order.startSession();
   session.startTransaction();
+
   try {
-    // Check if all items are in stock
+    // Check if all items are in stock and get their model numbers
+    const orderItems = [];
+    let totalAmount = 0;
+
     for (const item of items) {
       const product = await AC.findById(item.ac).session(session);
       if (!product) {
         throw new AppError(`Product with ID ${item.ac} not found`, 404);
       }
+
       if (!product.inStock || product.quantityInStock < item.quantity) {
         throw new AppError(
           `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
           400
         );
       }
-      item.modelNumber = product.modelNumber;
-    }
-    // Calculate total amount
-    const totalAmount = items.reduce(
-      (total, item) => total + item.quantity * item.priceAtPurchase,
-      0
-    );
-    // Reduce stock for each item
-    for (const item of items) {
-      const product = await AC.findById(item.ac).session(session);
-      if (!product || product.quantityInStock < item.quantity) {
-        throw new AppError(
-          `Product ${product.modelNumber} does not have enough stock.`,
-          400
-        );
-      }
-      // Reduce stock
-      await AC.updateOne(
-        { _id: item.ac },
-        { $inc: { quantityInStock: -item.quantity, unitSold: item.quantity } },
+
+      // Add to order items with model number
+      orderItems.push({
+        ac: product._id,
+        modelNumber: product.modelNumber,
+        quantity: parseInt(item.quantity),
+        priceAtPurchase: parseFloat(item.priceAtPurchase),
+      });
+
+      // Calculate total
+      totalAmount += item.quantity * item.priceAtPurchase;
+
+      // Update product stock
+      await AC.findByIdAndUpdate(
+        product._id,
+        {
+          $inc: {
+            quantityInStock: -item.quantity,
+            unitSold: item.quantity,
+          },
+        },
         { session }
       );
     }
-    // Create new order inside the transaction
+
+    // Create the order
     const order = await Order.create(
       [
         {
           user: userId,
-          items,
+          items: orderItems,
           shippingAddress,
           mobileNumber,
-          orderStatus,
+          orderStatus: 'on hold', // Store sales are completed immediately
           totalAmount,
           soldInShop: true,
         },
       ],
       { session }
     );
-    const user = await User.findById(req.user.id).session(session);
+
+    // Update user's orders
+    const user = await User.findById(userId).session(session);
     if (!user) {
       throw new AppError('User not found', 404);
     }
     user.orders.push({ orderId: order[0]._id, orderedAt: Date.now() });
-    user.purchasedAC.push({ items });
+    user.purchasedAC.push({ items: orderItems });
     await user.save({ session });
+
     // Commit the transaction
     await session.commitTransaction();
     session.endSession();
+
     res.status(201).json({
       status: 'success',
-      message: 'Order Placed Successfully',
-      data: { order },
+      message: 'Store Sale Completed Successfully',
+      data: { order: order[0] },
     });
   } catch (error) {
-    // If any error occurs, rollback transaction
     await session.abortTransaction();
     session.endSession();
     next(error);
@@ -475,4 +479,85 @@ exports.getOrdersSoldInShop = catchAsync(async (req, res, next) => {
       orders,
     },
   });
+});
+//Create a Store Order
+exports.createStoreOrder = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  const { shippingAddress, mobileNumber, items } = req.body;
+
+  const session = await Order.startSession();
+  session.startTransaction();
+
+  try {
+    // Validate and process each item
+    const orderItems = [];
+    let totalAmount = 0;
+
+    for (const item of items) {
+      const product = await AC.findById(item.ac).session(session);
+      if (!product) {
+        throw new AppError(`Product with ID ${item.ac} not found`, 404);
+      }
+
+      if (!product.inStock || product.quantityInStock < item.quantity) {
+        throw new AppError(
+          `Product ${product.modelNumber} is out of stock or does not have enough quantity.`,
+          400
+        );
+      }
+
+      orderItems.push({
+        ac: product._id,
+        modelNumber: product.modelNumber,
+        quantity: item.quantity,
+        priceAtPurchase: item.priceAtPurchase,
+      });
+
+      totalAmount += item.quantity * item.priceAtPurchase;
+
+      // Update product stock
+      await AC.findByIdAndUpdate(
+        product._id,
+        { $inc: { quantityInStock: -item.quantity } },
+        { session }
+      );
+    }
+
+    // Create the order
+    const order = await Order.create(
+      [
+        {
+          user: userId,
+          items: orderItems,
+          totalAmount,
+          shippingAddress,
+          mobileNumber,
+          orderStatus: 'completed',
+          soldInShop: true,
+        },
+      ],
+      { session }
+    );
+
+    // Update user's orders
+    const user = await User.findById(userId).session(session);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+    user.orders.push({ orderId: order[0]._id, orderedAt: Date.now() });
+    await user.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Store Sale Completed Successfully',
+      data: { order: order[0] },
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
 });
