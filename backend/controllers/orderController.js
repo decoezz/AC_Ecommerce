@@ -335,8 +335,8 @@ exports.getOrderByMobileNumber = catchAsync(async (req, res, next) => {
   if (mobileNumber.startsWith('+20')) {
     mobileNumber = '0' + mobileNumber.slice(3); // Convert +201111257571 -> 01111257571
   }
-  const order = await Order.findOne({ mobileNumber: mobileNumber });
-  if (!order) {
+  const order = await Order.find({ mobileNumber: mobileNumber });
+  if (!order || order === 0) {
     return next(
       new AppError(
         'There is no Order with this Mobile Number.Please try again later',
