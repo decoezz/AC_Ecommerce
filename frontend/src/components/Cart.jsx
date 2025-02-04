@@ -10,6 +10,7 @@ import {
   FiPlus,
   FiMinus,
 } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -18,6 +19,15 @@ const Cart = () => {
   const [error, setError] = useState(null);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
+  const [formData, setFormData] = useState({
+    phone: "",
+    address: "",
+  });
+  const [formErrors, setFormErrors] = useState({
+    phone: "",
+    address: "",
+  });
   const navigate = useNavigate();
 
   // Add retry delay utility
@@ -255,6 +265,104 @@ const Cart = () => {
     }, 0);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error when user starts typing
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    // Validate phone number (Egyptian format)
+    if (!formData.phone.match(/^(\+201|01)\d{9}$/)) {
+      errors.phone = "Please enter a valid Egyptian phone number";
+    }
+
+    // Validate address
+    if (formData.address.trim().length < 10) {
+      errors.address = "Please enter a complete address (min 10 characters)";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCheckout = async () => {
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields correctly");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login to create an order");
+        return;
+      }
+
+      const totalAmount = cartItems.reduce(
+        (total, item) => total + item.quantity * item.product.price,
+        0
+      );
+
+      const orderItems = cartItems.map((item) => ({
+        ac: item.product._id,
+        quantity: item.quantity,
+        priceAtPurchase: item.product.price,
+        modelNumber: item.product.modelNumber,
+      }));
+
+      const orderPayload = {
+        shippingAddress: formData.address,
+        mobileNumber: formData.phone,
+        items: orderItems,
+        orderStatus: "on hold",
+        totalAmount: totalAmount,
+      };
+
+      console.log("Sending order payload:", orderPayload);
+
+      const baseURL = import.meta.env.VITE_API_URL;
+      const response = await axios.post(`${baseURL}/orders`, orderPayload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Order creation response:", response.data);
+
+      if (
+        response.data.status === "success" &&
+        response.data.data?.order?._id
+      ) {
+        // Clear cart after successful order
+        try {
+          await axios.delete(`${baseURL}/cart`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          console.error("Error clearing cart:", error);
+        }
+
+        toast.success("Order placed successfully!");
+        // Navigate to orders page instead of checkout
+        navigate("/orders");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error(error.response?.data?.message || "Failed to create order");
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -462,13 +570,98 @@ const Cart = () => {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => navigate("/checkout")}
-                className={styles.checkoutButton}
-                disabled={cartItems.length === 0}
-              >
-                Proceed to Checkout
-              </button>
+
+              {!showCheckoutForm ? (
+                <button
+                  onClick={() => setShowCheckoutForm(true)}
+                  className={styles.checkoutButton}
+                  disabled={cartItems.length === 0}
+                >
+                  Proceed to Checkout
+                </button>
+              ) : (
+                <div className={styles.checkoutForm}>
+                  <h3>Order Details</h3>
+
+                  {/* Contact Information */}
+                  <div className={styles.formSection}>
+                    <h4>Contact Information</h4>
+                    <div className={styles.formGroup}>
+                      <label>Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        placeholder="Phone Number (e.g., 01xxxxxxxxx)"
+                        className={`${styles.input} ${
+                          formErrors.phone ? styles.inputError : ""
+                        }`}
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                      />
+                      {formErrors.phone && (
+                        <span className={styles.errorText}>
+                          {formErrors.phone}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Shipping Address */}
+                  <div className={styles.formSection}>
+                    <h4>Shipping Address</h4>
+                    <div className={styles.formGroup}>
+                      <label>Complete Address</label>
+                      <textarea
+                        name="address"
+                        placeholder="Enter your full shipping address"
+                        className={`${styles.input} ${styles.textarea} ${
+                          formErrors.address ? styles.inputError : ""
+                        }`}
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        rows={3}
+                      />
+                      {formErrors.address && (
+                        <span className={styles.errorText}>
+                          {formErrors.address}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Items Summary */}
+                  <div className={styles.formSection}>
+                    <h4>Order Items</h4>
+                    <div className={styles.orderItemsList}>
+                      {cartItems.map((item) => (
+                        <div
+                          key={item.product._id}
+                          className={styles.orderItem}
+                        >
+                          <span className={styles.itemName}>
+                            {item.product.brand} - {item.product.modelNumber}
+                          </span>
+                          <span className={styles.itemQuantity}>
+                            x{item.quantity}
+                          </span>
+                          <span className={styles.itemPrice}>
+                            ${(item.quantity * item.product.price).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Place Order Button */}
+                  <button
+                    onClick={handleCheckout}
+                    className={styles.checkoutButton}
+                    disabled={cartItems.length === 0}
+                  >
+                    Place Order
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
