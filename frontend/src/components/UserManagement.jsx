@@ -115,13 +115,8 @@ const UserManagement = () => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
 
-    // Allow only Admin role for user management
-    if (!token || !user || user.role !== "Admin") {
-      navigate("/not-found");
-      return;
-    }
-
     // Fetch users and other initialization logic
+    
     fetchUsers();
   }, [navigate]);
 

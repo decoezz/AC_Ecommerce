@@ -29,7 +29,6 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 
 const iconStyle = {
   color: "#4338ca",
@@ -62,8 +61,7 @@ const ManageProducts = () => {
   const [itemsPerPage] = useState(8);
   const [showAddForm, setShowAddForm] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const checkServerConnection = async () => {
     try {
@@ -92,14 +90,9 @@ const ManageProducts = () => {
 
   const fetchProducts = async (brand = "") => {
     const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    if (
-      !token ||
-      !user ||
-      (user.role !== "Admin" && user.role !== "Employee")
-    ) {
-      navigate("/not-found");
+    if (!token) {
+      setError("No token found. Please log in.");
+      setLoading(false);
       return;
     }
 
@@ -131,39 +124,27 @@ const ManageProducts = () => {
     // Set up periodic server connection check
     const intervalId = setInterval(checkServerConnection, 30000); // Check every 30 seconds
     return () => clearInterval(intervalId);
-  }, [refreshTrigger, navigate]);
+  }, [refreshTrigger]);
 
-  // Update the displayedProducts useMemo to safely handle undefined values
+  // Combine filtering and sorting in one operation
   const displayedProducts = useMemo(() => {
     let result = [...products];
 
     // Apply search filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase().trim();
-      result = result.filter((product) => {
-        // Safely convert values to string and handle undefined/null
-        const brand = (product.brand || "").toLowerCase();
-        const modelNumber = (product.modelNumber || "").toLowerCase();
-        const powerConsumption = String(product.powerConsumption || "");
-        const price = String(product.price || "");
-        const coolingCapacity = String(product.coolingCapacity || "");
-
-        return (
-          brand.includes(searchLower) ||
-          modelNumber.includes(searchLower) ||
-          powerConsumption.includes(searchLower) ||
-          price.includes(searchLower) ||
-          coolingCapacity.includes(searchLower)
-        );
-      });
+    if (searchTerm) {
+      result = result.filter(
+        (product) =>
+          product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.modelNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     // Apply sorting
     result.sort((a, b) => {
       if (sortOrder === "asc") {
-        return (a.price || 0) - (b.price || 0);
+        return a.price - b.price;
       }
-      return (b.price || 0) - (a.price || 0);
+      return b.price - a.price;
     });
 
     return result;
@@ -1008,15 +989,13 @@ const ManageProducts = () => {
           </div>
         </div>
         <div className={styles.header}>
-          <div className={styles.searchBar}>
-            <input
-              type="text"
-              placeholder="Search by brand, model, price..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
+          />
           <button
             className={styles.addNewButton}
             onClick={() => setShowAddForm(true)}
@@ -1071,15 +1050,11 @@ const ManageProducts = () => {
           <FaSync className={styles.spinIcon} />
           <p>Loading products...</p>
         </div>
-      ) : displayedProducts.length === 0 ? (
+      ) : products.length === 0 ? (
         <div className={styles.emptyState}>
           <FaBox style={{ ...iconStyle, fontSize: "3rem" }} />
           <h3>No Products Found</h3>
-          <p>
-            {searchTerm
-              ? "No products match your search"
-              : "Start by adding your first product"}
-          </p>
+          <p>Start by adding your first product</p>
           <button
             className={styles.addButton}
             onClick={() => setShowAddForm(true)}
@@ -1090,7 +1065,7 @@ const ManageProducts = () => {
         </div>
       ) : (
         <div className={styles.productGrid}>
-          {displayedProducts.map((product) => (
+          {currentItems.map((product) => (
             <div key={product._id} className={styles.productCard}>
               <div className={styles.productImage}>
                 {product.photos && product.photos.length > 0 ? (
@@ -1332,3 +1307,4 @@ const ManageProducts = () => {
 };
 
 export default ManageProducts;
+  
