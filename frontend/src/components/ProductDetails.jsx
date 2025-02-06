@@ -27,54 +27,138 @@ const ProductDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingRatingId, setEditingRatingId] = useState(null);
   const [likedReviews, setLikedReviews] = useState(new Set());
+  const [error, setError] = useState(null);
 
-  // Load product data
   useEffect(() => {
     const loadProduct = async () => {
+      if (!id) {
+        setError("Invalid product ID");
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Try to get fresh data from the API first
+        setLoading(true);
+        setError(null);
+
+        console.log("Current Product ID:", id);
+
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://127.0.0.1:4000/api/v1/products/${id}`,
+          `${import.meta.env.VITE_API_URL}/products`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
           }
         );
-        
-        if (response.data.data) {
-          console.log("Fresh product data:", response.data.data);
-          setProduct(response.data.data);
-          localStorage.setItem("selectedProduct", JSON.stringify(response.data.data));
+
+        // Debug the response structure
+        console.log("Response Data Structure:", {
+          status: response.data.status,
+          totalResults: response.data.totalResults,
+          products: response.data.data.products,
+        });
+
+        if (response.data.status === "success" && response.data.data.products) {
+          // Ensure we're working with an array
+          const products = Array.isArray(response.data.data.products)
+            ? response.data.data.products
+            : Object.values(response.data.data.products);
+
+          const foundProduct = products.find((product) => {
+            // Handle both string IDs and MongoDB-style objects
+            const productId = product._id.$oid || product._id;
+            return productId === id;
+          });
+
+          if (!foundProduct) {
+            throw new Error("Product not found");
+          }
+
+          console.log("Found Product:", foundProduct);
+
+          setProduct(foundProduct);
+          // Set initial rating if user has already rated
+          if (foundProduct.ratings && foundProduct.ratings.length > 0) {
+            const userId = getUserIdFromToken();
+            const userRating = foundProduct.ratings.find(
+              (rating) => (rating.user.$oid || rating.user) === userId
+            );
+            if (userRating) {
+              setUserRating(userRating.rating);
+              setComment(userRating.comment || "");
+            }
+          }
+        } else {
+          throw new Error("Invalid product data received");
         }
       } catch (error) {
-        console.error("Error fetching product:", error);
-        // Fallback to localStorage if API fails
-        const productData = localStorage.getItem("selectedProduct");
-        if (productData) {
-          const parsedProduct = JSON.parse(productData);
-          console.log("Fallback product data:", parsedProduct);
-          setProduct(parsedProduct);
+        console.error("Detailed Error Information:", {
+          error,
+          responseData: error.response?.data,
+          message: error.message,
+          stack: error.stack,
+        });
+
+        if (error.message === "Product not found") {
+          setError("This product is no longer available.");
+          setTimeout(() => {
+            navigate("/shop");
+          }, 2000);
+        } else {
+          setError(
+            error.response?.data?.message ||
+              error.message ||
+              "Unable to load product information"
+          );
         }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadProduct();
-  }, [id]);
+  }, [id, navigate]);
 
+  // Helper function to get user ID from token
+  const getUserIdFromToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+      const decoded = JSON.parse(atob(token.split(".")[1]));
+      return decoded.id;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  // Improved add to cart function with quantity validation
   const handleAddToCart = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Please login to add items to cart");
+        navigate("/login");
+        return;
+      }
+
+      if (!product?._id) {
+        setError("Product not found");
+        return;
+      }
+
+      if (quantity <= 0) {
+        setError("Please select a valid quantity");
+        return;
+      }
+
+      if (quantity > product.quantityInStock) {
+        setError("Quantity exceeds available stock");
         return;
       }
 
       const response = await axios({
         method: "POST",
-        url: "http://127.0.0.1:4000/api/v1/cart",
+        url: `${import.meta.env.VITE_API_URL}/cart`,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -86,20 +170,66 @@ const ProductDetails = () => {
       });
 
       if (response.status === 200 || response.status === 201) {
-        // Show success message with Framer Motion
+        // Show success message
         const successMessage = document.createElement("div");
         successMessage.className = styles.successMessage;
         successMessage.textContent = "Added to cart successfully!";
         document.body.appendChild(successMessage);
 
-        // Remove the message after 2 seconds
         setTimeout(() => {
           document.body.removeChild(successMessage);
         }, 2000);
       }
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert(error.response?.data?.message || "Failed to add item to cart");
+      setError(error.response?.data?.message || "Failed to add item to cart");
+    }
+  };
+
+  // Improved quantity handling
+  const handleQuantityChange = (change) => {
+    const newQuantity = quantity + change;
+    if (newQuantity >= 1 && newQuantity <= (product?.quantityInStock || 0)) {
+      setQuantity(newQuantity);
+    }
+  };
+
+  // Improved rating submission with validation
+  const handleRatingSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      if (userRating === 0) {
+        setError("Please select a rating");
+        return;
+      }
+
+      const response = await axios({
+        method: isEditing ? "PATCH" : "POST",
+        url: `${import.meta.env.VITE_API_URL}/products/ratings/${product._id}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          rating: userRating,
+          comment: comment.trim(),
+          ...(isEditing && { ratingId: editingRatingId }),
+        },
+      });
+
+      if (response.status === 200) {
+        setProduct(response.data.data);
+        setComment("");
+        setUserRating(0);
+        setIsEditing(false);
+        setEditingRatingId(null);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to submit rating");
     }
   };
 
@@ -117,110 +247,6 @@ const ProductDetails = () => {
       ? new Date(dateObject.$date)
       : new Date(dateObject);
     return date.toLocaleDateString();
-  };
-
-  // Function to update a rating
-  const handleUpdateRating = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to update rating");
-        return;
-      }
-
-      // First, check if we have all required data
-      if (!product?._id || !editingRatingId || !userRating) {
-        alert("Missing required data for rating update");
-        return;
-      }
-
-      console.log("Updating rating:", {
-        productId: product._id,
-        ratingId: editingRatingId,
-        rating: userRating,
-        comment,
-      });
-
-      // Update the rating
-      const response = await axios({
-        method: "PATCH",
-        url: `http://127.0.0.1:4000/api/v1/products/ratings/${product._id}`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data: {
-          ratingId: editingRatingId, // Add this to identify which rating to update
-          rating: userRating,
-          comment: comment || "",
-        },
-      });
-
-      if (response.status === 200) {
-        // Get the updated rating from response
-        const updatedRating = response.data.data;
-
-        // Update the product state with new rating
-        const updatedProduct = { ...product };
-        const ratingIndex = updatedProduct.ratings.findIndex(
-          (r) => r._id === editingRatingId
-        );
-
-        if (ratingIndex !== -1) {
-          updatedProduct.ratings[ratingIndex] = {
-            ...updatedProduct.ratings[ratingIndex],
-            rating: userRating,
-            comment: comment,
-            updatedAt: new Date().toISOString(),
-          };
-        }
-
-        setProduct(updatedProduct);
-
-        // Reset form state
-        setIsEditing(false);
-        setEditingRatingId(null);
-        setUserRating(0);
-        setComment("");
-
-        // Show success message
-        alert("Rating updated successfully!");
-      }
-    } catch (error) {
-      console.error("Error updating rating:", error.response?.data || error);
-
-      // Show specific error message
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to update rating";
-
-      alert(errorMessage);
-
-      // Reset form if there's a serious error
-      if (error.response?.status === 500) {
-        setIsEditing(false);
-        setEditingRatingId(null);
-        setUserRating(0);
-        setComment("");
-      }
-    }
-  };
-
-  // Helper function to calculate average rating
-  const calculateAverageRating = (ratings) => {
-    if (!ratings || !Array.isArray(ratings) || ratings.length === 0) {
-      return 0;
-    }
-    const validRatings = ratings.filter(
-      (r) => typeof r.rating === "number" && !isNaN(r.rating)
-    );
-    if (validRatings.length === 0) {
-      return 0;
-    }
-    const sum = validRatings.reduce((acc, curr) => acc + curr.rating, 0);
-    const avg = sum / validRatings.length;
-    return Number(avg.toFixed(1)) || 0;
   };
 
   // Function to delete a rating
@@ -349,48 +375,6 @@ const ProductDetails = () => {
     }
   };
 
-  // Function to add a new rating
-  const handleAddRating = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to add a rating");
-        return;
-      }
-
-      const response = await axios({
-        method: "POST",
-        url: `http://127.0.0.1:4000/api/v1/products/ratings/${product._id}`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data: {
-          rating: userRating,
-          comment: comment,
-        },
-      });
-
-      if (response.status === 200 || response.status === 201) {
-        // Update the product in state directly
-        const updatedProduct = { ...product };
-        updatedProduct.ratings = [
-          ...updatedProduct.ratings,
-          response.data.data,
-        ];
-        setProduct(updatedProduct);
-
-        // Reset form
-        setUserRating(0);
-        setComment("");
-        alert("Rating added successfully!");
-      }
-    } catch (error) {
-      console.error("Error adding rating:", error.response?.data || error);
-      alert(error.response?.data?.message || "Failed to add rating");
-    }
-  };
-
   // Function to like a review
   const handleLikeReview = async (reviewId) => {
     try {
@@ -431,29 +415,9 @@ const ProductDetails = () => {
     if (!token) return false;
 
     // Get user ID from token (you'll need to implement this based on your token structure)
-    const userId = getUserIdFromToken(token);
+    const userId = getUserIdFromToken();
 
     return product.ratings?.some((rating) => rating.user === userId);
-  };
-
-  // Helper function to get user ID from token
-  const getUserIdFromToken = (token) => {
-    try {
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split("")
-          .map((c) => {
-            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-          })
-          .join("")
-      );
-      return JSON.parse(jsonPayload).id;
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      return null;
-    }
   };
 
   // Function to check if user can edit rating
@@ -462,7 +426,7 @@ const ProductDetails = () => {
     if (!token) return false;
 
     try {
-      const userId = getUserIdFromToken(token);
+      const userId = getUserIdFromToken();
       return rating.user === userId;
     } catch (error) {
       console.error("Error checking rating permissions:", error);
@@ -475,7 +439,7 @@ const ProductDetails = () => {
     if (!product) return null;
 
     const hasRated = product.ratings?.some((rating) => {
-      const userId = getUserIdFromToken(localStorage.getItem("token"));
+      const userId = getUserIdFromToken();
       return rating.user === userId;
     });
 
@@ -487,9 +451,7 @@ const ProductDetails = () => {
             className={styles.editButton}
             onClick={() => {
               const userRating = product.ratings.find((rating) => {
-                const userId = getUserIdFromToken(
-                  localStorage.getItem("token")
-                );
+                const userId = getUserIdFromToken();
                 return rating.user === userId;
               });
               if (userRating) {
@@ -536,7 +498,7 @@ const ProductDetails = () => {
         />
         <button
           className={styles.submitButton}
-          onClick={isEditing ? handleUpdateRating : handleAddRating}
+          onClick={handleRatingSubmit}
           disabled={!userRating}
         >
           {isEditing ? "Update Review" : "Submit Review"}
@@ -605,11 +567,41 @@ const ProductDetails = () => {
     );
   };
 
+  // Helper function to calculate average rating
+  const calculateAverageRating = (ratings) => {
+    if (!ratings || !Array.isArray(ratings) || ratings.length === 0) {
+      return 0;
+    }
+    const validRatings = ratings.filter(
+      (r) => typeof r.rating === "number" && !isNaN(r.rating)
+    );
+    if (validRatings.length === 0) {
+      return 0;
+    }
+    const sum = validRatings.reduce((acc, curr) => acc + curr.rating, 0);
+    const avg = sum / validRatings.length;
+    return Number(avg.toFixed(1)) || 0;
+  };
+
+  // Improved loading state
   if (loading) {
     return (
       <div className={styles.loading}>
-        <div className={styles.spinner}></div>
+        <div className={styles.loadingSpinner} />
         <p>Loading product details...</p>
+      </div>
+    );
+  }
+
+  // Improved error state
+  if (error) {
+    return (
+      <div className={styles.error}>
+        <h2>Oops!</h2>
+        <p>{error}</p>
+        <button className={styles.backButton} onClick={() => navigate("/shop")}>
+          Return to Shop
+        </button>
       </div>
     );
   }
@@ -618,7 +610,11 @@ const ProductDetails = () => {
     return (
       <div className={styles.error}>
         <h2>Product Not Found</h2>
-        <button className={styles.backButton} onClick={() => navigate(-1)}>
+        <p>The requested product could not be found.</p>
+        <button
+          className={styles.backButton}
+          onClick={() => navigate("/products")}
+        >
           Back to Products
         </button>
       </div>
@@ -718,7 +714,8 @@ const ProductDetails = () => {
               {product?.inStock ? (
                 <>
                   <span className={styles.dot}></span>
-                  In Stock ({product?.quantityInStock || 0} {product?.quantityInStock === 1 ? 'unit' : 'units'})
+                  In Stock ({product?.quantityInStock || 0}{" "}
+                  {product?.quantityInStock === 1 ? "unit" : "units"})
                 </>
               ) : (
                 <>
@@ -761,16 +758,14 @@ const ProductDetails = () => {
           <div className={styles.addToCart}>
             <div className={styles.quantitySelector}>
               <button
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                onClick={() => handleQuantityChange(-1)}
                 disabled={quantity <= 1}
               >
                 -
               </button>
               <span>{quantity}</span>
               <button
-                onClick={() =>
-                  setQuantity((q) => Math.min(product.quantityInStock, q + 1))
-                }
+                onClick={() => handleQuantityChange(1)}
                 disabled={quantity >= product.quantityInStock}
               >
                 +
