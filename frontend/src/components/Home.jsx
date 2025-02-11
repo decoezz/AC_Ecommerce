@@ -474,185 +474,197 @@ const Home = () => {
   }
 
   return (
-    <motion.div
-      className={styles.home}
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <div className={styles.heroSection}>
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>Stay Cool & Comfortable</h1>
-          <p className={styles.heroSubtitle}>
-            Premium Air Conditioners from Top Brands
-          </p>
-          <div className={styles.heroFeatures}>
-            <div className={styles.featureItem}>
-              <FaBolt />
-              <span>Energy Efficient</span>
-            </div>
-            <div className={styles.featureItem}>
-              <FaLeaf />
-              <span>Eco-Friendly</span>
-            </div>
-            <div className={styles.featureItem}>
-              <FaSnowflake />
-              <span>Smart Cooling</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.searchAndFilters}>
-        <div className={styles.searchBar}>
-          <FaSearch className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder="Search for products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className={styles.filterGroup}>
-          <div className={styles.filterButton}>
-            <FaFilter className={styles.filterIcon} />
-            <select
-              className={styles.filterSelect}
-              value={filterInStock}
-              onChange={(e) => setFilterInStock(e.target.value)}
-            >
-              <option value="all">All Items</option>
-              <option value="inStock">In Stock</option>
-              <option value="outOfStock">Out of Stock</option>
-            </select>
-          </div>
-
-          <button
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className={styles.sortButton}
-          >
-            <FaSortAmountDown />
-            {sortOrder === "asc" ? "Price ↑" : "Price ↓"}
-          </button>
-        </div>
-      </div>
-
-      <motion.div
-        className={styles.productsSection}
-        variants={containerVariants}
-      >
-        <motion.h2 className={styles.sectionTitle} variants={itemVariants}>
-          Featured Air Conditioners
-        </motion.h2>
-        <div className={styles.products__grid}>
-          {!loading && !error && currentItems.length > 0
-            ? currentItems.map((product) => renderProductCard(product))
-            : !loading &&
-              !error && (
-                <div className={styles.noResults}>
-                  <FaSearch style={largeIconStyle} />
-                  <h3>No Products Found</h3>
-                  <p>Try adjusting your search criteria</p>
+    <div className={styles.homeContainer}>
+      <div className={styles.gridPattern} />
+      <div className={styles.contentWrapper}>
+        <motion.div
+          className={styles.home}
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
+          <div className={styles.heroSection}>
+            <div className={styles.heroContent}>
+              <h1 className={styles.heroTitle}>Stay Cool & Comfortable</h1>
+              <p className={styles.heroSubtitle}>
+                Premium Air Conditioners from Top Brands
+              </p>
+              <div className={styles.heroFeatures}>
+                <div className={styles.featureItem}>
+                  <FaBolt />
+                  <span>Energy Efficient</span>
                 </div>
-              )}
-        </div>
-      </motion.div>
-
-      {!loading && !error && totalPages > 1 && (
-        <div className={styles.pagination}>
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <motion.button
-              key={`page-${index + 1}`}
-              className={`${styles.pageButton} ${
-                currentPage === index + 1 ? styles.activePage : ""
-              }`}
-              onClick={() => paginate(index + 1)}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              {index + 1}
-            </motion.button>
-          ))}
-        </div>
-      )}
-
-      {showRatingModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <h2>Rate Product</h2>
-            <form onSubmit={handleRating}>
-              <div className={styles.ratingInput}>
-                <label>Rating (1-5):</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={ratingInput.rating}
-                  onChange={(e) =>
-                    setRatingInput((prev) => ({
-                      ...prev,
-                      rating: parseInt(e.target.value),
-                    }))
-                  }
-                  required
-                />
+                <div className={styles.featureItem}>
+                  <FaLeaf />
+                  <span>Eco-Friendly</span>
+                </div>
+                <div className={styles.featureItem}>
+                  <FaSnowflake />
+                  <span>Smart Cooling</span>
+                </div>
               </div>
-              <div className={styles.commentInput}>
-                <label>Comment:</label>
-                <textarea
-                  value={ratingInput.comment}
-                  onChange={(e) =>
-                    setRatingInput((prev) => ({
-                      ...prev,
-                      comment: e.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-              <div className={styles.modalActions}>
-                <button type="submit">Submit</button>
-                <button type="button" onClick={() => setShowRatingModal(false)}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showProductModal && <ProductDetailsModal />}
-
-      {showNotification && (
-        <Notification
-          message="Product added to cart successfully! 🛍️"
-          onClose={() => setShowNotification(false)}
-        />
-      )}
-
-      <footer className={styles.footer}>
-        <div className={styles.footerContent}>
-          <div className={styles.footerInfo}>
-            <div className={styles.copyrightBar}>
-              <p>© {new Date().getFullYear()} AC Shop. All rights reserved.</p>
-            </div>
-            <div className={styles.footerLinks}>
-              <span>Quality Assurance</span>
-              <span className={styles.divider}>•</span>
-              <span>Professional Installation</span>
-              <span className={styles.divider}>•</span>
-              <span>24/7 Support</span>
-              <span className={styles.divider}>•</span>
-              <span>Energy Efficient Solutions</span>
-            </div>
-            <div className={styles.footerContact}>
-              <p>Contact: support@acshop.com | Tel: (123) 456-7890</p>
             </div>
           </div>
-        </div>
-      </footer>
-    </motion.div>
+
+          <div className={styles.searchAndFilters}>
+            <div className={styles.searchBar}>
+              <FaSearch className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search for products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <div className={styles.filterButton}>
+                <FaFilter className={styles.filterIcon} />
+                <select
+                  className={styles.filterSelect}
+                  value={filterInStock}
+                  onChange={(e) => setFilterInStock(e.target.value)}
+                >
+                  <option value="all">All Items</option>
+                  <option value="inStock">In Stock</option>
+                  <option value="outOfStock">Out of Stock</option>
+                </select>
+              </div>
+
+              <button
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                className={styles.sortButton}
+              >
+                <FaSortAmountDown />
+                {sortOrder === "asc" ? "Price ↑" : "Price ↓"}
+              </button>
+            </div>
+          </div>
+
+          <motion.div
+            className={styles.productsSection}
+            variants={containerVariants}
+          >
+            <motion.h2 className={styles.sectionTitle} variants={itemVariants}>
+              Featured Air Conditioners
+            </motion.h2>
+            <div className={styles.products__grid}>
+              {!loading && !error && currentItems.length > 0
+                ? currentItems.map((product) => renderProductCard(product))
+                : !loading &&
+                  !error && (
+                    <div className={styles.noResults}>
+                      <FaSearch style={largeIconStyle} />
+                      <h3>No Products Found</h3>
+                      <p>Try adjusting your search criteria</p>
+                    </div>
+                  )}
+            </div>
+          </motion.div>
+
+          {!loading && !error && totalPages > 1 && (
+            <div className={styles.pagination}>
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <motion.button
+                  key={`page-${index + 1}`}
+                  className={`${styles.pageButton} ${
+                    currentPage === index + 1 ? styles.activePage : ""
+                  }`}
+                  onClick={() => paginate(index + 1)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {index + 1}
+                </motion.button>
+              ))}
+            </div>
+          )}
+
+          {showRatingModal && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modal}>
+                <h2>Rate Product</h2>
+                <form onSubmit={handleRating}>
+                  <div className={styles.ratingInput}>
+                    <label>Rating (1-5):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={ratingInput.rating}
+                      onChange={(e) =>
+                        setRatingInput((prev) => ({
+                          ...prev,
+                          rating: parseInt(e.target.value),
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className={styles.commentInput}>
+                    <label>Comment:</label>
+                    <textarea
+                      value={ratingInput.comment}
+                      onChange={(e) =>
+                        setRatingInput((prev) => ({
+                          ...prev,
+                          comment: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className={styles.modalActions}>
+                    <button type="submit">Submit</button>
+                    <button
+                      type="button"
+                      onClick={() => setShowRatingModal(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {showProductModal && <ProductDetailsModal />}
+
+          {showNotification && (
+            <Notification
+              message="Product added to cart successfully! 🛍️"
+              onClose={() => setShowNotification(false)}
+            />
+          )}
+
+          <footer className={styles.footer}>
+            <div className={styles.footerContent}>
+              <div className={styles.footerInfo}>
+                <div className={styles.copyrightBar}>
+                  <p>
+                    © {new Date().getFullYear()} AC Shop. All rights reserved.
+                  </p>
+                </div>
+                <div className={styles.footerLinks}>
+                  <span>Quality Assurance</span>
+                  <span className={styles.divider}>•</span>
+                  <span>Professional Installation</span>
+                  <span className={styles.divider}>•</span>
+                  <span>24/7 Support</span>
+                  <span className={styles.divider}>•</span>
+                  <span>Energy Efficient Solutions</span>
+                </div>
+                <div className={styles.footerContact}>
+                  <p>Contact: support@acshop.com | Tel: (123) 456-7890</p>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </motion.div>
+      </div>
+    </div>
   );
 };
 
