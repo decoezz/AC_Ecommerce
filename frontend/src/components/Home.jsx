@@ -389,11 +389,10 @@ const Home = () => {
       <motion.div
         key={`product-${product._id}`}
         layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className={styles.productCard}
-        whileHover={{ y: -5, transition: { duration: 0.2 } }}
       >
         <Link to={`/product/${product._id}`} className={styles.productLink}>
           <div className={styles.imageContainer}>
@@ -403,9 +402,7 @@ const Home = () => {
               className={styles.productImage}
             />
             {product.discount > 0 && (
-              <div className={styles.discountBadge}>
-                <FaPercent /> {product.discount}% OFF
-              </div>
+              <div className={styles.discountBadge}>-{product.discount}%</div>
             )}
           </div>
 
@@ -413,34 +410,34 @@ const Home = () => {
             <h3 className={styles.productTitle}>
               {product.brand} {product.modelNumber}
             </h3>
+
             <div className={styles.productMeta}>
-              <div className={styles.rating}>
-                <FaStar className={styles.starIcon} aria-hidden="true" />
-                <span>{product.averageRating?.toFixed(1) || "N/A"}</span>
-              </div>
               <span className={styles.price}>
                 ${product.price.toLocaleString()}
               </span>
+              <span className={styles.rating}>
+                <FaStar style={starIconStyle} />{" "}
+                {product.averageRating?.toFixed(1) || "N/A"}
+              </span>
             </div>
-            <p className={styles.productDescription}>{product.description}</p>
-            <div className={styles.cardFooter}>
+
+            <div className={styles.stockInfo}>
               <span
-                className={`${styles.status} ${
+                className={`${styles.stockStatus} ${
                   product.inStock ? styles.inStock : styles.outOfStock
                 }`}
               >
                 {product.inStock ? "In Stock" : "Out of Stock"}
               </span>
-              <motion.button
-                className={styles.addToCartButton}
-                onClick={(e) => handleAddToCart(e, product._id)}
-                disabled={!product.inStock}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FaShoppingCart /> Add to Cart
-              </motion.button>
             </div>
+
+            <button
+              className={styles.addToCartButton}
+              onClick={(e) => handleAddToCart(e, product._id)}
+              disabled={!product.inStock}
+            >
+              {product.inStock ? "Add to Cart" : "Out of Stock"}
+            </button>
           </div>
         </Link>
       </motion.div>
@@ -516,7 +513,7 @@ const Home = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className={styles.filterGroup}>
           <div className={styles.filterButton}>
             <FaFilter className={styles.filterIcon} />
@@ -561,92 +558,6 @@ const Home = () => {
               )}
         </div>
       </motion.div>
-
-      <section className={styles.whyChooseUs}>
-        <motion.h2
-          className={styles.whyTitle}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          Why Choose Us
-        </motion.h2>
-        <div className={styles.featureGrid}>
-          <motion.div
-            className={styles.featureCard}
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <div className={styles.iconWrapper}>
-              <FaTools className={styles.featureIcon} />
-            </div>
-            <h3>Expert Installation</h3>
-            <p>Professional installation by certified technicians</p>
-            <ul className={styles.featureList}>
-              <li>
-                <FaCheckCircle /> Certified Experts
-              </li>
-              <li>
-                <FaCheckCircle /> Quick Service
-              </li>
-              <li>
-                <FaCheckCircle /> Quality Assurance
-              </li>
-            </ul>
-          </motion.div>
-
-          <motion.div
-            className={styles.featureCard}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <div className={styles.iconWrapper}>
-              <FaBolt className={styles.featureIcon} />
-            </div>
-            <h3>Energy Efficient</h3>
-            <p>Save on electricity bills with our energy-rated ACs</p>
-            <ul className={styles.featureList}>
-              <li>
-                <FaCheckCircle /> Lower Bills
-              </li>
-              <li>
-                <FaCheckCircle /> Smart Technology
-              </li>
-              <li>
-                <FaCheckCircle /> Power Saving
-              </li>
-            </ul>
-          </motion.div>
-
-          <motion.div
-            className={styles.featureCard}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <div className={styles.iconWrapper}>
-              <FaLeaf className={styles.featureIcon} />
-            </div>
-            <h3>Eco-Friendly</h3>
-            <p>Environmental-friendly cooling solutions</p>
-            <ul className={styles.featureList}>
-              <li>
-                <FaCheckCircle /> Green Technology
-              </li>
-              <li>
-                <FaCheckCircle /> Sustainable
-              </li>
-              <li>
-                <FaCheckCircle /> Clean Air
-              </li>
-            </ul>
-          </motion.div>
-        </div>
-      </section>
 
       {!loading && !error && totalPages > 1 && (
         <div className={styles.pagination}>
@@ -719,6 +630,14 @@ const Home = () => {
           onClose={() => setShowNotification(false)}
         />
       )}
+
+      <footer className={styles.footer}>
+        <div className={styles.footerContent}>
+          <div className={styles.copyrightBar}>
+            <p>© {new Date().getFullYear()} AC Shop. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </motion.div>
   );
 };
