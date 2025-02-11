@@ -991,18 +991,66 @@ html {
   padding: 0 1rem;
 }
 
-.copyrightBar {
+.footerInfo {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .copyrightBar p {
   color: #64748b;
   font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.footerLinks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.divider {
+  color: #94a3b8;
+}
+
+.footerContact {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.footerContact p {
+  margin: 0;
 }
 
 @media (max-width: 768px) {
   .footer {
     padding: 1rem 0;
     margin-top: 2rem;
+  }
+
+  .footerLinks {
+    gap: 0.5rem;
+    padding: 0 1rem;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .footerLinks {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .footerContact {
+    padding: 0 1rem;
   }
 }

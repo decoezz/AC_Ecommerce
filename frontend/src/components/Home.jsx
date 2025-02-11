@@ -633,8 +633,22 @@ const Home = () => {
 
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
-          <div className={styles.copyrightBar}>
-            <p>© {new Date().getFullYear()} AC Shop. All rights reserved.</p>
+          <div className={styles.footerInfo}>
+            <div className={styles.copyrightBar}>
+              <p>© {new Date().getFullYear()} AC Shop. All rights reserved.</p>
+            </div>
+            <div className={styles.footerLinks}>
+              <span>Quality Assurance</span>
+              <span className={styles.divider}>•</span>
+              <span>Professional Installation</span>
+              <span className={styles.divider}>•</span>
+              <span>24/7 Support</span>
+              <span className={styles.divider}>•</span>
+              <span>Energy Efficient Solutions</span>
+            </div>
+            <div className={styles.footerContact}>
+              <p>Contact: support@acshop.com | Tel: (123) 456-7890</p>
+            </div>
           </div>
         </div>
       </footer>
