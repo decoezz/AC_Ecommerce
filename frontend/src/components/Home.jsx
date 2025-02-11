@@ -444,6 +444,53 @@ const Home = () => {
     );
   };
 
+  const HeroSection = () => (
+    <div className={styles.heroSection}>
+      <div className={styles.heroContent}>
+        <h1 className={styles.heroTitle}>Premium AC Solutions</h1>
+        <p className={styles.heroSubtitle}>Smart Cooling for Modern Homes</p>
+        <div className={styles.heroFeatures}>
+          <div className={styles.featureCard}>
+            <div className={styles.featureIcon}>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+              </svg>
+            </div>
+            <span>Fast</span>
+          </div>
+          <div className={styles.featureCard}>
+            <div className={styles.featureIcon}>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 15a3 3 0 100-6 3 3 0 000 6z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+              </svg>
+            </div>
+            <span>Smart</span>
+          </div>
+          <div className={styles.featureCard}>
+            <div className={styles.featureIcon}>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M22 12h-4l-3 9L9 3l-3 9H2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+              </svg>
+            </div>
+            <span>Efficient</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className={styles.loadingScreen}>
@@ -483,28 +530,7 @@ const Home = () => {
           animate="visible"
           variants={containerVariants}
         >
-          <div className={styles.heroSection}>
-            <div className={styles.heroContent}>
-              <h1 className={styles.heroTitle}>Stay Cool & Comfortable</h1>
-              <p className={styles.heroSubtitle}>
-                Premium Air Conditioners from Top Brands
-              </p>
-              <div className={styles.heroFeatures}>
-                <div className={styles.featureItem}>
-                  <FaBolt />
-                  <span>Energy Efficient</span>
-                </div>
-                <div className={styles.featureItem}>
-                  <FaLeaf />
-                  <span>Eco-Friendly</span>
-                </div>
-                <div className={styles.featureItem}>
-                  <FaSnowflake />
-                  <span>Smart Cooling</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <HeroSection />
 
           <div className={styles.searchAndFilters}>
             <div className={styles.searchBar}>

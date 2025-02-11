@@ -860,112 +860,108 @@ html {
 
 /* Hero Section - More Compact */
 .heroSection {
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  padding: 3rem 1rem;
-  border-radius: 12px;
-  max-width: 1400px;
-  margin: 90px auto 2rem;
-  width: calc(100% - 2rem);
   position: relative;
-  overflow: hidden;
-  animation: gradientShift 15s ease infinite;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+.heroBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("/path-to-your-image.jpg") center/cover;
+  opacity: 0.1;
 }
 
-.heroSection::before {
-  content: "";
+.heroOverlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 70%
+    circle at 50% 50%,
+    rgba(79, 70, 229, 0.3) 0%,
+    rgba(236, 72, 153, 0.3) 100%
   );
-  animation: pulse 4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.8;
-  }
-  100% {
-    opacity: 0.5;
-  }
 }
 
 .heroContent {
-  text-align: center;
   max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  text-align: center;
+  z-index: 1;
 }
 
 .heroTitle {
-  color: #ffffff;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
+  color: #1e293b;
   margin-bottom: 0.5rem;
   line-height: 1.2;
+  background: linear-gradient(to right, #1e293b, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .heroSubtitle {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1.125rem;
+  font-size: 1rem;
+  color: #64748b;
   margin-bottom: 1.5rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .heroFeatures {
   display: flex;
   justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0 auto;
+  max-width: 600px;
 }
 
-.featureItem {
+.featureCard {
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100px;
 }
 
-.featureItem:hover {
+.featureCard:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.featureItem svg {
-  color: #ffffff;
-  font-size: 1.25rem;
+.featureIcon {
+  width: 24px;
+  height: 24px;
+  color: #3b82f6;
 }
 
-.featureItem span {
-  color: #ffffff;
-  font-size: 1rem;
+.featureCard span {
+  color: #475569;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .heroSection {
-    margin-top: 80px;
+    min-height: 240px;
     padding: 1.5rem 1rem;
   }
 
@@ -974,46 +970,49 @@ html {
   }
 
   .heroSubtitle {
-    font-size: 1rem;
-    margin-bottom: 1rem;
+    font-size: 0.9rem;
   }
 
   .heroFeatures {
     gap: 1rem;
   }
 
-  .featureItem {
-    padding: 0.4rem 0.75rem;
-  }
-
-  .featureItem svg {
-    font-size: 1rem;
-  }
-
-  .featureItem span {
-    font-size: 0.875rem;
+  .featureCard {
+    width: 90px;
+    padding: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
   .heroSection {
-    margin-top: 70px;
-    margin: 70px 0.5rem 1rem;
+    min-height: 220px;
+    padding: 1.25rem 0.75rem;
   }
 
   .heroTitle {
     font-size: 1.5rem;
   }
 
+  .heroSubtitle {
+    font-size: 0.85rem;
+  }
+
   .heroFeatures {
-    flex-direction: column;
-    align-items: center;
     gap: 0.75rem;
   }
 
-  .featureItem {
-    width: 100%;
-    justify-content: center;
+  .featureCard {
+    width: 80px;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .featureIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .featureCard span {
+    font-size: 0.75rem;
   }
 }
 
