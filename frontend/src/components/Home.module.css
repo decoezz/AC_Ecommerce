@@ -1659,3 +1659,102 @@ body {
   max-width: 100%;
   overflow-x: hidden;
 }
+
+/* Snow/Ice Animation Container */
+.snowContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Individual Snowflakes */
+.snowflake {
+  position: fixed;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: snowfall linear infinite;
+}
+
+/* Generate multiple sizes of snowflakes */
+.snowflake:nth-child(3n) {
+  width: 4px;
+  height: 4px;
+  animation-duration: 6s;
+  animation-delay: -2s;
+}
+
+.snowflake:nth-child(3n + 1) {
+  width: 6px;
+  height: 6px;
+  animation-duration: 8s;
+  animation-delay: -4s;
+}
+
+.snowflake:nth-child(3n + 2) {
+  width: 8px;
+  height: 8px;
+  animation-duration: 10s;
+  animation-delay: -6s;
+}
+
+/* Snowfall Animation */
+@keyframes snowfall {
+  0% {
+    transform: translateY(-100vh) translateX(0);
+    opacity: 1;
+  }
+  20% {
+    transform: translateY(-80vh) translateX(20px);
+    opacity: 0.8;
+  }
+  40% {
+    transform: translateY(-60vh) translateX(-20px);
+    opacity: 0.6;
+  }
+  60% {
+    transform: translateY(-40vh) translateX(20px);
+    opacity: 0.8;
+  }
+  80% {
+    transform: translateY(-20vh) translateX(-20px);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0.2;
+  }
+}
+
+/* Update homeContainer to accommodate the snow effect */
+.homeContainer {
+  position: relative;
+  /* ... existing styles ... */
+  background: linear-gradient(135deg, #e8f0ff 0%, #d4e4ff 100%);
+}
+
+/* Add a subtle blur effect to the background */
+.homeContainer::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure content stays above the snow */
+.contentWrapper {
+  position: relative;
+  z-index: 1;
+  /* ... existing styles ... */
+}
